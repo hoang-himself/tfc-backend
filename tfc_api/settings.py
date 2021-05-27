@@ -31,8 +31,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    # 'database_app',
-    # 'cors_headers',
+    'database_app',
     'django_extensions',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -80,8 +79,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'tfc',
-        'USER': 'WhiteWolf21',
-        'PASSWORD': 'Ohyeahbaby123',
+        'USER': 'tfc_admin',
+        'PASSWORD': 'i-am-admin',
         'HOST': 'localhost',
         'PORT': 5432,
     }
