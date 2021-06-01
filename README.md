@@ -1,25 +1,54 @@
 # The Forum Center RESTful API
 
-API for The Forum Center
+API/Backend for The Forum Center on Debian
 
-## Getting Started
+## Clone the repo
 
-### (Recommended) Initialize a virtual environment
-
-```bash
-python3 -m venv ./venv;
-source ./venv/bin/activate;
-pip install --upgrade pip setuptools wheel;
-pip install pip-tools;
-```
-
-### Install dependencies
+- HTTPS
 
 ```bash
-pip install --upgrade -r requirements.txt
+git clone https://github.com/Smithienious/tfc_api.git -b development --depth 1
 ```
 
-### Running the server
+- SSH
+
+```bash
+git clone git@github.com:Smithienious/tfc_api.git -b development --depth 1
+```
+
+## Change working directory
+
+```bash
+cd tfc_api
+```
+
+## (Recommended) Initialize a virtual environment
+
+```bash
+python3 -m venv ./venv
+source ./venv/bin/activate
+```
+
+## Install tools and dependencies
+
+```bash
+pip install --upgrade pip setuptools wheel pip-tools postgresql
+pip-sync
+```
+
+## (First-time setup) Configure PostgreSQL server
+
+```bash
+sudo service postgresql start
+sudo -u postgres psql \
+-c "CREATE DATABASE tfc;" \
+-c "CREATE ROLE tfc_admin WITH ENCRYPTED PASSWORD 'i-am-admin' LOGIN SUPERUSER;" \
+-c "GRANT ALL PRIVILEGES ON DATABASE tfc TO tfc_admin;"
+python manage.py migrate
+python manage.py makemigrations
+```
+
+## Running the server
 
 ```bash
 python manage.py <host>:<port>
@@ -28,6 +57,6 @@ python manage.py <host>:<port>
 `<host>` defaults to `127.0.0.1`\
 `<port>` defaults to `8000`
 
-### Running tests
+## Running tests
 
 `TODO`
