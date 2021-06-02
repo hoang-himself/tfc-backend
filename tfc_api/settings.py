@@ -20,7 +20,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-ggf9@it@w3ax3vbs-@hg7fn08m!imqciw0+i)3&@f$$)kv$=w+'
+SECRET_KEY = 'django-insecure--8!vy@qfe!q3&w4!*t_gn@(jfc43*!(3)_ttm=#e*=80qm-gn@'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -31,6 +31,8 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'database_app',
+    'django_extensions',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -75,8 +77,12 @@ WSGI_APPLICATION = 'tfc_api.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'tfc',
+        'USER': 'tfc_admin',
+        'PASSWORD': 'i-am-admin',
+        'HOST': 'localhost',
+        'PORT': 5432,
     }
 }
 
