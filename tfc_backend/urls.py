@@ -17,6 +17,7 @@ from django.contrib import admin
 from django.urls import include, path
 
 urlpatterns = [
+    # path('',), # TODO Redirect to docs
     path('admin/', admin.site.urls),
     path('api/', include('api_gateway.urls'), name='api_gateway'),
 ]
