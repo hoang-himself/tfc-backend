@@ -39,7 +39,7 @@ class role(models.Model):
     updated_at = models.FloatField()
 
 
-class person(models.Model):
+class user(models.Model):
     id = models.AutoField(primary_key=True)
     uuid = models.TextField(unique=True)
     uid = models.TextField(unique=True)
@@ -104,7 +104,7 @@ class class_student(models.Model):
         on_delete=models.CASCADE
     )
     student_id = models.ForeignKey(
-        person,
+        user,
         default='',
         on_delete=models.CASCADE)
     created_at = models.FloatField()
@@ -119,7 +119,7 @@ class class_teacher(models.Model):
         on_delete=models.CASCADE
     )
     teacher_id = models.ForeignKey(
-        person,
+        user,
         default='',
         on_delete=models.CASCADE)
     created_at = models.FloatField()
@@ -152,7 +152,7 @@ class attendance(models.Model):
         on_delete=models.CASCADE
     )
     student_id = models.ForeignKey(
-        person,
+        user,
         default='',
         on_delete=models.CASCADE
     )
@@ -175,7 +175,7 @@ class attendance(models.Model):
 class log(models.Model):
     id = models.AutoField(primary_key=True)
     user_id = models.ForeignKey(
-        person,
+        user,
         default='',
         on_delete=models.DO_NOTHING
     )

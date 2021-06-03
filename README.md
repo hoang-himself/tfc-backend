@@ -7,19 +7,19 @@ API/Backend for The Forum Center on Debian
 - HTTPS
 
 ```bash
-git clone https://github.com/Smithienious/tfc_api.git -b development --depth 1
+git clone https://github.com/Smithienious/tfc_backend.git -b development --depth 1
 ```
 
 - SSH
 
 ```bash
-git clone git@github.com:Smithienious/tfc_api.git -b development --depth 1
+git clone git@github.com:Smithienious/tfc_backend.git -b development --depth 1
 ```
 
 ## Change working directory
 
 ```bash
-cd tfc_api
+cd tfc_backend
 ```
 
 ## (Recommended) Initialize a virtual environment
@@ -32,7 +32,9 @@ source ./venv/bin/activate
 ## Install tools and dependencies
 
 ```bash
-pip install --upgrade pip setuptools wheel pip-tools postgresql
+sudo apt update
+sudo apt install -y postgresql
+pip install --upgrade pip setuptools wheel pip-tools
 pip-sync
 ```
 
