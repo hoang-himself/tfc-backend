@@ -3,7 +3,7 @@ from rest_framework.authentication import BaseAuthentication
 from django.middleware.csrf import CsrfViewMiddleware
 from rest_framework import exceptions
 from django.conf import settings
-from master_data.models import user
+from database_app.models import user
 
 user_model = user
 

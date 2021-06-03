@@ -32,8 +32,8 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     # Main
-    'api_app',
-    'data_center',
+    'api_gateway',
+    'database_app',
 
     # 3rd party
     'corsheaders',
@@ -163,7 +163,7 @@ REFRESH_TOKEN_SECRET = 'LHESTERREF5F6E4R7R3E8T2S9E1H0L'
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'api_app.authentication.SafeJWTAuthentication',
+        'api_gateway.authentication.SafeJWTAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
