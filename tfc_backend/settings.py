@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
 from pathlib import Path
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -88,16 +89,17 @@ WSGI_APPLICATION = 'tfc_backend.wsgi.application'
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'tfc',
-        'USER': 'tfc_admin',
-        'PASSWORD': 'i-am-admin',
-        'HOST': 'localhost',
-        'PORT': 5432,
-    }
+    'default': dj_database_url.config(conn_max_age=600, ssl_require=True)
 }
 
+# Tries to import local settings, if on dev,
+# import everything in local_settings, which overrides the dj_database_url
+# If on heroku, local_settings won't be found so just ignore the ImportError
+# https://gist.github.com/Smithienious/46c47ecc06e098d76a7c1b0fa701a5f9
+try:
+    from .local_settings import *
+except ImportError:
+    pass
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
