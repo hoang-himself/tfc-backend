@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from database_app.models import *
+from master_data.models import *
 
 
 class MetatableSerializer(serializers.ModelSerializer):

@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from setuptools import setup, find_packages
 
+# https://github.com/pypa/sampleproject/blob/main/setup.py
 setup(
     name='tfc-backend',
     version='0.0.1',
