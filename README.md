@@ -32,9 +32,7 @@ source ./venv/bin/activate
 ## Install tools and dependencies
 
 ```bash
-sudo apt update
-sudo apt install -y postgresql
-pip install --upgrade pip setuptools wheel pip-tools
+pip install --upgrade pip setuptools wheel pip-tools postgresql
 pip-sync
 ```
 
