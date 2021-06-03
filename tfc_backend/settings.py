@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 
 from pathlib import Path
 import dj_database_url
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -26,7 +27,7 @@ SECRET_KEY = 'django-insecure--8!vy@qfe!q3&w4!*t_gn@(jfc43*!(3)_ttm=#e*=80qm-gn@
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -87,7 +88,6 @@ WSGI_APPLICATION = 'tfc_backend.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
-
 DATABASES = {
     'default': dj_database_url.config(conn_max_age=600, ssl_require=True)
 }
@@ -101,9 +101,9 @@ try:
 except ImportError:
     pass
 
+
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -139,14 +139,13 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-STATICFILES_DIRS = [
-    str(BASE_DIR.joinpath('static')),
-]
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
 
 # CORS policies
 # https://pypi.org/project/django-cors-headers/
@@ -158,6 +157,7 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 # CORS_ALLOWED_ORIGIN_REGEXES = []
+
 
 # JWT policies
 # https://django-rest-framework-simplejwt.readthedocs.io/en/latest/

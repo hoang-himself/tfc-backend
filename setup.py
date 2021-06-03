@@ -45,7 +45,7 @@ setup(
     #   },
     scripts=['manage.py'],
     project_urls={
-        'Bug Reports': 'https://github.com/Smithienious/tfc_backend/issues',
+        'Bug Reports': 'https://github.com/Smithienious/tfc-backend/issues',
     },
     # To provide executable scripts, use entry points in preference to the
     # "scripts" keyword. Entry points provide cross-platform support and allow
