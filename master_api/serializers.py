@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from master_db.models import *
+from master_db.models import metatable, branch, setting, role, user, course, class_metadata, class_student, class_teacher, session, attendance, log
 
 
 class MetatableSerializer(serializers.ModelSerializer):

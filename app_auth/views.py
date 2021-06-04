@@ -8,8 +8,8 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 
-from master_db.models import *
-from master_api.serializers import *
+from master_db.models import metatable, branch, setting, role, user, course, class_metadata, class_student, class_teacher, session, attendance, log
+from master_api.serializers import MetatableSerializer, BranchSerializer, SettingSerializer, RoleSerializer, UserSerializer, CourseSerializer, ClassMetadataSerializer, ClassMetadataSerializer, ClassMetadataSerializer, SessionSerializer, AttendanceSerializer, LogSerializer
 
 import datetime
 import jwt
