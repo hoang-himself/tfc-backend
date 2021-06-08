@@ -22,7 +22,7 @@ django==3.2.3
     #   djangorestframework
     #   djangorestframework-simplejwt
     #   tfc-backend (setup.py)
-djangorestframework-simplejwt==4.7.0
+djangorestframework-simplejwt==4.5.0
     # via tfc-backend (setup.py)
 djangorestframework==3.12.4
     # via
@@ -30,8 +30,10 @@ djangorestframework==3.12.4
     #   tfc-backend (setup.py)
 psycopg2-binary==2.8.6
     # via tfc-backend (setup.py)
-pyjwt==2.1.0
-    # via djangorestframework-simplejwt
+pyjwt==1.7.1
+    # via
+    #   djangorestframework-simplejwt
+    #   tfc-backend (setup.py)
 pytz==2021.1
     # via django
 sqlparse==0.4.1

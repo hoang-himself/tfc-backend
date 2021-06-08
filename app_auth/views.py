@@ -23,8 +23,8 @@ def __get_setting_session(request):
 
 def __generate_access_token(user):
     access_token_payload = {
-        'user_id': user.get("user_id"),
-        'exp': datetime.datetime.utcnow() + datetime.timedelta(days=0, minutes=5),
+        'aud': user.get("id"),
+        'exp': datetime.datetime.utcnow() + datetime.timedelta(days=0, minutes=15),
         'iat': datetime.datetime.utcnow(),
     }
 
@@ -33,78 +33,91 @@ def __generate_access_token(user):
     Use simpleJWT==4.5.0 and PyJWT==1.7.1 as workaround
     '''
     access_token = jwt.encode(access_token_payload,
-                              settings.SECRET_KEY, algorithm='HS256').decode('utf-8')
+                              settings.SECRET_KEY,
+                              algorithm='HS256').decode('utf-8')
     return access_token
 
 
 def __generate_refresh_token(user):
     refresh_token_payload = {
-        'user_id': user.get("user_id"),
-        'exp': datetime.datetime.utcnow() + datetime.timedelta(days=7),
+        'aud': user.get("id"),
+        'exp': datetime.datetime.utcnow() + datetime.timedelta(days=14),
         'iat': datetime.datetime.utcnow()
     }
-    refresh_token = jwt.encode(
-        refresh_token_payload, settings.REFRESH_TOKEN_SECRET, algorithm='HS256').decode('utf-8')
-
+    refresh_token = jwt.encode(refresh_token_payload,
+                               settings.REFRESH_TOKEN_SECRET,
+                               algorithm='HS256').decode('utf-8')
     return refresh_token
+
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def login(request):
+    response = Response()
+    response.status_code = status.HTTP_400_BAD_REQUEST
+    response.data = {
+        "result": "error",
+        "errors": [
+            {
+                "status": 400,
+                "title": "validation_exception",
+                "detail": "",
+                "context": None
+            }
+        ]
+    }
+
     email = request.POST.get('email')
     password = request.POST.get('password')
 
-    if email is None or password is None:
-        return Response(status=status.HTTP_400_BAD_REQUEST,
-                        data={
-                            "message": "Invalid payload",
-                            "details": {
-                                "email": "This field is required",
-                                "password": "This field is required"
-                            }
-                        }
-                        )
+    if email is None:
+        response.data['errors'][0]['detail'] = "Error validating email: The property email is required"
+        return response
+    elif password is None:
+        response.data['errors'][0]['detail'] = "Error validating password: The property password is required"
+        return response
+    elif email == '':
+        response.data['errors'][0]['detail'] = "Error validating email: Must be at least 1 character long"
+        return response
+    elif password == '':
+        response.data['errors'][0]['detail'] = "Error validating password: Must be at least 1 character long"
+        return response
 
-    true_user = user.objects.filter(user_email=email).first()
+    true_user = user.objects.filter(email=email).first()
     if(true_user is None):
-        return Response(status=status.HTTP_400_BAD_REQUEST,
-                        data={
-                            "message": "Invalid payload",
-                            "details": {
-                                "email": "Email not found",
-                                "password": ""
-                            }
-                        }
-                        )
+        response.data['errors'][0]['detail'] = "Error validating email: Email not found"
+        return response
 
     true_user = UserSerializer(true_user).data
+    if not check_password(password, true_user.get("password")):
+        response.status_code = status.HTTP_400_BAD_REQUEST
+        response.data = {
+            "result": "error",
+            "errors": [
+                {
+                    "status": 400,
+                    "title": "validation_exception",
+                    "detail": "",
+                    "context": None
+                }
+            ]
+        }
 
-    if not check_password(password, true_user.get("user_password")):
-        return Response(status=status.HTTP_400_BAD_REQUEST,
-                        data={
-                            "message": "Invalid payload",
-                            "details": {
-                                "email": "",
-                                "password": "Bad password"
-                            }
-                        }
-                        )
-
-    del true_user['user_id']
-    del true_user['user_password']
+    del true_user['id']
+    del true_user['password']
 
     access_token = __generate_access_token(true_user)
     refresh_token = __generate_refresh_token(true_user)
 
-    response = Response()
-    response.set_cookie(key='refreshtoken', value=refresh_token, httponly=True)
-    response.status = status.HTTP_202_ACCEPTED
+    response.set_cookie(key='refresh', value=refresh_token, httponly=True)
+    response.status_code = status.HTTP_202_ACCEPTED
     response.data = {
-        "message": "OK",
-        "access_token": access_token,
-        "details": true_user
+        "result": "ok",
+        "token": {
+            "access": access_token,
+            "refresh": refresh_token
+        }
     }
-
     return response
 
 
