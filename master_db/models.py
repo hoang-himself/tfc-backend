@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import AbstractUser
 
 """
 Why use TextField() over CharField() for PostgreSQL
@@ -7,7 +8,7 @@ Why use TextField() over CharField() for PostgreSQL
 """
 
 
-class metatable(models.Model):
+class Metatable(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.TextField()
     created_at = models.FloatField()
@@ -17,7 +18,7 @@ class metatable(models.Model):
         return self.name
 
 
-class branch(models.Model):
+class Branch(models.Model):
     id = models.AutoField(primary_key=True)
     addr = models.TextField()
     short_adr = models.TextField()
@@ -28,7 +29,7 @@ class branch(models.Model):
         return self.short_adr
 
 
-class setting(models.Model):
+class Setting(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.TextField()
     value = models.TextField()
@@ -39,7 +40,7 @@ class setting(models.Model):
         return self.name
 
 
-class role(models.Model):
+class Role(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.TextField(unique=True)
     student = models.BooleanField()
@@ -54,7 +55,7 @@ class role(models.Model):
         return self.name
 
 
-class user(models.Model):
+class User(models.Model):
     id = models.AutoField(primary_key=True)
     uuid = models.TextField(unique=True)
     uid = models.TextField(unique=True)
@@ -66,7 +67,7 @@ class user(models.Model):
     male = models.BooleanField(null=True, blank=True)
     password = models.TextField()
     address = models.TextField()
-    role_id = models.ForeignKey(role, default='', on_delete=models.CASCADE)
+    role_id = models.ForeignKey(Role, default='', on_delete=models.CASCADE)
     avatar = models.TextField(null=True, blank=True)
     created_at = models.FloatField()
     updated_at = models.FloatField()
@@ -84,7 +85,7 @@ class user(models.Model):
         return f'{self.first_name} {self.last_name}'
 
 
-class course(models.Model):
+class Course(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.TextField(unique=True)
     desc = models.TextField()
@@ -104,9 +105,9 @@ class course(models.Model):
         return f'{self.cert} {self.name}'
 
 
-class class_metadata(models.Model):
+class ClassMetadata(models.Model):
     id = models.AutoField(primary_key=True)
-    course_id = models.ForeignKey(course, default='', on_delete=models.CASCADE)
+    course_id = models.ForeignKey(Course, default='', on_delete=models.CASCADE)
     name = models.TextField(unique=True)
     status = models.TextField()
     created_at = models.FloatField()
@@ -121,15 +122,15 @@ class class_metadata(models.Model):
         return f'{self.status} {self.course_id} {self.name}'
 
 
-class class_student(models.Model):
+class ClassStudent(models.Model):
     id = models.AutoField(primary_key=True)
     classroom_id = models.ForeignKey(
-        class_metadata,
+        ClassMetadata,
         default='',
         on_delete=models.CASCADE
     )
     student_id = models.ForeignKey(
-        user,
+        User,
         default='',
         on_delete=models.CASCADE)
     created_at = models.FloatField()
@@ -139,15 +140,15 @@ class class_student(models.Model):
         return f'{self.classrom_id} {self.student_id}'
 
 
-class class_teacher(models.Model):
+class ClassTeacher(models.Model):
     id = models.AutoField(primary_key=True)
     classroom_id = models.ForeignKey(
-        class_metadata,
+        ClassMetadata,
         default='',
         on_delete=models.CASCADE
     )
     teacher_id = models.ForeignKey(
-        user,
+        User,
         default='',
         on_delete=models.CASCADE)
     created_at = models.FloatField()
@@ -157,10 +158,10 @@ class class_teacher(models.Model):
         return f'{self.classroom_id} {self.teacher_id}'
 
 
-class session(models.Model):
+class Session(models.Model):
     id = models.AutoField(primary_key=True)
     classroom_id = models.ForeignKey(
-        class_metadata,
+        ClassMetadata,
         default='',
         on_delete=models.CASCADE
     )
@@ -178,15 +179,15 @@ class session(models.Model):
         return f'{self.classroom_id} {self.time_start} {self.time_end}'
 
 
-class attendance(models.Model):
+class Attendance(models.Model):
     id = models.AutoField(primary_key=True)
     session_id = models.ForeignKey(
-        session,
+        Session,
         default='',
         on_delete=models.CASCADE
     )
     student_id = models.ForeignKey(
-        user,
+        User,
         default='',
         on_delete=models.CASCADE
     )
@@ -210,15 +211,15 @@ class attendance(models.Model):
         return f'{self.session_id} {self.status} {self.student_id}'
 
 
-class log(models.Model):
+class Log(models.Model):
     id = models.AutoField(primary_key=True)
     user_id = models.ForeignKey(
-        user,
+        User,
         default='',
         on_delete=models.DO_NOTHING
     )
     table_id = models.ForeignKey(
-        metatable,
+        Metatable,
         default='',
         on_delete=models.DO_NOTHING
     )

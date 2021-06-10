@@ -1,15 +1,15 @@
 from django.contrib import admin
-from .models import metatable, branch, setting, role, user, course, class_metadata, class_student, class_teacher, session, attendance, log
+from .models import Metatable, Branch, Setting, Role, User, Course, ClassMetadata, ClassStudent, ClassTeacher, Session, Attendance, Log
 
-admin.site.register(metatable)
-admin.site.register(branch)
-admin.site.register(setting)
-admin.site.register(role)
-admin.site.register(user)
-admin.site.register(course)
-admin.site.register(class_metadata)
-admin.site.register(class_student)
-admin.site.register(class_teacher)
-admin.site.register(session)
-admin.site.register(attendance)
-admin.site.register(log)
+admin.site.register(Metatable)
+admin.site.register(Branch)
+admin.site.register(Setting)
+admin.site.register(Role)
+admin.site.register(User)
+admin.site.register(Course)
+admin.site.register(ClassMetadata)
+admin.site.register(ClassStudent)
+admin.site.register(ClassTeacher)
+admin.site.register(Session)
+admin.site.register(Attendance)
+admin.site.register(Log)

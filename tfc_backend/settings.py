@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'django_filters',
     'django_extensions',
     'rest_framework',
+    'rest_framework_simplejwt.token_blacklist',
 
     # Built-in
     'django.contrib.admin',
@@ -99,6 +100,12 @@ DATABASES = {
     }
 }
 
+
+# Custom user model
+# https://docs.djangoproject.com/en/3.2/topics/auth/customizing/#specifying-a-custom-user-model
+# AUTH_USER_MODEL = 'master_db.user'
+
+
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
 AUTH_PASSWORD_VALIDATORS = [
@@ -152,9 +159,6 @@ CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
     #
 ]
-
-# CORS_ALLOWED_ORIGIN_REGEXES = []
-
 
 # JWT policies
 # https://django-rest-framework-simplejwt.readthedocs.io/en/latest/

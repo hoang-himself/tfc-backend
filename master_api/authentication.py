@@ -3,9 +3,9 @@ from rest_framework.authentication import BaseAuthentication
 from django.middleware.csrf import CsrfViewMiddleware
 from rest_framework import exceptions
 from django.conf import settings
-from master_db.models import user
+from master_db.models import User
 
-user_model = user
+user_model = User
 
 
 class CSRFCheck(CsrfViewMiddleware):

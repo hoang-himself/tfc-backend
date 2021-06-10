@@ -2,13 +2,14 @@ from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.files.storage import FileSystemStorage
 from django.contrib.auth.hashers import make_password, check_password
+
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 
-from master_db.models import metatable, branch, setting, role, user, course, class_metadata, class_student, class_teacher, session, attendance, log
+from master_db.models import Metatable, Branch, Setting, Role, User, Course, ClassMetadata, ClassStudent, ClassTeacher, Session, Attendance, Log
 from master_api.serializers import MetatableSerializer, BranchSerializer, SettingSerializer, RoleSerializer, UserSerializer, CourseSerializer, ClassMetadataSerializer, ClassMetadataSerializer, ClassMetadataSerializer, SessionSerializer, AttendanceSerializer, LogSerializer
 
 import datetime
@@ -18,7 +19,7 @@ import jwt
 def __get_setting_session(request):
     if request.session.get('setting', -1) != -1:
         request.session.set('setting', SettingSerializer(
-            setting.objects.all(), many=True).data)
+            Setting.objects.all(), many=True).data)
 
 
 def __generate_access_token(user):
@@ -28,10 +29,6 @@ def __generate_access_token(user):
         'iat': datetime.datetime.utcnow(),
     }
 
-    '''
-    Upstream bug
-    Use simpleJWT==4.5.0 and PyJWT==1.7.1 as workaround
-    '''
     access_token = jwt.encode(access_token_payload,
                               settings.SECRET_KEY,
                               algorithm='HS256').decode('utf-8')
@@ -83,7 +80,7 @@ def login(request):
         response.data['errors'][0]['detail'] = "Error validating password: Must be at least 1 character long"
         return response
 
-    true_user = user.objects.filter(email=email).first()
+    true_user = User.objects.filter(email=email).first()
     if(true_user is None):
         response.data['errors'][0]['detail'] = "Error validating email: Email not found"
         return response
