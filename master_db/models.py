@@ -9,7 +9,6 @@ Why use TextField() over CharField() for PostgreSQL
 
 
 class Metatable(models.Model):
-    id = models.AutoField(primary_key=True)
     name = models.TextField()
     created_at = models.FloatField()
     updated_at = models.FloatField()
@@ -19,7 +18,6 @@ class Metatable(models.Model):
 
 
 class Branch(models.Model):
-    id = models.AutoField(primary_key=True)
     addr = models.TextField()
     short_adr = models.TextField()
     created_at = models.FloatField()
@@ -30,7 +28,6 @@ class Branch(models.Model):
 
 
 class Setting(models.Model):
-    id = models.AutoField(primary_key=True)
     name = models.TextField()
     value = models.TextField()
     created_at = models.FloatField()
@@ -41,7 +38,6 @@ class Setting(models.Model):
 
 
 class Role(models.Model):
-    id = models.AutoField(primary_key=True)
     name = models.TextField(unique=True)
     student = models.BooleanField()
     teacher = models.BooleanField()
@@ -56,7 +52,6 @@ class Role(models.Model):
 
 
 class User(models.Model):
-    id = models.AutoField(primary_key=True)
     uuid = models.TextField(unique=True)
     uid = models.TextField(unique=True)
     first_name = models.TextField()
