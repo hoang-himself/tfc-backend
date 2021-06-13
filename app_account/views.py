@@ -307,10 +307,13 @@ def sendActivation(request):
         "exp": datetime.datetime.timestamp(datetime.datetime.utcnow() + datetime.timedelta(days=1)),
         "iat": datetime.datetime.timestamp(datetime.datetime.utcnow()),
     }
+    
+    #TODO: Encrypt data
     data = json.dumps(data).encode('utf-8')
-    key = base64.urlsafe_b64encode(b"PBKDFJHMACGEJHYRSNJSWASHYESGYWSA") # a byte-like string with length = 32
+    key = base64.urlsafe_b64encode(b"PBKDFJHMACGEJHYRSNJSWASHYESGYWSA") #! Hardcoding: A byte-like string with length = 32
     cipher_suite = Fernet(key)
     data = cipher_suite.encrypt(data)
+    
     return Response(
         data={
             'details': 'Ok',
@@ -323,8 +326,9 @@ def sendActivation(request):
 @permission_classes([AllowAny])
 def activate(request):
     code = request.GET.get('code')
-    print(code)
-    key = base64.urlsafe_b64encode(b"PBKDFJHMACGEJHYRSNJSWASHYESGYWSA")
+    
+    #TODO: Decrypt data
+    key = base64.urlsafe_b64encode(b"PBKDFJHMACGEJHYRSNJSWASHYESGYWSA") #! Hardcoding: A byte-like string with length = 32
     cipher_suite = Fernet(key)
     data = json.loads(cipher_suite.decrypt(code.encode('utf-8')))
     
