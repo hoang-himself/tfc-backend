@@ -267,7 +267,7 @@ def create_user(request):
                 data={
                     "details": "Ok",
                     "message": "Successfully created",
-                    "user": serializer.data, #! Just use for testing
+                    "user": serializer.data, #! For testing purposes only - should be removed
                 },
                 status=status.HTTP_201_CREATED
             )
@@ -332,24 +332,36 @@ def activate(request):
     cipher_suite = Fernet(key)
     data = json.loads(cipher_suite.decrypt(code.encode('utf-8')))
     
+    # Check exp
     now = datetime.datetime.utcnow().timestamp()
-    if now < data['exp']:
-        exp = 'Still acceptable'
-    else:
-        exp = 'Already expired'
+    if now > data['exp']:
+        return Response(
+            data={
+                "details": "Error",
+                "message": "Token expired",
+            },
+            status=status.HTTP_400_BAD_REQUEST
+        )
     
-    if User.objects.filter(email=data['aud']).exists():
-        exist = 'This account can be activated'
-    else:
-        exist = 'Account not found'
+    # Check for existence
+    user = User.objects.filter(email=data['aud'])
+    if not user.exists():
+        return Response(
+            data={
+                "details": "Error",
+                "message": "Email not found",
+            },
+            status=status.HTTP_400_BAD_REQUEST
+        )
     
     #TODO: Activate account
+    user = user.first()
     
     return Response(
         data={
-            "exp": exp,
-            "exist": exist,
-            "data": data,
+            "details": "Ok",
+            "message": "Account Activated",
+            "user": UserSerializer(user).data, #! For testing purposes only - should be removed
         },
         status=status.HTTP_200_OK
     )
