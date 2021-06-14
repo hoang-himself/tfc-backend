@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.files.storage import FileSystemStorage
+from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password, check_password
 
 from rest_framework import status
@@ -9,7 +10,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 
-from master_db.models import Metatable, Branch, Setting, Role, User, Course, ClassMetadata, ClassStudent, ClassTeacher, Session, Attendance, Log
+from master_db.models import Metatable, Branch, Setting, Role, Course, ClassMetadata, ClassStudent, ClassTeacher, Session, Attendance, Log
 from master_api.serializers import MetatableSerializer, BranchSerializer, SettingSerializer, RoleSerializer, UserSerializer, CourseSerializer, ClassMetadataSerializer, ClassMetadataSerializer, ClassMetadataSerializer, SessionSerializer, AttendanceSerializer, LogSerializer
 
 import datetime
@@ -80,7 +81,7 @@ def login(request):
         response.data['errors'][0]['detail'] = "Error validating password: Must be at least 1 character long"
         return response
 
-    true_user = User.objects.filter(email=email).first()
+    true_user = get_user_model().objects.filter(email=email).first()
     if(true_user is None):
         response.data['errors'][0]['detail'] = "Error validating email: Email not found"
         return response
