@@ -6,7 +6,7 @@ setup(
     name='tfc-backend',
     version='0.0.1',
     license='Proprietary',
-    setup_requires=["setuptools_scm>=6.0.1"],
+    setup_requires=['setuptools_scm'],
     use_scm_version=True,
     classifiers=[  # https://pypi.org/classifiers/
         # How mature is this project? Common values are
@@ -30,6 +30,7 @@ setup(
     python_requires='>=3.8, <4',
     include_package_data=True,
     install_requires=[
+        'cryptography',
         'django',
         'django-cors-headers',
         'django-extensions',

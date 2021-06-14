@@ -9,7 +9,7 @@ urlpatterns = [
     path('activate', views.activate, name='activate'),
     path('send-recover', views.sendRecover, name='send-recover'),
     path('recover', views.recoverUser, name='recover'),
-    
+
     # Check validation
     path('email-check', views.emailCheck, name='email-check'),
     path('mobile-check', views.mobileCheck, name='mobile-check'),
