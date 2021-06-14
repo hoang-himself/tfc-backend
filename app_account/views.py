@@ -1,11 +1,12 @@
 from django.conf import settings
+from django.contrib.auth import get_user_model
 
 from rest_framework import serializers, status
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 from rest_framework.decorators import api_view, permission_classes
 
-from master_db.models import User, Role
+from master_db.models import Role
 from master_api.serializers import UserSerializer
 
 import re
@@ -18,6 +19,8 @@ import base64
 from cryptography.fernet import Fernet
 
 # Create your views here.
+
+
 def emailValidate(email) -> bool:
     """
         Validate email address format
@@ -49,7 +52,7 @@ def emailResponse(email) -> Response:
         )
 
     # Check for existence
-    if User.objects.filter(email=email).exists():
+    if get_user_model().objects.filter(email=email).exists():
         return Response(
             data={
                 "details": "Error",
@@ -108,7 +111,7 @@ def mobileResponse(mobile) -> Response:
         )
 
     # Check for existence
-    if User.objects.filter(mobile=mobile).exists():
+    if get_user_model().objects.filter(mobile=mobile).exists():
         return Response(
             data={
                 "details": "Error",
@@ -141,7 +144,7 @@ def usernameResponse(uid) -> Response:
         Return response when checking signed up UID in db
     """
     # Check for existence
-    if User.objects.filter(uid=uid).exists():
+    if get_user_model().objects.filter(uid=uid).exists():
         return Response(
             data={
                 "details": "Error",
@@ -174,7 +177,7 @@ def usernameCheck(request) -> Response:
 def create_user(request) -> Response:
     """
         Requires every param: first_name, last_name, address, male, avatar, birth_date, role_id, email, mobile, uid, password.
-        
+
         The role_id param takes in int type and represents the id of the role in database.
     """
 
@@ -243,9 +246,9 @@ def create_user(request) -> Response:
     role_id = request.POST.get('role_id')
 
     # Check UUID uniqueness
-    while User.objects.filter(uuid=uuid).exists():  #! Ensure uniqueness, may be a bad algorithm
+    while get_user_model().objects.filter(uuid=uuid).exists():  # ! Ensure uniqueness, may be a bad algorithm
         uuid = uuid_gen.uuid4()
-        
+
     # Get role from role_id
     role = Role.objects.filter(id=role_id)
     if role.exists():
@@ -259,8 +262,8 @@ def create_user(request) -> Response:
             status=status.HTTP_400_BAD_REQUEST
         )
 
-    # 
-    newUser = User(
+    #
+    newUser = get_user_model()(
         uuid=uuid,
         uid=uid,
         first_name=first_name,
@@ -301,6 +304,7 @@ def create_user(request) -> Response:
         status=status.HTTP_501_NOT_IMPLEMENTED
     )
 
+
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def sendActivation(request) -> Response:
@@ -310,7 +314,7 @@ def sendActivation(request) -> Response:
     email = request.GET.get('email')
 
     # Check for existence
-    if not User.objects.filter(email=email).exists():
+    if not get_user_model().objects.filter(email=email).exists():
         return Response(
             data={
                 "details": "Error",
@@ -327,7 +331,8 @@ def sendActivation(request) -> Response:
 
     # TODO: Encrypt data
     data = json.dumps(data).encode('utf-8')
-    key = base64.urlsafe_b64encode(b"PBKDFJHMACGEJHYRSNJSWASHYESGYWSA") #! Hardcoding: A byte-like string with length = 32
+    # ! Hardcoding: A byte-like string with length = 32
+    key = base64.urlsafe_b64encode(b"PBKDFJHMACGEJHYRSNJSWASHYESGYWSA")
     cipher_suite = Fernet(key)
     data = cipher_suite.encrypt(data)
 
@@ -349,7 +354,8 @@ def activate(request):
     code = request.GET.get('code')
 
     # TODO: Decrypt data
-    key = base64.urlsafe_b64encode(b"PBKDFJHMACGEJHYRSNJSWASHYESGYWSA") #! Hardcoding: A byte-like string with length = 32
+    # ! Hardcoding: A byte-like string with length = 32
+    key = base64.urlsafe_b64encode(b"PBKDFJHMACGEJHYRSNJSWASHYESGYWSA")
     cipher_suite = Fernet(key)
     data = json.loads(cipher_suite.decrypt(code.encode('utf-8')))
 
@@ -365,7 +371,7 @@ def activate(request):
         )
 
     # Check for existence
-    user = User.objects.filter(email=data['aud'])
+    user = get_user_model().objects.filter(email=data['aud'])
     if not user.exists():
         return Response(
             data={
@@ -382,7 +388,8 @@ def activate(request):
         data={
             "details": "Ok",
             "message": "Account Activated",
-            "user": UserSerializer(user).data, #! For testing purposes only - should be removed
+            # ! For testing purposes only - should be removed
+            "user": UserSerializer(user).data,
         },
         status=status.HTTP_200_OK
     )
@@ -395,7 +402,7 @@ def sendRecover(request):
         Take in email and send a token for recovering account
     """
     email = request.POST.get('email')
-    userFilter = User.objects.filter(email=email)
+    userFilter = get_user_model().objects.filter(email=email)
 
     # Check for existence
     if userFilter.exists():
@@ -445,7 +452,7 @@ def recoverUser(request):
             status=status.HTTP_400_BAD_REQUEST
         )
 
-    user = User.objects.get(email=data['email'])
+    user = get_user_model().objects.get(email=data['email'])
 
     # Check current password
     if user.password != data['cur_password']:
@@ -458,7 +465,8 @@ def recoverUser(request):
         )
 
     # TODO: Update password of the user in database
-    user.password = new_password #! This does not update the user state in db, still in production
+    # ! This does not update the user state in db, still in production
+    user.password = new_password
 
     return Response(
         data={
@@ -475,7 +483,7 @@ def listUser(request):
     """
         Return list of users with a specified view
     """
-    filterParam = {  #! Hardcoding: View permissions for list
+    filterParam = {  # ! Hardcoding: View permissions for list
         "uuid": False,
         "uid": False,
         "first_name": True,
@@ -489,7 +497,7 @@ def listUser(request):
         "role_id": True,
         "avatar": True,
         "created_at": False,
-        "updated_at": False,  
+        "updated_at": False,
     }
 
     listZ = []
@@ -499,5 +507,5 @@ def listUser(request):
 
     # Asterisk expands list into separated args
     # https://docs.python.org/2/tutorial/controlflow.html#unpacking-argument-lists
-    data = User.objects.all().values(*listZ)
+    data = get_user_model().objects.all().values(*listZ)
     return Response(data)
