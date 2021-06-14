@@ -1,5 +1,8 @@
 from django.db import models
+from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AbstractUser
+
+import uuid
 
 """
 Why use TextField() over CharField() for PostgreSQL
@@ -51,21 +54,39 @@ class Role(models.Model):
         return self.name
 
 
-class User(models.Model):
-    uuid = models.TextField(unique=True)
-    uid = models.TextField(unique=True)
-    first_name = models.TextField()
-    last_name = models.TextField()
-    birth_date = models.BigIntegerField()
-    email = models.TextField(unique=True)
+class MyUser(AbstractUser):
+    # id
+    # password
+    # last_login
+    # is_superuser
+    # username
+    # first_name
+    # last_name
+    # email
+    # is_staff
+    # is_active
+    # date_joined
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False)
+    birth_date = models.DateField()
     mobile = models.TextField(unique=True)
     male = models.BooleanField(null=True, blank=True)
-    password = models.TextField()
     address = models.TextField()
-    role_id = models.ForeignKey(Role, default='', on_delete=models.CASCADE)
     avatar = models.TextField(null=True, blank=True)
-    created_at = models.FloatField()
-    updated_at = models.FloatField()
+    updated_at = models.DateTimeField()
+    # role_id = models.ForeignKey(Role, default='', on_delete=models.CASCADE)
+
+    REQUIRED_FIELDS = [
+        'first_name',
+        'last_name',
+        'email',
+        'birth_date',
+        'mobile',
+        'male',
+        'address',
+        'avatar',
+        'updated_at',
+        # 'role_id',
+    ]
 
     class Meta:
         indexes = [
@@ -73,7 +94,7 @@ class User(models.Model):
             models.Index(fields=['last_name', ]),
             models.Index(fields=['birth_date', ]),
             models.Index(fields=['male', ]),
-            models.Index(fields=['role_id', ]),
+            #         models.Index(fields=['role_id', ]),
         ]
 
     def __str__(self):
@@ -81,7 +102,6 @@ class User(models.Model):
 
 
 class Course(models.Model):
-    id = models.AutoField(primary_key=True)
     name = models.TextField(unique=True)
     desc = models.TextField()
     short_desc = models.TextField()
@@ -101,7 +121,6 @@ class Course(models.Model):
 
 
 class ClassMetadata(models.Model):
-    id = models.AutoField(primary_key=True)
     course_id = models.ForeignKey(Course, default='', on_delete=models.CASCADE)
     name = models.TextField(unique=True)
     status = models.TextField()
@@ -118,14 +137,13 @@ class ClassMetadata(models.Model):
 
 
 class ClassStudent(models.Model):
-    id = models.AutoField(primary_key=True)
     classroom_id = models.ForeignKey(
         ClassMetadata,
         default='',
         on_delete=models.CASCADE
     )
     student_id = models.ForeignKey(
-        User,
+        get_user_model(),
         default='',
         on_delete=models.CASCADE)
     created_at = models.FloatField()
@@ -136,14 +154,13 @@ class ClassStudent(models.Model):
 
 
 class ClassTeacher(models.Model):
-    id = models.AutoField(primary_key=True)
     classroom_id = models.ForeignKey(
         ClassMetadata,
         default='',
         on_delete=models.CASCADE
     )
     teacher_id = models.ForeignKey(
-        User,
+        get_user_model(),
         default='',
         on_delete=models.CASCADE)
     created_at = models.FloatField()
@@ -154,7 +171,6 @@ class ClassTeacher(models.Model):
 
 
 class Session(models.Model):
-    id = models.AutoField(primary_key=True)
     classroom_id = models.ForeignKey(
         ClassMetadata,
         default='',
@@ -175,14 +191,13 @@ class Session(models.Model):
 
 
 class Attendance(models.Model):
-    id = models.AutoField(primary_key=True)
     session_id = models.ForeignKey(
         Session,
         default='',
         on_delete=models.CASCADE
     )
     student_id = models.ForeignKey(
-        User,
+        get_user_model(),
         default='',
         on_delete=models.CASCADE
     )
@@ -207,9 +222,8 @@ class Attendance(models.Model):
 
 
 class Log(models.Model):
-    id = models.AutoField(primary_key=True)
     user_id = models.ForeignKey(
-        User,
+        get_user_model(),
         default='',
         on_delete=models.DO_NOTHING
     )
