@@ -4,12 +4,6 @@ from django.contrib.auth.models import AbstractUser
 
 import uuid
 
-"""
-Why use TextField() over CharField() for PostgreSQL
-    https://www.postgresql.org/docs/9.0/datatype-character.html
-    CharField() costs more storage and CPU
-"""
-
 
 class Metatable(models.Model):
     name = models.TextField()

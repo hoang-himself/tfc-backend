@@ -1,6 +1,9 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from master_db.models import Metatable, Branch, Setting, Role, Course, ClassMetadata, ClassStudent, ClassTeacher, Session, Attendance, Log
+from master_db.models import (
+    Metatable, Branch, Setting, Role, Course,
+    ClassMetadata, ClassStudent, ClassTeacher, Session, Attendance, Log
+)
 
 
 class MetatableSerializer(serializers.ModelSerializer):

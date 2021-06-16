@@ -7,7 +7,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.decorators import api_view, permission_classes
 
 from master_db.models import Role
-from master_api.serializers import UserSerializer
+from master_db.serializers import UserSerializer
 
 import re
 import datetime

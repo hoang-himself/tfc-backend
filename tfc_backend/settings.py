@@ -44,7 +44,6 @@ INSTALLED_APPS = [
     'django_filters',
     'django_extensions',
     'rest_framework',
-    'rest_framework_simplejwt.token_blacklist',
 
     # Built-in
     'django.contrib.admin',
