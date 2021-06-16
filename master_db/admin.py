@@ -2,8 +2,13 @@ from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.contrib.auth.admin import UserAdmin
 
-from .forms import MyUserChangeForm, MyUserCreationForm
-from .models import Metatable, Branch, Setting, Role, MyUser, Course, ClassMetadata, ClassStudent, ClassTeacher, Session, Attendance, Log
+from .forms import (
+    MyUserChangeForm, MyUserCreationForm
+)
+from .models import (
+    Metatable, Branch, Setting, Role, MyUser, Course,
+    ClassMetadata, ClassStudent, ClassTeacher, Session, Attendance, Log
+)
 
 
 class MyUserAdmin(UserAdmin):
@@ -21,14 +26,13 @@ class MyUserAdmin(UserAdmin):
             'fields': ('avatar',)
         }),
     )  # Allows changing these fields in admin module
-    add_fieldsets = (
+    add_fieldsets = UserAdmin.add_fieldsets + (
         (None, {
             'classes': ('wide',),
             'fields': (
-                'first_name', 'last_name', 'email', 'username',
+                'first_name', 'last_name', 'email',
                 'birth_date', 'mobile', 'male', 'address',
-                'avatar', 'password1', 'password2', 'is_active',
-                'updated_at',
+                'avatar', 'updated_at',
             )
         }),
     )
