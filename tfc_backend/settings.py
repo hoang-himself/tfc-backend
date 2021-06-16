@@ -161,7 +161,6 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 # JWT policies
-# https://django-rest-framework-simplejwt.readthedocs.io/en/latest/
 
 REFRESH_TOKEN_SECRET = 'LHESTERREF5F6E4R7R3E8T2S9E1H0L'
 
