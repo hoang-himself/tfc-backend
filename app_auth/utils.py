@@ -1,6 +1,4 @@
 from django.conf import settings
-from django.contrib.auth import get_user_model
-from django.contrib.auth.hashers import make_password, check_password
 
 from master_db.models import (
     Metatable, Branch, Setting, Role, Course,
@@ -8,7 +6,7 @@ from master_db.models import (
 )
 from master_db.serializers import (
     MetatableSerializer, BranchSerializer, SettingSerializer, RoleSerializer, UserSerializer, CourseSerializer,
-    ClassMetadataSerializer, ClassMetadataSerializer, ClassMetadataSerializer, SessionSerializer, AttendanceSerializer, LogSerializer
+    ClassMetadataSerializer, ClassStudentSerializer, ClassTeacherSerializer, SessionSerializer, AttendanceSerializer, LogSerializer
 )
 
 import datetime
@@ -23,7 +21,7 @@ def generate_access_token(user):
     }
 
     access_token = jwt.encode(access_token_payload,
-                              settings.SECRET_KEY, algorithm='HS256').decode('utf-8')
+                              settings.JWT_ACCESS_KEY, algorithm='HS256').decode('utf-8')
     return access_token
 
 
@@ -34,7 +32,7 @@ def generate_refresh_token(user):
         'iat': datetime.datetime.utcnow()
     }
     refresh_token = jwt.encode(refresh_token_payload,
-                               settings.REFRESH_TOKEN_SECRET, algorithm='HS256').decode('utf-8')
+                               settings.JWT_REFRESH_KEY, algorithm='HS256').decode('utf-8')
     return refresh_token
 
 
