@@ -36,11 +36,11 @@ def generate_refresh_token(user, alg='HS256'):
 
 def validate_refresh_token(refresh_token, algs=['HS256']):
     result = -2
-    payload = None
+    claims = None
     if (refresh_token == None):
         return (result, None)
     try:
-        payload = jwt.decode(
+        claims = jwt.decode(
             refresh_token, settings.JWT_REFRESH_KEY, algorithms=algs)
         result = 0
     except jwt.DecodeError:
@@ -61,4 +61,4 @@ def validate_refresh_token(refresh_token, algs=['HS256']):
         result = 7
     except jwt.InvalidAlgorithmError:
         result = 8
-    return (result, payload)
+    return (result, claims)

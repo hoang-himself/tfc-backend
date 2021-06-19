@@ -93,7 +93,7 @@ def refresh_token_response(refresh_token):
     User = get_user_model()
     response.status_code = status.HTTP_403_FORBIDDEN
 
-    (result, payload) = validate_refresh_token(refresh_token)
+    (result, claims) = validate_refresh_token(refresh_token)
 
     if (result != 0):
         # You want switch-case? Install python 3.10
@@ -123,7 +123,7 @@ def refresh_token_response(refresh_token):
             }
         return (None, response)
 
-    user = User.objects.filter(username=payload.get('sub')).first()
+    user = User.objects.filter(username=claims.get('sub')).first()
     if (user is None):
         response.status_code = status.HTTP_400_BAD_REQUEST
         response.data = {
