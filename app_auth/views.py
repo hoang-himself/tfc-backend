@@ -11,7 +11,7 @@ from master_db.serializers import UserSerializer
 from .utils import (
     generate_access_token,
     generate_refresh_token,
-    validate_refresh_token,
+    decode_refresh_token,
 )
 
 
@@ -90,10 +90,9 @@ def login(request) -> Response:
 
 def refresh_token_response(refresh_token):
     response = Response()
-    User = get_user_model()
     response.status_code = status.HTTP_403_FORBIDDEN
 
-    (result, claims) = validate_refresh_token(refresh_token)
+    (result, claims) = decode_refresh_token(refresh_token)
 
     if (result != 0):
         # You want switch-case? Install python 3.10
@@ -122,8 +121,15 @@ def refresh_token_response(refresh_token):
                 ]
             }
         return (None, response)
+    return (claims, response)
 
-    user = User.objects.filter(username=claims.get('sub')).first()
+
+def claims_response(claims):
+    User = get_user_model()
+    response = Response()
+
+    user = User.objects.filter(uuid=claims.get('sub')).first()
+
     if (user is None):
         response.status_code = status.HTTP_400_BAD_REQUEST
         response.data = {
@@ -135,7 +141,7 @@ def refresh_token_response(refresh_token):
             ]
         }
         return (user, response)
-    if not (user.is_active):
+    elif not (user.is_active):
         response.status_code = status.HTTP_403_FORBIDDEN
         response.data = {
             "result": "error",
@@ -156,7 +162,10 @@ def check(request) -> Response:
     response.status_code = status.HTTP_403_FORBIDDEN
 
     refresh_token = request.COOKIES.get('refreshtoken')
-    user, response = refresh_token_response(refresh_token)
+    claims, response = refresh_token_response(refresh_token)
+    if (claims is None):
+        return response
+    user, response = claims_response(claims)
     if (user is None):
         return response
 
@@ -190,8 +199,10 @@ def refresh(request) -> Response:
     response = Response()
 
     refresh_token = request.COOKIES.get('refreshtoken')
-    token_data = refresh_token_response(refresh_token)
-    user, response = token_data
+    claims, response = refresh_token_response(refresh_token)
+    if (claims is None):
+        return response
+    user, response = claims_response(claims)
     if (user is None):
         return response
 
@@ -200,10 +211,9 @@ def refresh(request) -> Response:
     response.status_code = status.HTTP_200_OK
     response.data = {
         "result": "ok",
-        "token": [
+        "token":
             {
                 "access": access_token
             },
-        ]
     }
     return response

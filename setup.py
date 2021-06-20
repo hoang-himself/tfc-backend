@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 # https://github.com/pypa/sampleproject/blob/main/setup.py
 setup(
     name='tfc-backend',
-    version='0.0.1',
+    version='0.0.2',
     license='Proprietary',
     setup_requires=['setuptools_scm'],
     use_scm_version=True,

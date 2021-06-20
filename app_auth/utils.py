@@ -7,7 +7,7 @@ import jwt
 def generate_access_token(user, alg='HS256'):
     access_token_payload = {
         'iss': '',
-        'sub': user.get('username'),
+        'sub': user.get('uuid'),
         'exp': datetime.datetime.utcnow() + datetime.timedelta(days=0, minutes=15),
         'iat': datetime.datetime.utcnow(),
         'jti': '',
@@ -23,7 +23,7 @@ def generate_access_token(user, alg='HS256'):
 def generate_refresh_token(user, alg='HS256'):
     refresh_token_payload = {
         'iss': '',
-        'sub': user.get('username'),
+        'sub': user.get('uuid'),
         'exp': datetime.datetime.utcnow() + datetime.timedelta(days=14),
         'iat': datetime.datetime.utcnow(),
         'jti': ''
@@ -34,7 +34,7 @@ def generate_refresh_token(user, alg='HS256'):
     return refresh_token
 
 
-def validate_refresh_token(refresh_token, algs=['HS256']):
+def decode_refresh_token(refresh_token, algs=['HS256']):
     result = -2
     claims = None
     if (refresh_token == None):
