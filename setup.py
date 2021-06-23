@@ -39,6 +39,7 @@ setup(
         'PyJWT',
         'dj-database-url',
         'psycopg2-binary',
+        'python-dotenv'
     ],
     #   extras_require={  # pip install sampleproject[dev]
     #       'dev': ['check-manifest'],

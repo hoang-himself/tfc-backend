@@ -33,6 +33,8 @@ pycparser==2.20
     # via cffi
 pyjwt==1.7.1
     # via tfc-backend (setup.py)
+python-dotenv==0.18.0
+    # via tfc-backend (setup.py)
 pytz==2021.1
     # via django
 sqlparse==0.4.1
