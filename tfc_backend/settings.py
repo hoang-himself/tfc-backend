@@ -105,7 +105,7 @@ DATABASES = {
 
 # Custom user model
 # https://docs.djangoproject.com/en/3.2/topics/auth/customizing/#specifying-a-custom-user-model
-AUTH_USER_MODEL = 'master_db.MyUser'
+AUTH_USER_MODEL = 'master_db.CustomUser'
 
 
 # Password validation
@@ -170,7 +170,7 @@ JWT_ACCESS_KEY = os.environ.get('JWT_ACCESS_KEY')
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'master_api.authentication.SafeJWTAuthentication',
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',

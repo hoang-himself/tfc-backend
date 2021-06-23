@@ -36,6 +36,7 @@ setup(
         'django-extensions',
         'django-filter',
         'djangorestframework',
+        'djangorestframework-simplejwt',
         'PyJWT',
         'dj-database-url',
         'psycopg2-binary',
