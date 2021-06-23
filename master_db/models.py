@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, Group
 
 import uuid
 
@@ -36,13 +36,13 @@ class Setting(models.Model):
 
 class Role(models.Model):
     name = models.TextField(unique=True)
-    student = models.BooleanField()
-    teacher = models.BooleanField()
-    dashboard = models.BooleanField()
-    kanban = models.BooleanField()
-    setting = models.BooleanField()
-    created_at = models.FloatField()
-    updated_at = models.FloatField()
+    student = models.BooleanField(default=False)
+    teacher = models.BooleanField(default=False)
+    dashboard = models.BooleanField(default=False)
+    kanban = models.BooleanField(default=False)
+    setting = models.BooleanField(default=False)
+    created_at = models.FloatField(default=False)
+    updated_at = models.FloatField(default=False)
 
     def __str__(self):
         return self.name
@@ -61,13 +61,13 @@ class MyUser(AbstractUser):
     # is_active
     # date_joined
     uuid = models.UUIDField(default=uuid.uuid4, editable=False)
-    birth_date = models.DateField()
+    birth_date = models.FloatField()
     mobile = models.TextField(unique=True)
     male = models.BooleanField(null=True, blank=True)
     address = models.TextField()
     avatar = models.TextField(null=True, blank=True)
-    updated_at = models.DateTimeField()
-    # role_id = models.ForeignKey(Role, default='', on_delete=models.CASCADE)
+    updated_at = models.FloatField()
+    # role = models.ForeignKey(Role, default='', on_delete=models.CASCADE, null=True)
 
     REQUIRED_FIELDS = [
         'first_name',
@@ -79,7 +79,7 @@ class MyUser(AbstractUser):
         'address',
         'avatar',
         'updated_at',
-        # 'role_id',
+        # 'role',
     ]
 
     class Meta:
@@ -88,7 +88,7 @@ class MyUser(AbstractUser):
             models.Index(fields=['last_name', ]),
             models.Index(fields=['birth_date', ]),
             models.Index(fields=['male', ]),
-            #         models.Index(fields=['role_id', ]),
+            # models.Index(fields=['role', ]),
         ]
 
     def __str__(self):
@@ -115,7 +115,7 @@ class Course(models.Model):
 
 
 class ClassMetadata(models.Model):
-    course_id = models.ForeignKey(Course, default='', on_delete=models.CASCADE)
+    course = models.ForeignKey(Course, default='', on_delete=models.CASCADE)
     name = models.TextField(unique=True)
     status = models.TextField()
     created_at = models.FloatField()
@@ -127,16 +127,16 @@ class ClassMetadata(models.Model):
         ]
 
     def __str__(self):
-        return f'{self.status} {self.course_id} {self.name}'
+        return f'{self.status} {self.course} {self.name}'
 
 
 class ClassStudent(models.Model):
-    classroom_id = models.ForeignKey(
+    classroom = models.ForeignKey(
         ClassMetadata,
         default='',
         on_delete=models.CASCADE
     )
-    student_id = models.ForeignKey(
+    student = models.ForeignKey(
         get_user_model(),
         default='',
         on_delete=models.CASCADE)
@@ -144,16 +144,16 @@ class ClassStudent(models.Model):
     updated_at = models.FloatField()
 
     def __str__(self):
-        return f'{self.classrom_id} {self.student_id}'
+        return f'{self.classrom} {self.student}'
 
 
 class ClassTeacher(models.Model):
-    classroom_id = models.ForeignKey(
+    classroom = models.ForeignKey(
         ClassMetadata,
         default='',
         on_delete=models.CASCADE
     )
-    teacher_id = models.ForeignKey(
+    teacher = models.ForeignKey(
         get_user_model(),
         default='',
         on_delete=models.CASCADE)
@@ -161,11 +161,11 @@ class ClassTeacher(models.Model):
     updated_at = models.FloatField()
 
     def __str__(self):
-        return f'{self.classroom_id} {self.teacher_id}'
+        return f'{self.classroom} {self.teacher}'
 
 
 class Session(models.Model):
-    classroom_id = models.ForeignKey(
+    classroom = models.ForeignKey(
         ClassMetadata,
         default='',
         on_delete=models.CASCADE
@@ -181,16 +181,16 @@ class Session(models.Model):
         ]
 
     def __str__(self):
-        return f'{self.classroom_id} {self.time_start} {self.time_end}'
+        return f'{self.classroom} {self.time_start} {self.time_end}'
 
 
 class Attendance(models.Model):
-    session_id = models.ForeignKey(
+    session = models.ForeignKey(
         Session,
         default='',
         on_delete=models.CASCADE
     )
-    student_id = models.ForeignKey(
+    student = models.ForeignKey(
         get_user_model(),
         default='',
         on_delete=models.CASCADE
@@ -206,22 +206,22 @@ class Attendance(models.Model):
         ]
         constraints = [
             models.UniqueConstraint(
-                fields=['student_id', 'date'],
+                fields=['student', 'date'],
                 name='unique_attendance'
             )
         ]
 
     def __str__(self):
-        return f'{self.session_id} {self.status} {self.student_id}'
+        return f'{self.session} {self.status} {self.student}'
 
 
 class Log(models.Model):
-    user_id = models.ForeignKey(
+    user = models.ForeignKey(
         get_user_model(),
         default='',
         on_delete=models.DO_NOTHING
     )
-    table_id = models.ForeignKey(
+    table = models.ForeignKey(
         Metatable,
         default='',
         on_delete=models.DO_NOTHING

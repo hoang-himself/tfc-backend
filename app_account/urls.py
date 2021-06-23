@@ -3,15 +3,15 @@ from . import views
 
 urlpatterns = [
     path('create', views.create_user, name='create'),
-    path('list', views.listUser, name='list'),
+    path('list', views.list_user, name='list'),
     path('create-user', views.create_user, name='create'),
-    path('send', views.sendActivation, name='send'),
+    path('send', views.send_activation, name='send'),
     path('activate', views.activate, name='activate'),
-    path('send-recover', views.sendRecover, name='send-recover'),
-    path('recover', views.recoverUser, name='recover'),
+    path('send-recover', views.send_recover, name='send-recover'),
+    path('recover', views.recover_user, name='recover'),
 
     # Check validation
-    path('email-check', views.emailCheck, name='email-check'),
-    path('mobile-check', views.mobileCheck, name='mobile-check'),
-    path('username-check', views.usernameCheck, name='username-check'),
+    path('email-check', views.email_check, name='email-check'),
+    path('mobile-check', views.mobile_check, name='mobile-check'),
+    path('username-check', views.username_check, name='username-check'),
 ]

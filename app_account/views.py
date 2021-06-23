@@ -21,7 +21,7 @@ from cryptography.fernet import Fernet
 # Create your views here.
 
 
-def emailValidate(email) -> bool:
+def email_validate(email) -> bool:
     """
         Validate email address format
     """
@@ -37,12 +37,12 @@ def emailValidate(email) -> bool:
         return False
 
 
-def emailResponse(email) -> Response:
+def email_response(email) -> Response:
     """
         Return response when checking signed up email address in db
     """
     # Validating email address
-    if not emailValidate(email):
+    if not email_validate(email):
         return Response(
             data={
                 "details": "Error",
@@ -72,7 +72,7 @@ def emailResponse(email) -> Response:
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
-def emailCheck(request) -> Response:
+def email_check(request) -> Response:
     """
         API for checking email address for creating user
     """
@@ -80,7 +80,7 @@ def emailCheck(request) -> Response:
     return Response(email)
 
 
-def mobileValidate(mobile) -> bool:
+def mobil_validate(mobile) -> bool:
     """
         Validate phone number format
     """
@@ -96,12 +96,12 @@ def mobileValidate(mobile) -> bool:
         return False
 
 
-def mobileResponse(mobile) -> Response:
+def mobile_response(mobile) -> Response:
     """
         Return response when checking signed up mobile phone number in db
     """
     # Validating mobile address
-    if not mobileValidate(mobile):
+    if not mobil_validate(mobile):
         return Response(
             data={
                 "details": "Error",
@@ -131,15 +131,15 @@ def mobileResponse(mobile) -> Response:
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
-def mobileCheck(request) -> Response:
+def mobile_check(request) -> Response:
     """
         API for checking phone number for creating user
     """
     mobile = request.POST.get('mobile')
-    return mobileResponse(mobile)
+    return mobile_response(mobile)
 
 
-def usernameResponse(uid) -> Response:
+def username_response(uid) -> Response:
     """
         Return response when checking signed up UID in db
     """
@@ -164,19 +164,19 @@ def usernameResponse(uid) -> Response:
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
-def usernameCheck(request) -> Response:
+def username_check(request) -> Response:
     """
         API for checking username for creating user
     """
     uid = request.POST.get('uid')
-    return usernameResponse(uid)
+    return username_response(uid)
 
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def create_user(request) -> Response:
     """
-        Requires every param: first_name, last_name, address, male, avatar, birth_date, role_id, email, mobile, uid, password.
+        Requires every param: first_name, last_name, address, male, avatar, birth_date, role_id, email, mobile, username, password.
 
         The role_id param takes in int type and represents the id of the role in database.
     """
@@ -200,11 +200,11 @@ def create_user(request) -> Response:
     # Verify email address
     email = request.POST.get('email')
     mobile = request.POST.get('mobile')
-    uid = request.POST.get('uid')
+    username = request.POST.get('username')
     password = request.POST.get('password')
 
     # Verify email address
-    check = emailResponse(email)
+    check = email_response(email)
     if check.status_code == status.HTTP_400_BAD_REQUEST:
         return Response(
             data={
@@ -214,7 +214,7 @@ def create_user(request) -> Response:
         )
 
     # Verify mobile phone number
-    check = mobileResponse(mobile)
+    check = mobile_response(mobile)
     if check.status_code == status.HTTP_400_BAD_REQUEST:
         return Response(
             data={
@@ -224,7 +224,7 @@ def create_user(request) -> Response:
         )
 
     # Verify username
-    check = usernameResponse(uid)
+    check = username_response(username)
     if check.status_code == status.HTTP_400_BAD_REQUEST:
         return Response(
             data={
@@ -265,7 +265,7 @@ def create_user(request) -> Response:
     #
     newUser = get_user_model()(
         uuid=uuid,
-        uid=uid,
+        uid=username,
         first_name=first_name,
         last_name=last_name,
         birth_date=birth_date,
@@ -307,7 +307,7 @@ def create_user(request) -> Response:
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
-def sendActivation(request) -> Response:
+def send_activation(request) -> Response:
     """
         Take in email and return a token for activating account
     """
@@ -397,7 +397,7 @@ def activate(request):
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
-def sendRecover(request):
+def send_recover(request):
     """
         Take in email and send a token for recovering account
     """
@@ -434,7 +434,7 @@ def sendRecover(request):
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
-def recoverUser(request):
+def recover_user(request):
     """
         Take in a token and new password, verify the token and change the password of the account encrypted in the token to the new one
     """
@@ -479,7 +479,7 @@ def recoverUser(request):
 
 @api_view(['GET', 'POST'])
 @permission_classes([AllowAny])
-def listUser(request):
+def list_user(request):
     """
         Return list of users with a specified view
     """
