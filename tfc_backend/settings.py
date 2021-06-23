@@ -105,7 +105,7 @@ DATABASES = {
 
 # Custom user model
 # https://docs.djangoproject.com/en/3.2/topics/auth/customizing/#specifying-a-custom-user-model
-AUTH_USER_MODEL = 'master_db.CustomUser'
+AUTH_USER_MODEL = 'master_db.MyUser'
 
 
 # Password validation

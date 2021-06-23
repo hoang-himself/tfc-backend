@@ -4,15 +4,15 @@ import datetime
 import jwt
 
 
-def generate_access_token(user, alg='HS256'):
+def generate_access_token(user, role=None, perms=None, alg='HS256'):
     access_token_payload = {
         'iss': '',
         'sub': user.get('uuid'),
-        'exp': datetime.datetime.utcnow() + datetime.timedelta(days=0, minutes=15),
+        'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=15),
         'iat': datetime.datetime.utcnow(),
         'jti': '',
-        'roles': '',
-        'perms': '',
+        'role': role,
+        'perms': perms,
     }
 
     access_token = jwt.encode(access_token_payload,
