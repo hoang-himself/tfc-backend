@@ -4,4 +4,5 @@ from . import views
 urlpatterns = [
     path('ping', views.ping, name='ping'),
     path('auth/', include('app_auth.urls')),
+    path('account/', include('app_account.urls')),
 ]

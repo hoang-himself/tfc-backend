@@ -6,6 +6,10 @@
 #
 asgiref==3.3.4
     # via django
+cffi==1.14.5
+    # via cryptography
+cryptography==3.4.7
+    # via tfc-backend (setup.py)
 dj-database-url==0.5.0
     # via tfc-backend (setup.py)
 django-cors-headers==3.7.0
@@ -20,18 +24,15 @@ django==3.2.4
     #   django-extensions
     #   django-filter
     #   djangorestframework
-    #   djangorestframework-simplejwt
     #   tfc-backend (setup.py)
-djangorestframework-simplejwt==4.7.0
-    # via tfc-backend (setup.py)
 djangorestframework==3.12.4
-    # via
-    #   djangorestframework-simplejwt
-    #   tfc-backend (setup.py)
+    # via tfc-backend (setup.py)
 psycopg2-binary==2.8.6
     # via tfc-backend (setup.py)
-pyjwt==2.1.0
-    # via djangorestframework-simplejwt
+pycparser==2.20
+    # via cffi
+pyjwt==1.7.1
+    # via tfc-backend (setup.py)
 pytz==2021.1
     # via django
 sqlparse==0.4.1

@@ -1,90 +1,121 @@
 from django.db import models
+from django.contrib.auth import get_user_model
+from django.contrib.auth.models import AbstractUser
 
-"""
-Why use TextField() over CharField() for PostgreSQL
-    https://www.postgresql.org/docs/9.0/datatype-character.html
-    CharField() costs more storage and CPU
-"""
+import uuid
 
 
-class metatable(models.Model):
-    id = models.AutoField(primary_key=True)
+class Metatable(models.Model):
     name = models.TextField()
     created_at = models.FloatField()
     updated_at = models.FloatField()
 
+    def __str__(self):
+        return self.name
 
-class branch(models.Model):
-    id = models.AutoField(primary_key=True)
-    address = models.TextField()
+
+class Branch(models.Model):
+    addr = models.TextField()
+    short_adr = models.TextField()
     created_at = models.FloatField()
     updated_at = models.FloatField()
 
+    def __str__(self):
+        return self.short_adr
 
-class setting(models.Model):
-    id = models.AutoField(primary_key=True)
+
+class Setting(models.Model):
     name = models.TextField()
     value = models.TextField()
     created_at = models.FloatField()
     updated_at = models.FloatField()
 
+    def __str__(self):
+        return self.name
 
-class role(models.Model):
-    id = models.AutoField(primary_key=True)
+
+class Role(models.Model):
     name = models.TextField(unique=True)
+    student = models.BooleanField()
+    teacher = models.BooleanField()
     dashboard = models.BooleanField()
     kanban = models.BooleanField()
     setting = models.BooleanField()
     created_at = models.FloatField()
     updated_at = models.FloatField()
 
+    def __str__(self):
+        return self.name
 
-class user(models.Model):
-    id = models.AutoField(primary_key=True)
-    uuid = models.TextField(unique=True)
-    uid = models.TextField(unique=True)
-    first_name = models.TextField()
-    last_name = models.TextField()
-    birth_date = models.BigIntegerField()
-    email = models.TextField(unique=True)
+
+class MyUser(AbstractUser):
+    # id
+    # password
+    # last_login
+    # is_superuser
+    # username
+    # first_name
+    # last_name
+    # email
+    # is_staff
+    # is_active
+    # date_joined
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False)
+    birth_date = models.DateField()
     mobile = models.TextField(unique=True)
-    gender = models.BooleanField(null=True)
-    password = models.TextField()
+    male = models.BooleanField(null=True, blank=True)
     address = models.TextField()
-    role_id = models.ForeignKey(role, default='', on_delete=models.CASCADE)
-    created_at = models.FloatField()
-    updated_at = models.FloatField()
+    avatar = models.TextField(null=True, blank=True)
+    updated_at = models.DateTimeField()
+    # role_id = models.ForeignKey(Role, default='', on_delete=models.CASCADE)
+
+    REQUIRED_FIELDS = [
+        'first_name',
+        'last_name',
+        'email',
+        'birth_date',
+        'mobile',
+        'male',
+        'address',
+        'avatar',
+        'updated_at',
+        # 'role_id',
+    ]
 
     class Meta:
         indexes = [
             models.Index(fields=['first_name', ]),
             models.Index(fields=['last_name', ]),
             models.Index(fields=['birth_date', ]),
-            models.Index(fields=['gender', ]),
-            models.Index(fields=['role_id', ]),
+            models.Index(fields=['male', ]),
+            #         models.Index(fields=['role_id', ]),
         ]
 
+    def __str__(self):
+        return f'{self.first_name} {self.last_name}'
 
-class course(models.Model):
-    id = models.AutoField(primary_key=True)
+
+class Course(models.Model):
     name = models.TextField(unique=True)
     desc = models.TextField()
     short_desc = models.TextField()
-    type = models.TextField()
+    cert = models.TextField()
     duration = models.SmallIntegerField()
     created_at = models.FloatField()
     updated_at = models.FloatField()
 
     class Meta:
         indexes = [
-            models.Index(fields=['type', ]),
+            models.Index(fields=['cert', ]),
             models.Index(fields=['duration', ])
         ]
 
+    def __str__(self):
+        return f'{self.cert} {self.name}'
 
-class class_metadata(models.Model):
-    id = models.AutoField(primary_key=True)
-    course_id = models.ForeignKey(course, default='', on_delete=models.CASCADE)
+
+class ClassMetadata(models.Model):
+    course_id = models.ForeignKey(Course, default='', on_delete=models.CASCADE)
     name = models.TextField(unique=True)
     status = models.TextField()
     created_at = models.FloatField()
@@ -95,41 +126,47 @@ class class_metadata(models.Model):
             models.Index(fields=['status', ])
         ]
 
+    def __str__(self):
+        return f'{self.status} {self.course_id} {self.name}'
 
-class class_student(models.Model):
-    id = models.AutoField(primary_key=True)
+
+class ClassStudent(models.Model):
     classroom_id = models.ForeignKey(
-        class_metadata,
+        ClassMetadata,
         default='',
         on_delete=models.CASCADE
     )
     student_id = models.ForeignKey(
-        user,
+        get_user_model(),
         default='',
         on_delete=models.CASCADE)
     created_at = models.FloatField()
     updated_at = models.FloatField()
 
+    def __str__(self):
+        return f'{self.classrom_id} {self.student_id}'
 
-class class_teacher(models.Model):
-    id = models.AutoField(primary_key=True)
+
+class ClassTeacher(models.Model):
     classroom_id = models.ForeignKey(
-        class_metadata,
+        ClassMetadata,
         default='',
         on_delete=models.CASCADE
     )
     teacher_id = models.ForeignKey(
-        user,
+        get_user_model(),
         default='',
         on_delete=models.CASCADE)
     created_at = models.FloatField()
     updated_at = models.FloatField()
 
+    def __str__(self):
+        return f'{self.classroom_id} {self.teacher_id}'
 
-class session(models.Model):
-    id = models.AutoField(primary_key=True)
+
+class Session(models.Model):
     classroom_id = models.ForeignKey(
-        class_metadata,
+        ClassMetadata,
         default='',
         on_delete=models.CASCADE
     )
@@ -143,20 +180,22 @@ class session(models.Model):
             models.Index(fields=['time_start', 'time_end'])
         ]
 
+    def __str__(self):
+        return f'{self.classroom_id} {self.time_start} {self.time_end}'
 
-class attendance(models.Model):
-    id = models.AutoField(primary_key=True)
+
+class Attendance(models.Model):
     session_id = models.ForeignKey(
-        session,
+        Session,
         default='',
         on_delete=models.CASCADE
     )
     student_id = models.ForeignKey(
-        user,
+        get_user_model(),
         default='',
         on_delete=models.CASCADE
     )
-    status = models.BooleanField(null=True)
+    status = models.BooleanField(null=True, blank=True)
     date = models.TextField()
     created_at = models.FloatField()
     updated_at = models.FloatField()
@@ -168,19 +207,22 @@ class attendance(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields=['student_id', 'date'],
-                name='unique_attendance')
+                name='unique_attendance'
+            )
         ]
 
+    def __str__(self):
+        return f'{self.session_id} {self.status} {self.student_id}'
 
-class log(models.Model):
-    id = models.AutoField(primary_key=True)
+
+class Log(models.Model):
     user_id = models.ForeignKey(
-        user,
+        get_user_model(),
         default='',
         on_delete=models.DO_NOTHING
     )
     table_id = models.ForeignKey(
-        metatable,
+        Metatable,
         default='',
         on_delete=models.DO_NOTHING
     )
@@ -188,3 +230,6 @@ class log(models.Model):
     short_desc = models.TextField()
     created_at = models.FloatField()
     updated_at = models.FloatField()
+
+    def __str__(self):
+        return self.short_desc

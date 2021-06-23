@@ -1,6 +1,4 @@
-# The Forum Center RESTful API
-
-API/Backend for The Forum Center on Debian
+# The Forum Center Backend
 
 ## Clone the repo
 
@@ -25,7 +23,7 @@ cd tfc-backend
 ## (Recommended) Initialize a virtual environment
 
 ```bash
-python3 -m venv ./venv
+python -m venv --upgrade-deps ./venv
 source ./venv/bin/activate
 ```
 
@@ -34,11 +32,13 @@ source ./venv/bin/activate
 ```bash
 sudo apt update
 sudo apt install -y postgresql
-pip install --upgrade pip setuptools wheel pip-tools
+pip install pip-tools
 pip-sync
 ```
 
-## (First-time setup) Configure PostgreSQL server
+## First-time setup
+
+### Configure PostgreSQL server
 
 ```bash
 sudo service postgresql start
@@ -46,8 +46,14 @@ sudo -u postgres psql \
 -c "CREATE DATABASE tfc;" \
 -c "CREATE ROLE tfc_admin WITH ENCRYPTED PASSWORD 'i-am-admin' LOGIN SUPERUSER;" \
 -c "GRANT ALL PRIVILEGES ON DATABASE tfc TO tfc_admin;"
-python manage.py migrate
+```
+
+### Migrate the database
+
+```bash
 python manage.py makemigrations
+python manage.py makemigrations master_db
+python manage.py migrate
 ```
 
 ## Running the server
