@@ -37,9 +37,7 @@ psycopg2-binary==2.8.6
 pycparser==2.20
     # via cffi
 pyjwt==2.1.0
-    # via
-    #   djangorestframework-simplejwt
-    #   tfc-backend (setup.py)
+    # via djangorestframework-simplejwt
 python-dotenv==0.18.0
     # via tfc-backend (setup.py)
 pytz==2021.1
