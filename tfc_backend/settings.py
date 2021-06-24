@@ -158,12 +158,6 @@ CORS_ALLOWED_ORIGINS = [
     #
 ]
 
-# JWT policies
-
-JWT_ACC_KEY = os.environ.get('JWT_ACC_KEY')
-
-JWT_REF_KEY = os.environ.get('JWT_REF_KEY')
-
 # REST policies
 
 REST_FRAMEWORK = {

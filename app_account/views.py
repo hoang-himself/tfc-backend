@@ -1,17 +1,15 @@
 from django.conf import settings
-from django.core.exceptions import ValidationError
 
-from rest_framework import serializers, status
+from rest_framework import status
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
 
 from master_db.models import Role, MyUser
-from master_db.serializers import UserSerializer, RoleSerializer
+from master_db.serializers import MyUserSerializer
 
 import re
 import datetime
-import uuid as uuid_gen
 import json
 import jwt
 import base64
@@ -70,7 +68,7 @@ def email_response(email) -> Response:
 
 
 @api_view(['POST'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def email_check(request) -> Response:
     """
         API for checking email address for creating user
@@ -129,7 +127,7 @@ def mobile_response(mobile) -> Response:
 
 
 @api_view(['POST'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def mobile_check(request) -> Response:
     """
         API for checking phone number for creating user
@@ -172,7 +170,7 @@ def username_response(username) -> Response:
 
 
 @api_view(['POST'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def username_check(request) -> Response:
     """
         API for checking username for creating user
@@ -181,8 +179,16 @@ def username_check(request) -> Response:
     return username_response(username)
 
 
+def password_validate(passwd):
+    regex = '[A-Za-z0-9@#$%^&+=]{8,}'
+    if re.fullmatch(regex, passwd):
+        return True
+    else:
+        return False
+
+
 @api_view(['POST'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def create_user(request) -> Response:
     """
         Requires every param: first_name, last_name, address, male, avatar, birth_date, role_id, email, mobile, username, password.
@@ -195,6 +201,7 @@ def create_user(request) -> Response:
     # its corresponding account if input incorrectly.
 
     first_name = request.POST.get('first_name')
+    mid_name = request.POST.get('mid_name')
     last_name = request.POST.get('last_name')
     address = request.POST.get('address')
     male = request.POST.get('male')
@@ -227,7 +234,15 @@ def create_user(request) -> Response:
     if check.status_code == status.HTTP_400_BAD_REQUEST:
         return check
 
-    # TODO: Handling password
+    check = password_validate(password)
+    if (check == False):
+        return Response(
+            data={
+                "details": "Error",
+                "message": "Password too weak"
+            },
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
     # DB generated factor:
     # - These are generated automatically and seperated from
@@ -235,10 +250,10 @@ def create_user(request) -> Response:
 
     created_at = datetime.datetime.now().timestamp()
     updated_at = created_at
-    role_id = request.POST.get('role_id')
+    role = request.POST.get('role')
 
     # Get role from role_id
-    role = Role.objects.filter(id=role_id)
+    role = Role.objects.filter(name=role)
     if role.exists():
         role = role.first()
     else:
@@ -254,6 +269,7 @@ def create_user(request) -> Response:
     user = MyUser(
         username=username,
         first_name=first_name,
+        mid_name=mid_name,
         last_name=last_name,
         birth_date=birth_date,
         email=email,
@@ -267,13 +283,17 @@ def create_user(request) -> Response:
         updated_at=updated_at,
     )
 
-    try:
-        user.full_clean()
-    except ValidationError as e:
+    dictionary = MyUserSerializer(user, many=False)
+    serializer = MyUserSerializer(data=dictionary.data)
+
+    # If required fields are empty function returns Django implemented exception
+    if serializer.is_valid(raise_exception=True):
+        # TODO: Save the user
+        # serializer.save()
         return Response(
             data={
                 "details": "Error",
-                "message": e
+                "message": "Error"
             },
             status=status.HTTP_400_BAD_REQUEST
         )
@@ -285,8 +305,6 @@ def create_user(request) -> Response:
         data={
             "details": "Ok",
             "message": "User created",
-            # ! For testing purposes only - should be removed
-            "user": UserSerializer(user).data,
         },
         status=status.HTTP_201_CREATED
     )
@@ -376,7 +394,7 @@ def activate(request):
             "details": "Ok",
             "message": "Account Activated",
             # ! For testing purposes only - should be removed
-            "user": UserSerializer(user).data,
+            "user": MyUserSerializer(user).data,
         },
         status=status.HTTP_200_OK
     )
@@ -458,15 +476,15 @@ def recover_user(request):
     return Response(
         data={
             "details": "Ok",
-            "user": UserSerializer(user).data,
+            "user": MyUserSerializer(user).data,
         },
         status=status.HTTP_200_OK
     )
 
 
 @api_view(['GET', 'POST'])
-@permission_classes([AllowAny])
-def list_user(_):
+@permission_classes([IsAuthenticated])
+def list_user():
     """
         Return list of users with a specified view
     """
