@@ -1,7 +1,6 @@
 from rest_framework import serializers
-from django.contrib.auth import get_user_model
 from master_db.models import (
-    Metatable, Branch, Setting, Role, Course,
+    Metatable, Branch, Setting, Role, MyUser, Course,
     ClassMetadata, ClassStudent, ClassTeacher, Session, Attendance, Log
 )
 
@@ -32,7 +31,7 @@ class RoleSerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
-        model = get_user_model()
+        model = MyUser
         fields = '__all__'
 
 

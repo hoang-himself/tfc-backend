@@ -1,13 +1,13 @@
 from django.conf import settings
-from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 
 from rest_framework import serializers, status
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 from rest_framework.decorators import api_view, permission_classes
 
-from master_db.models import Role
-from master_db.serializers import UserSerializer
+from master_db.models import Role, MyUser
+from master_db.serializers import UserSerializer, RoleSerializer
 
 import re
 import datetime
@@ -51,7 +51,7 @@ def email_response(email) -> Response:
         )
 
     # Check for existence
-    if get_user_model().objects.filter(email=email).exists():
+    if MyUser.objects.filter(email=email).exists():
         return Response(
             data={
                 "details": "Error",
@@ -110,7 +110,7 @@ def mobile_response(mobile) -> Response:
         )
 
     # Check for existence
-    if get_user_model().objects.filter(mobile=mobile).exists():
+    if MyUser.objects.filter(mobile=mobile).exists():
         return Response(
             data={
                 "details": "Error",
@@ -138,12 +138,22 @@ def mobile_check(request) -> Response:
     return mobile_response(mobile)
 
 
-def username_response(uid) -> Response:
+def username_response(username) -> Response:
     """
-        Return response when checking signed up UID in db
+        Return response when checking signed up username in db
     """
+    # Check nullity
+    if username is None:
+        return Response(
+            data={
+                "details": "Error",
+                "message": "Username cannot be empty"
+            },
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
     # Check for existence
-    if get_user_model().objects.filter(uid=uid).exists():
+    if MyUser.objects.filter(username=username).exists():
         return Response(
             data={
                 "details": "Error",
@@ -167,8 +177,8 @@ def username_check(request) -> Response:
     """
         API for checking username for creating user
     """
-    uid = request.POST.get('uid')
-    return username_response(uid)
+    username = request.POST.get('username')
+    return username_response(username)
 
 
 @api_view(['POST'])
@@ -205,33 +215,17 @@ def create_user(request) -> Response:
     # Verify email address
     check = email_response(email)
     if check.status_code == status.HTTP_400_BAD_REQUEST:
-        return Response(
-            data={
-                "details": "Error",
-                "message": check.data["message"],
-            }
-        )
+        return check
 
     # Verify mobile phone number
     check = mobile_response(mobile)
     if check.status_code == status.HTTP_400_BAD_REQUEST:
-        return Response(
-            data={
-                "details": "Error",
-                "message": check.data["message"],
-            }
-        )
+        return check
 
     # Verify username
     check = username_response(username)
     if check.status_code == status.HTTP_400_BAD_REQUEST:
-        return Response(
-            data={
-                "details": "Error",
-                "message": check.data["message"]
-            },
-            status=status.HTTP_400_BAD_REQUEST
-        )
+        return check
 
     # TODO: Handling password
 
@@ -241,12 +235,7 @@ def create_user(request) -> Response:
 
     created_at = datetime.datetime.now().timestamp()
     updated_at = created_at
-    uuid = uuid_gen.uuid4()
     role_id = request.POST.get('role_id')
-
-    # Check UUID uniqueness
-    while get_user_model().objects.filter(uuid=uuid).exists():  # ! Ensure uniqueness, may be a bad algorithm
-        uuid = uuid_gen.uuid4()
 
     # Get role from role_id
     role = Role.objects.filter(id=role_id)
@@ -262,9 +251,8 @@ def create_user(request) -> Response:
         )
 
     #
-    newUser = get_user_model()(
-        uuid=uuid,
-        uid=username,
+    user = MyUser(
+        username=username,
         first_name=first_name,
         last_name=last_name,
         birth_date=birth_date,
@@ -273,34 +261,34 @@ def create_user(request) -> Response:
         male=male,
         password=password,
         address=address,
-        role_id=role,
+        role=role,
         avatar=avatar,
         created_at=created_at,
         updated_at=updated_at,
     )
 
-    dictionary = UserSerializer(newUser, many=False)
-    serializer = UserSerializer(data=dictionary.data)
-
-    # If required fields are empty function returns Django implemented exception
-    if serializer.is_valid(raise_exception=True):
-        # TODO: Save the user
-        # serializer.save()
+    try:
+        user.full_clean()
+    except ValidationError as e:
         return Response(
             data={
-                "details": "Ok",
-                "message": "Successfully created",
-                "user": serializer.data,  # ! For testing purposes only - should be removed
+                "details": "Error",
+                "message": e
             },
-            status=status.HTTP_201_CREATED
+            status=status.HTTP_400_BAD_REQUEST
         )
+
+    # TODO: Save user
+    # user.save()
 
     return Response(
         data={
-            "details": "Error",
-            "message": "Don't know how you got here but here we are",
+            "details": "Ok",
+            "message": "User created",
+            # ! For testing purposes only - should be removed
+            "user": UserSerializer(user).data,
         },
-        status=status.HTTP_501_NOT_IMPLEMENTED
+        status=status.HTTP_201_CREATED
     )
 
 
@@ -313,7 +301,7 @@ def send_activation(request) -> Response:
     email = request.GET.get('email')
 
     # Check for existence
-    if not get_user_model().objects.filter(email=email).exists():
+    if not MyUser.objects.filter(email=email).exists():
         return Response(
             data={
                 "details": "Error",
@@ -370,7 +358,7 @@ def activate(request):
         )
 
     # Check for existence
-    user = get_user_model().objects.filter(email=data['aud'])
+    user = MyUser.objects.filter(email=data['aud'])
     if not user.exists():
         return Response(
             data={
@@ -401,7 +389,7 @@ def send_recover(request):
         Take in email and send a token for recovering account
     """
     email = request.POST.get('email')
-    userFilter = get_user_model().objects.filter(email=email)
+    userFilter = MyUser.objects.filter(email=email)
 
     # Check for existence
     if userFilter.exists():
@@ -451,7 +439,7 @@ def recover_user(request):
             status=status.HTTP_400_BAD_REQUEST
         )
 
-    user = get_user_model().objects.get(email=data['email'])
+    user = MyUser.objects.get(email=data['email'])
 
     # Check current password
     if user.password != data['cur_password']:
@@ -478,13 +466,13 @@ def recover_user(request):
 
 @api_view(['GET', 'POST'])
 @permission_classes([AllowAny])
-def list_user(request):
+def list_user(_):
     """
         Return list of users with a specified view
     """
     filterParam = {  # ! Hardcoding: View permissions for list
         "uuid": False,
-        "uid": False,
+        "username": False,
         "first_name": True,
         "last_name": True,
         "birth_date": True,
@@ -506,5 +494,5 @@ def list_user(request):
 
     # Asterisk expands list into separated args
     # https://docs.python.org/2/tutorial/controlflow.html#unpacking-argument-lists
-    data = get_user_model().objects.all().values(*listZ)
+    data = MyUser.objects.all().values(*listZ)
     return Response(data)

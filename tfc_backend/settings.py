@@ -40,7 +40,7 @@ INSTALLED_APPS = [
     'master_api',
     'master_db',
     'app_auth',
-    # 'app_account',
+    'app_account',
 
     # 3rd party
     'corsheaders',
