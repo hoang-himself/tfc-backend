@@ -32,6 +32,8 @@ djangorestframework==3.12.4
     # via
     #   djangorestframework-simplejwt
     #   tfc-backend (setup.py)
+pillow==8.2.0
+    # via tfc-backend (setup.py)
 psycopg2-binary==2.8.6
     # via tfc-backend (setup.py)
 pycparser==2.20

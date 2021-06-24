@@ -36,8 +36,8 @@ class Setting(models.Model):
 
 class Role(models.Model):
     name = models.TextField(unique=True)
-    student = models.BooleanField(default=False)
     teacher = models.BooleanField(default=False)
+    office = models.BooleanField(default=False)
     dashboard = models.BooleanField(default=False)
     kanban = models.BooleanField(default=False)
     setting = models.BooleanField(default=False)
@@ -48,39 +48,23 @@ class Role(models.Model):
         return self.name
 
 
-class MyUser(AbstractUser):
-    # id
-    # password
-    # last_login
-    # is_superuser
-    # username
-    # first_name
-    # last_name
-    # email
-    # is_staff
-    # is_active
-    # date_joined
+class MyUser(models.Model):
+    password = models.TextField()
+    username = models.TextField(unique=True)
+    first_name = models.TextField()
+    mid_name = models.TextField(null=True, blank=True)
+    last_name = models.TextField()
+    email = models.EmailField(unique=True)
     uuid = models.UUIDField(default=uuid.uuid4, editable=False)
     birth_date = models.FloatField()
     mobile = models.TextField(unique=True)
     male = models.BooleanField(null=True, blank=True)
     address = models.TextField()
-    avatar = models.TextField(null=True, blank=True)
+    avatar = models.ImageField(
+        upload_to='images/profile/%Y/%m/%d/', null=True, blank=True)
+    role = models.ForeignKey(Role, on_delete=models.CASCADE)
+    created_at = models.FloatField()
     updated_at = models.FloatField()
-    # role = models.ForeignKey(Role, default='', on_delete=models.CASCADE, null=True)
-
-    REQUIRED_FIELDS = [
-        'first_name',
-        'last_name',
-        'email',
-        'birth_date',
-        'mobile',
-        'male',
-        'address',
-        'avatar',
-        'updated_at',
-        # 'role',
-    ]
 
     class Meta:
         indexes = [
@@ -88,7 +72,7 @@ class MyUser(AbstractUser):
             models.Index(fields=['last_name', ]),
             models.Index(fields=['birth_date', ]),
             models.Index(fields=['male', ]),
-            # models.Index(fields=['role', ]),
+            models.Index(fields=['role', ]),
         ]
 
     def __str__(self):

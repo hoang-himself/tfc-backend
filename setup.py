@@ -38,6 +38,7 @@ setup(
         'djangorestframework',
         'djangorestframework-simplejwt',
         'dj-database-url',
+        'Pillow',
         'psycopg2-binary',
         'python-dotenv'
     ],

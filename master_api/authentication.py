@@ -5,8 +5,6 @@ from rest_framework import exceptions
 from django.conf import settings
 from django.contrib.auth import get_user_model
 
-user_model = get_user_model()
-
 
 class CSRFCheck(CsrfViewMiddleware):
     def _reject(self, request, reason):
@@ -22,16 +20,14 @@ class SafeJWTAuthentication(BaseAuthentication):
 
     def authenticate(self, request):
 
-        global user_model
+        User = get_user_model()
+        authorization_heaader = request.headers.get('Authorization')
 
-        User = user_model
-        authorization_header = request.headers.get('Authorization')
-
-        if not authorization_header:
+        if not authorization_heaader:
             return None
         try:
             # header = 'Token xxxxxxxxxxxxxxxxxxxxxxxx'
-            access_token = authorization_header.split(' ')[1]
+            access_token = authorization_heaader.split(' ')[1]
             payload = jwt.decode(
                 access_token, settings.SECRET_KEY, algorithms=['HS256'])
 
@@ -40,18 +36,14 @@ class SafeJWTAuthentication(BaseAuthentication):
         except IndexError:
             raise exceptions.AuthenticationFailed('Token prefix missing')
 
-        user = User.objects.filter(user_id=payload['user_id']).first()
+        user = User.objects.filter(id=payload['user_id']).first()
         if user is None:
             raise exceptions.AuthenticationFailed('User not found')
 
-        # if not user.is_active:
-        #     raise exceptions.AuthenticationFailed('user is inactive')
+        if not user.is_active:
+            raise exceptions.AuthenticationFailed('user is inactive')
 
-        # self.enforce_csrf(request)
-
-        # Custom field is_authenticated
-        user.is_authenticated = True
-
+        self.enforce_csrf(request)
         return (user, None)
 
     def enforce_csrf(self, request):

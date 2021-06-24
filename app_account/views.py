@@ -14,7 +14,6 @@ import datetime
 import uuid as uuid_gen
 import json
 import jwt
-import hashlib
 import base64
 from cryptography.fernet import Fernet
 
@@ -80,7 +79,7 @@ def email_check(request) -> Response:
     return Response(email)
 
 
-def mobil_validate(mobile) -> bool:
+def mobile_validate(mobile) -> bool:
     """
         Validate phone number format
     """
@@ -101,7 +100,7 @@ def mobile_response(mobile) -> Response:
         Return response when checking signed up mobile phone number in db
     """
     # Validating mobile address
-    if not mobil_validate(mobile):
+    if not mobile_validate(mobile):
         return Response(
             data={
                 "details": "Error",
@@ -193,7 +192,7 @@ def create_user(request) -> Response:
     birth_date = request.POST.get('birth_date')
 
     # Significant factors:
-    # - These are the oposite of the insignificant factors,
+    # - These are the opposite of the insignificant factors,
     # they greately affect the user account.
     # There must be a strict rule for these to obey.
 
