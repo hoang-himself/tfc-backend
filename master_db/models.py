@@ -1,6 +1,5 @@
+from difflib import IS_CHARACTER_JUNK
 from django.db import models
-from django.contrib.auth import get_user_model
-from django.contrib.auth.models import AbstractUser, Group
 
 import uuid
 
@@ -36,8 +35,8 @@ class Setting(models.Model):
 
 class Role(models.Model):
     name = models.TextField(unique=True)
-    student = models.BooleanField(default=False)
     teacher = models.BooleanField(default=False)
+    office = models.BooleanField(default=False)
     dashboard = models.BooleanField(default=False)
     kanban = models.BooleanField(default=False)
     setting = models.BooleanField(default=False)
@@ -48,39 +47,24 @@ class Role(models.Model):
         return self.name
 
 
-class MyUser(AbstractUser):
-    # id
-    # password
-    # last_login
-    # is_superuser
-    # username
-    # first_name
-    # last_name
-    # email
-    # is_staff
-    # is_active
-    # date_joined
+class MyUser(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False)
+    username = models.TextField(unique=True)
+    first_name = models.TextField()
+    mid_name = models.TextField(null=True, blank=True)
+    last_name = models.TextField()
+    email = models.EmailField(unique=True)
+    password = models.TextField()
     birth_date = models.FloatField()
     mobile = models.TextField(unique=True)
     male = models.BooleanField(null=True, blank=True)
     address = models.TextField()
-    avatar = models.TextField(null=True, blank=True)
+    avatar = models.ImageField(
+        upload_to='images/profile/%Y/%m/%d/', null=True, blank=True)
+    role = models.ForeignKey(Role, on_delete=models.CASCADE)
+    is_active = models.BooleanField(default=True, blank=True)
+    created_at = models.FloatField()
     updated_at = models.FloatField()
-    # role = models.ForeignKey(Role, default='', on_delete=models.CASCADE, null=True)
-
-    REQUIRED_FIELDS = [
-        'first_name',
-        'last_name',
-        'email',
-        'birth_date',
-        'mobile',
-        'male',
-        'address',
-        'avatar',
-        'updated_at',
-        # 'role',
-    ]
 
     class Meta:
         indexes = [
@@ -88,7 +72,7 @@ class MyUser(AbstractUser):
             models.Index(fields=['last_name', ]),
             models.Index(fields=['birth_date', ]),
             models.Index(fields=['male', ]),
-            # models.Index(fields=['role', ]),
+            models.Index(fields=['role', ]),
         ]
 
     def __str__(self):
@@ -115,7 +99,7 @@ class Course(models.Model):
 
 
 class ClassMetadata(models.Model):
-    course = models.ForeignKey(Course, default='', on_delete=models.CASCADE)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)
     name = models.TextField(unique=True)
     status = models.TextField()
     created_at = models.FloatField()
@@ -133,12 +117,10 @@ class ClassMetadata(models.Model):
 class ClassStudent(models.Model):
     classroom = models.ForeignKey(
         ClassMetadata,
-        default='',
         on_delete=models.CASCADE
     )
     student = models.ForeignKey(
-        get_user_model(),
-        default='',
+        MyUser,
         on_delete=models.CASCADE)
     created_at = models.FloatField()
     updated_at = models.FloatField()
@@ -150,12 +132,10 @@ class ClassStudent(models.Model):
 class ClassTeacher(models.Model):
     classroom = models.ForeignKey(
         ClassMetadata,
-        default='',
         on_delete=models.CASCADE
     )
     teacher = models.ForeignKey(
-        get_user_model(),
-        default='',
+        MyUser,
         on_delete=models.CASCADE)
     created_at = models.FloatField()
     updated_at = models.FloatField()
@@ -167,7 +147,6 @@ class ClassTeacher(models.Model):
 class Session(models.Model):
     classroom = models.ForeignKey(
         ClassMetadata,
-        default='',
         on_delete=models.CASCADE
     )
     time_start = models.FloatField()
@@ -187,12 +166,10 @@ class Session(models.Model):
 class Attendance(models.Model):
     session = models.ForeignKey(
         Session,
-        default='',
         on_delete=models.CASCADE
     )
     student = models.ForeignKey(
-        get_user_model(),
-        default='',
+        MyUser,
         on_delete=models.CASCADE
     )
     status = models.BooleanField(null=True, blank=True)
@@ -217,13 +194,11 @@ class Attendance(models.Model):
 
 class Log(models.Model):
     user = models.ForeignKey(
-        get_user_model(),
-        default='',
+        MyUser,
         on_delete=models.DO_NOTHING
     )
     table = models.ForeignKey(
         Metatable,
-        default='',
         on_delete=models.DO_NOTHING
     )
     desc = models.TextField()
@@ -233,3 +208,14 @@ class Log(models.Model):
 
     def __str__(self):
         return self.short_desc
+
+
+class BlacklistedToken(models.Model):
+    user = models.ForeignKey(MyUser, on_delete=models.DO_NOTHING)
+    token = models.TextField()
+    blacklisted_at = models.FloatField()
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['blacklisted_at'])
+        ]

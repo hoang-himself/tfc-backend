@@ -31,15 +31,16 @@ setup(
     include_package_data=True,
     install_requires=[
         'cryptography',
-        'django',
+        'dj-database-url',
+        'Django',
         'django-cors-headers',
         'django-extensions',
         'django-filter',
         'djangorestframework',
-        'djangorestframework-simplejwt',
-        'dj-database-url',
+        'Pillow',
         'psycopg2-binary',
-        'python-dotenv'
+        'PyJWT',
+        'python-dotenv',
     ],
     #   extras_require={  # pip install sampleproject[dev]
     #       'dev': ['check-manifest'],
