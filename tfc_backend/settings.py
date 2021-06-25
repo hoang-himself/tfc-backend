@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'master_db',
     'app_auth',
     'app_account',
+    'app_class',
 
     # 3rd party
     'corsheaders',
