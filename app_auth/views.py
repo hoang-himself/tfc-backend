@@ -21,33 +21,19 @@ def login(request) -> Response:
     response = Response()
     response.status_code = status.HTTP_400_BAD_REQUEST
     valid = True
-    errors = []
+    errors = {}
 
     username = request.POST.get('username')
     password = request.POST.get('password')
 
     if (username is None or username == ''):
-        errors.append(
-            {
-                "username": [
-                    "This field is required"
-                ]
-            }
-        )
+        errors["username"] = "This field is required"
         valid = False
     if (password is None or password == ''):
-        errors.append(
-            {
-                "password": [
-                    "This field is required"
-                ]
-            }
-        )
+        errors["password"] = "This field is required"
         valid = False
     if (valid == False):
-        response.data = {
-            errors
-        }
+        response.data = errors
         return response
 
     user = MyUser.objects.filter(username=username).first()
@@ -181,7 +167,7 @@ def refresh(request):
         raise exceptions.AuthenticationFailed('User not found')
 
     if not user.is_active:
-        raise exceptions.AuthenticationFailed('user is inactive')
+        raise exceptions.AuthenticationFailed('User is inactive')
 
     access_token = gen_acc_token(user)
 

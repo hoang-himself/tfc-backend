@@ -1,4 +1,3 @@
-from difflib import IS_CHARACTER_JUNK
 from django.db import models
 
 import uuid
@@ -35,11 +34,14 @@ class Setting(models.Model):
 
 class Role(models.Model):
     name = models.TextField(unique=True)
-    teacher = models.BooleanField(default=False)
-    office = models.BooleanField(default=False)
-    dashboard = models.BooleanField(default=False)
-    kanban = models.BooleanField(default=False)
-    setting = models.BooleanField(default=False)
+    r_attend = models.BooleanField(default=False)
+    w_attend = models.BooleanField(default=False)
+    r_user = models.BooleanField(default=False)
+    w_user = models.BooleanField(default=False)
+    r_kanban = models.BooleanField(default=False)
+    w_kanban = models.BooleanField(default=False)
+    r_setting = models.BooleanField(default=False)
+    w_setting = models.BooleanField(default=False)
     created_at = models.FloatField(default=False)
     updated_at = models.FloatField(default=False)
 

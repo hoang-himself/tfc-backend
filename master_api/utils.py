@@ -1,5 +1,5 @@
-from uuid import uuid4
 from django.conf import settings
+from rest_framework import status
 from master_db.serializers import MyUserSerializer, RoleSerializer
 
 import datetime
@@ -62,3 +62,35 @@ def gen_acc_token(user):
 
     token = jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
     return token
+
+
+def has_perm(request, perms):
+
+    authorization_header = request.headers.get('Authorization')
+
+    if not authorization_header:
+        return None
+    try:
+        # header = 'Token xxxxxxxxxxxxxxxxxxxxxxxx'
+        access_token = authorization_header.split(' ')[1]
+        payload = jwt.decode(
+            access_token, settings.SECRET_KEY, algorithms=['HS256'])
+    except jwt.ExpiredSignatureError:
+        return status.HTTP_401_UNAUTHORIZED
+    except IndexError:
+        return status.HTTP_400_BAD_REQUEST
+
+    if (access_token is None or access_token == ''):
+        return status.HTTP_400_BAD_REQUEST
+
+    try:
+        payload = jwt.decode(
+            access_token, settings.SECRET_KEY, algorithms=['HS256'])
+    except jwt.ExpiredSignatureError:
+        return status.HTTP_400_BAD_REQUEST
+
+    claimed_perms = payload['perms']
+    for perm in perms:
+        if perm in claimed_perms:
+            return status.HTTP_200_OK
+    return status.HTTP_401_UNAUTHORIZED
