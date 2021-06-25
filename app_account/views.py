@@ -1,8 +1,10 @@
 from django.conf import settings
+from django.contrib.auth.hashers import make_password
+from django.views.decorators.csrf import csrf_protect
 
 from rest_framework import status
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny
 from rest_framework.decorators import api_view, permission_classes
 
 from master_db.models import Role, MyUser
@@ -23,7 +25,7 @@ def email_validate(email) -> bool:
         Validate email address format
     """
     # Check nullity
-    if email is None:
+    if email is None or email == '':
         return False
 
     # Validating email address
@@ -68,7 +70,7 @@ def email_response(email) -> Response:
 
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def email_check(request) -> Response:
     """
         API for checking email address for creating user
@@ -82,7 +84,7 @@ def mobile_validate(mobile) -> bool:
         Validate phone number format
     """
     # Check nullity
-    if mobile is None:
+    if mobile is None or mobile == '':
         return False
 
     # Validating mobile phone number
@@ -102,7 +104,7 @@ def mobile_response(mobile) -> Response:
         return Response(
             data={
                 "details": "Error",
-                "message": "Invalid mobile phone number "
+                "message": "Invalid mobile phone number"
             },
             status=status.HTTP_400_BAD_REQUEST
         )
@@ -127,7 +129,7 @@ def mobile_response(mobile) -> Response:
 
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def mobile_check(request) -> Response:
     """
         API for checking phone number for creating user
@@ -141,7 +143,7 @@ def username_response(username) -> Response:
         Return response when checking signed up username in db
     """
     # Check nullity
-    if username is None:
+    if username is None or username == '':
         return Response(
             data={
                 "details": "Error",
@@ -170,7 +172,7 @@ def username_response(username) -> Response:
 
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def username_check(request) -> Response:
     """
         API for checking username for creating user
@@ -179,16 +181,63 @@ def username_check(request) -> Response:
     return username_response(username)
 
 
-def password_validate(passwd):
+def password_validate(password):
+    """
+        Validate password format
+    """
     regex = '[A-Za-z0-9@#$%^&+=]{8,}'
-    if re.fullmatch(regex, passwd):
+    if re.fullmatch(regex, password):
         return True
     else:
         return False
 
 
+def password_response(password) -> Response:
+    """
+        Return response when checking password strength
+    """
+    # Check nullity
+    if password is None or password == '':
+        return Response(
+            data={
+                "details": "Error",
+                "message": "Password cannot be empty"
+            },
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    # Validating password
+    if not password_validate(password):
+        return Response(
+            data={
+                "details": "Error",
+                "message": "Password is too short"
+            },
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    else:
+        return Response(
+            data={
+                "details": "Ok",
+                "message": "Password is suitable for creating user"
+            },
+            status=status.HTTP_200_OK
+        )
+
+
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
+def password_check(request) -> Response:
+    """
+        API for checking password strength
+    """
+    password = request.POST.get('password')
+    return Response(password)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+@csrf_protect
 def create_user(request) -> Response:
     """
         Requires every param: first_name, last_name, address, male, avatar, birth_date, role_id, email, mobile, username, password.
@@ -234,15 +283,10 @@ def create_user(request) -> Response:
     if check.status_code == status.HTTP_400_BAD_REQUEST:
         return check
 
-    check = password_validate(password)
-    if (check == False):
-        return Response(
-            data={
-                "details": "Error",
-                "message": "Password too weak"
-            },
-            status=status.HTTP_400_BAD_REQUEST
-        )
+    # Verify password
+    check = password_response(password)
+    if check.status_code == status.HTTP_400_BAD_REQUEST:
+        return check
 
     # DB generated factor:
     # - These are generated automatically and seperated from
@@ -275,7 +319,7 @@ def create_user(request) -> Response:
         email=email,
         mobile=mobile,
         male=male,
-        password=password,
+        password=make_password(password),
         address=address,
         role=role,
         avatar=avatar,
@@ -283,23 +327,7 @@ def create_user(request) -> Response:
         updated_at=updated_at,
     )
 
-    dictionary = MyUserSerializer(user, many=False)
-    serializer = MyUserSerializer(data=dictionary.data)
-
-    # If required fields are empty function returns Django implemented exception
-    if serializer.is_valid(raise_exception=True):
-        # TODO: Save the user
-        # serializer.save()
-        return Response(
-            data={
-                "details": "Error",
-                "message": "Error"
-            },
-            status=status.HTTP_400_BAD_REQUEST
-        )
-
-    # TODO: Save user
-    # user.save()
+    user.save()
 
     return Response(
         data={
@@ -483,12 +511,13 @@ def recover_user(request):
 
 
 @api_view(['GET', 'POST'])
-@permission_classes([IsAuthenticated])
-def list_user():
+@permission_classes([AllowAny])
+@csrf_protect
+def list_user(request):
     """
         Return list of users with a specified view
     """
-    filterParam = {  # ! Hardcoding: View permissions for list
+    filterParam = {
         "uuid": False,
         "username": False,
         "first_name": True,
