@@ -36,7 +36,7 @@ class SafeJWTAuthentication(BaseAuthentication):
         except IndexError:
             raise exceptions.AuthenticationFailed('Token prefix missing')
 
-        user = MyUser.objects.filter(id=payload['user_id']).first()
+        user = MyUser.objects.filter(uuid=payload['user_id']).first()
         if user is None:
             raise exceptions.AuthenticationFailed('User not found')
 

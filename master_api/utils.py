@@ -31,8 +31,7 @@ def gen_ref_token(user):
     payload['perms'] = perms
     payload['user_id'] = user['uuid']
 
-    sign = settings.SECRET_KEY + user['password'][-50:]
-    token = jwt.encode(payload, sign, algorithm='HS256')
+    token = jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
     return token
 
 
@@ -61,36 +60,5 @@ def gen_acc_token(user):
     payload['perms'] = perms
     payload['user_id'] = user['uuid']
 
-    sign = settings.SECRET_KEY + user['password'][-50:]
-    token = jwt.encode(payload, sign, algorithm='HS256')
+    token = jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
     return token
-
-
-def decode_token(refresh_token):
-    result = -2
-    claims = None
-    if (refresh_token == None):
-        return (result, None)
-    try:
-        claims = jwt.decode(
-            refresh_token, options={"verify_signature": False}, issuer='TFC', algorithms=['HS256'])
-        result = 0
-    except jwt.DecodeError:
-        result = -1
-    except jwt.InvalidSignatureError:
-        result = 1
-    except jwt.ExpiredSignatureError:
-        result = 2
-    except jwt.InvalidAudienceError:
-        result = 3
-    except jwt.InvalidIssuerError:
-        result = 4
-    except jwt.InvalidIssuedAtError:
-        result = 5
-    except jwt.ImmatureSignatureError:
-        result = 6
-    except jwt.exceptions.InvalidKeyError:
-        result = 7
-    except jwt.InvalidAlgorithmError:
-        result = 8
-    return (result, claims)

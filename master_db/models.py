@@ -62,7 +62,7 @@ class MyUser(models.Model):
     avatar = models.ImageField(
         upload_to='images/profile/%Y/%m/%d/', null=True, blank=True)
     role = models.ForeignKey(Role, on_delete=models.CASCADE)
-    is_active = models.BooleanField()
+    is_active = models.BooleanField(default=True, blank=True)
     created_at = models.FloatField()
     updated_at = models.FloatField()
 

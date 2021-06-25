@@ -1,17 +1,22 @@
+from django.conf import settings
 from django.contrib.auth.hashers import check_password
+from django.views.decorators.csrf import csrf_protect, ensure_csrf_cookie
 
-from rest_framework import status
+from rest_framework import exceptions, status
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 from rest_framework.decorators import api_view, permission_classes
 
 from master_db.models import MyUser
 from master_db.serializers import MyUserSerializer
-from master_api.utils import gen_ref_token, gen_acc_token, decode_token
+from master_api.utils import gen_ref_token, gen_acc_token
+
+import jwt
 
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
+@ensure_csrf_cookie
 def login(request) -> Response:
     response = Response()
     response.status_code = status.HTTP_400_BAD_REQUEST
@@ -67,10 +72,10 @@ def login(request) -> Response:
     refresh_token = gen_ref_token(user)
     access_token = gen_acc_token(user)
 
+    response.set_cookie(key='refreshtoken', value=refresh_token, httponly=True)
     response.status_code = status.HTTP_202_ACCEPTED
     response.data = {
         "token": {
-            "refresh": refresh_token,
             "access": access_token
         }
     }
@@ -79,35 +84,32 @@ def login(request) -> Response:
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
+@csrf_protect
 def check(request):
     response = Response()
-    token = request.POST.get('token')
+    refresh_token = request.COOKIES.get('refreshtoken')
 
-    if (token is None or token == ''):
-        response.status_code = status.HTTP_401_UNAUTHORIZED
-        response.data = {
-            "token": [
-                "This field is required"
-            ]
-        }
-        return response
+    if refresh_token is None:
+        raise exceptions.AuthenticationFailed(
+            'Authentication credentials were not provided')
+    try:
+        payload = jwt.decode(
+            refresh_token, settings.SECRET_KEY, algorithms=['HS256'])
+    except jwt.ExpiredSignatureError:
+        raise exceptions.AuthenticationFailed(
+            'Refresh token expired')
 
-    payload = decode_token(token)
-    flag, claims = payload
+    user = MyUser.objects.filter(uuid=payload['user_id']).first()
+    if user is None:
+        raise exceptions.AuthenticationFailed('User not found')
 
-    if (flag != 0):
-        response.status_code = status.HTTP_400_BAD_REQUEST
-        response.data = {
-            "token": [
-                "Token invalid or expired"
-            ]
-        }
-        return response
+    if not user.is_active:
+        raise exceptions.AuthenticationFailed('user is inactive')
 
     response.status_code = status.HTTP_200_OK
     response.data = {
-        "role": claims['role'],
-        "perms": claims['perms']
+        "role": payload['role'],
+        "perms": payload['perms']
     }
     return response
 
@@ -159,39 +161,27 @@ def logout(request) -> Response:
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
+@csrf_protect
 def refresh(request):
     response = Response()
-    token = request.POST.get('refresh')
+    refresh_token = request.COOKIES.get('refreshtoken')
 
-    if (token is None or token == ''):
-        response.status_code = status.HTTP_401_UNAUTHORIZED
-        response.data = {
-            "refresh": [
-                "This field is required"
-            ]
-        }
-        return response
+    if refresh_token is None:
+        raise exceptions.AuthenticationFailed(
+            'Authentication credentials were not provided')
+    try:
+        payload = jwt.decode(
+            refresh_token, settings.SECRET_KEY, algorithms=['HS256'])
+    except jwt.ExpiredSignatureError:
+        raise exceptions.AuthenticationFailed(
+            'Refresh token expired')
 
-    payload = decode_token(token)
-    flag, claims = payload
+    user = MyUser.objects.filter(uuid=payload['user_id']).first()
+    if user is None:
+        raise exceptions.AuthenticationFailed('User not found')
 
-    if (flag != 0 or claims['typ'] != 'refresh'):
-        response.status_code = status.HTTP_400_BAD_REQUEST
-        response.data = {
-            "refresh": [
-                "Refresh token invalid or expired"
-            ]
-        }
-        return response
-
-    user = MyUser.objects.filter(uuid=claims['user_id']).first()
-    if (user is None):
-        response.data = {
-            "user": [
-                "Not found"
-            ]
-        }
-        return response
+    if not user.is_active:
+        raise exceptions.AuthenticationFailed('user is inactive')
 
     access_token = gen_acc_token(user)
 
