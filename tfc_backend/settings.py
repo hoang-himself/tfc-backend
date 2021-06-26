@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'app_calendar',
     'app_class',
     'app_role',
+    'app_schedule',
 
     # 3rd party
     'corsheaders',

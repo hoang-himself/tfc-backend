@@ -8,4 +8,5 @@ urlpatterns = [
     path('calendar/', include('app_calendar.urls')),
     path('class/', include('app_class.urls')),
     path('role/', include('app_role.urls')),
+    path('schedule/', include('app_schedule.urls')),
 ]
