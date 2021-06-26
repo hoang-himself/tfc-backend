@@ -58,10 +58,11 @@ def login(request) -> Response:
     refresh_token = gen_ref_token(user)
     access_token = gen_acc_token(user)
 
-    response.set_cookie(key='refreshtoken', value=refresh_token, httponly=True)
+    response.set_cookie(key='access_token', value=access_token, httponly=True)
     response.status_code = status.HTTP_202_ACCEPTED
     response.data = {
         "token": {
+            "refresh": refresh_token,
             "access": access_token
         }
     }
@@ -73,24 +74,17 @@ def login(request) -> Response:
 @csrf_protect
 def check(request):
     response = Response()
-    refresh_token = request.COOKIES.get('refreshtoken')
+    access_token = request.COOKIES.get('access_token')
 
-    if refresh_token is None:
+    if access_token is None:
         raise exceptions.AuthenticationFailed(
             'Authentication credentials were not provided')
     try:
         payload = jwt.decode(
-            refresh_token, settings.SECRET_KEY, algorithms=['HS256'])
+            access_token, settings.SECRET_KEY, algorithms=['HS256'])
     except jwt.ExpiredSignatureError:
         raise exceptions.AuthenticationFailed(
             'Refresh token expired')
-
-    user = MyUser.objects.filter(uuid=payload['user_id']).first()
-    if user is None:
-        raise exceptions.AuthenticationFailed('User not found')
-
-    if not user.is_active:
-        raise exceptions.AuthenticationFailed('user is inactive')
 
     response.status_code = status.HTTP_200_OK
     response.data = {
@@ -104,9 +98,11 @@ def check(request):
 @permission_classes([AllowAny])
 def logout(request) -> Response:
     response = Response()
-    refresh_token = request.COOKIES.get('refreshtoken', None)
-    if refresh_token:
-        response.delete_cookie('refreshtoken')
+
+    # TODO
+    access_token = request.COOKIES.get('access_token', None)
+    if access_token:
+        response.delete_cookie('access_token')
         response.status_code = status.HTTP_204_NO_CONTENT
         response.data = {
             'message': 'Logged out successfully.'
@@ -125,27 +121,43 @@ def logout(request) -> Response:
 @csrf_protect
 def refresh(request):
     response = Response()
-    refresh_token = request.COOKIES.get('refreshtoken')
+    refresh_token = request.POST.get('refresh')
 
-    if refresh_token is None:
-        raise exceptions.AuthenticationFailed(
-            'Authentication credentials were not provided')
+    if not refresh_token:
+        response.status_code = status.HTTP_401_UNAUTHORIZED
+        response.data = {
+            'message': 'User not logged in'
+        }
+        return response
+
     try:
         payload = jwt.decode(
             refresh_token, settings.SECRET_KEY, algorithms=['HS256'])
     except jwt.ExpiredSignatureError:
-        raise exceptions.AuthenticationFailed(
-            'Refresh token expired')
+        response.status_code = status.HTTP_401_UNAUTHORIZED
+        response.data = {
+            'message': 'Session expired'
+        }
+        return response
 
     user = MyUser.objects.filter(uuid=payload['user_id']).first()
     if user is None:
-        raise exceptions.AuthenticationFailed('User not found')
+        response.status_code = status.HTTP_400_BAD_REQUEST
+        response.data = {
+            'message': 'User not found'
+        }
+        return response
 
     if not user.is_active:
-        raise exceptions.AuthenticationFailed('User is inactive')
+        response.status_code = status.HTTP_401_UNAUTHORIZED
+        response.data = {
+            'message': 'User inactive'
+        }
+        return response
 
     access_token = gen_acc_token(user)
 
+    response.set_cookie(key='access_token', value=access_token, httponly=True)
     response.status_code = status.HTTP_200_OK
     response.data = {
         "token": {
