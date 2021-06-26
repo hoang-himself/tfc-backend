@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'app_auth',
     'app_account',
     'app_calendar',
+    'app_class',
 
     # 3rd party
     'corsheaders',
