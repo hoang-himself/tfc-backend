@@ -22,23 +22,6 @@ class Branch(models.Model):
         return self.short_adr
 
 
-class Calendar(models.Model):
-    name = models.TextField()
-    desc = models.TextField(null=True, blank=True)
-    time_start = models.FloatField()
-    time_end = models.FloatField()
-    created_at = models.FloatField()
-    updated_at = models.FloatField()
-
-    class Meta:
-        indexes = [
-            models.Index(fields=['time_start', 'time_end'])
-        ]
-
-    def __str__(self):
-        return f'{self.name}, {self.time_start} ~ {self.time_end}'
-
-
 class Setting(models.Model):
     name = models.TextField()
     value = models.TextField()
@@ -51,14 +34,10 @@ class Setting(models.Model):
 
 class Role(models.Model):
     name = models.TextField(unique=True)
-    r_attend = models.BooleanField(default=False)
-    w_attend = models.BooleanField(default=False)
-    r_user = models.BooleanField(default=False)
-    w_user = models.BooleanField(default=False)
-    r_kanban = models.BooleanField(default=False)
-    w_kanban = models.BooleanField(default=False)
-    r_setting = models.BooleanField(default=False)
-    w_setting = models.BooleanField(default=False)
+    class_session = models.BooleanField(default=False)
+    account_cred = models.BooleanField(default=False)
+    kanban = models.BooleanField(default=False)
+    setting = models.BooleanField(default=False)
     created_at = models.FloatField(default=False)
     updated_at = models.FloatField(default=False)
 
@@ -209,6 +188,27 @@ class Attendance(models.Model):
 
     def __str__(self):
         return f'{self.schedule} {self.status} {self.student}'
+
+
+class Calendar(models.Model):
+    user = models.ForeignKey(
+        MyUser,
+        on_delete=models.CASCADE
+    )
+    name = models.TextField()
+    desc = models.TextField(null=True, blank=True)
+    time_start = models.FloatField()
+    time_end = models.FloatField()
+    created_at = models.FloatField()
+    updated_at = models.FloatField()
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['time_start', 'time_end'])
+        ]
+
+    def __str__(self):
+        return f'{self.name}, {self.time_start} ~ {self.time_end}'
 
 
 class Log(models.Model):
