@@ -103,46 +103,21 @@ def check(request):
 @api_view(['DELETE'])
 @permission_classes([AllowAny])
 def logout(request) -> Response:
-    """
     response = Response()
-    response.status_code = status.HTTP_400_BAD_REQUEST
-    valid = 1
-    errors = []
-
-    refresh_token = request.POST.get('refresh')
-    access_token = request.POST.get('access')
-
-    if (refresh_token is None or refresh_token == ''):
-        errors.append(
-            {
-                "refresh": [
-                    "This field is required"
-                ]
-            }
-        )
-        valid -= 1
-    if (access_token is None or access_token == ''):
-        errors.append(
-            {
-                "access": [
-                    "This field is required"
-                ]
-            }
-        )
-        valid -= 1
-    if (valid < 1):
+    refresh_token = request.COOKIES.get('refreshtoken', None)
+    if refresh_token:
+        response.delete_cookie('refreshtoken')
+        response.status_code = status.HTTP_204_NO_CONTENT
         response.data = {
-            errors
+            'message': 'Logged out successfully.'
         }
         return response
 
-    response.status_code = status.HTTP_204_NO_CONTENT
+    response.status_code = status.HTTP_200_OK
     response.data = {
-        "result": "ok"
+        'message': 'User is already logged out.'
     }
     return response
-    """
-    pass
 
 
 @api_view(['POST'])
