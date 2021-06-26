@@ -250,7 +250,7 @@ def create_user(request) -> Response:
     # - These factors are freely defined and do not affect
     # its corresponding account if input incorrectly.
 
-    check = has_perm(request, ['w_user'])
+    check = has_perm(request, ['account_cred'])
     if check.status_code >= 400:
         return check
 
@@ -522,7 +522,7 @@ def list_user(request):
     """
         Return list of users with a specified view
     """
-    check = has_perm(request, ['r_user'])
+    check = has_perm(request, ['account_cred'])
     if check.status_code >= 400:
         return check
 
