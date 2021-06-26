@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from master_db.models import (
-    Metatable, Branch, MyUser, Setting, Role, Course,
-    ClassMetadata, ClassStudent, ClassTeacher, Session, Attendance, Log
+    Metatable, Branch, Calendar, MyUser, Setting, Role, Course,
+    ClassMetadata, ClassStudent, ClassTeacher, Schedule, Attendance, Log
 )
 
 
@@ -14,6 +14,12 @@ class MetatableSerializer(serializers.ModelSerializer):
 class BranchSerializer(serializers.ModelSerializer):
     class Meta:
         model = Branch
+        fields = '__all__'
+
+
+class BranchSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Calendar
         fields = '__all__'
 
 
@@ -59,9 +65,9 @@ class ClassTeacherSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class SessionSerializer(serializers.ModelSerializer):
+class ScheduleSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Session
+        model = Schedule
         fields = '__all__'
 
 

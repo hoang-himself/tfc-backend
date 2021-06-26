@@ -22,6 +22,23 @@ class Branch(models.Model):
         return self.short_adr
 
 
+class Calendar(models.Model):
+    name = models.TextField()
+    desc = models.TextField(null=True, blank=True)
+    time_start = models.FloatField()
+    time_end = models.FloatField()
+    created_at = models.FloatField()
+    updated_at = models.FloatField()
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['time_start', 'time_end'])
+        ]
+
+    def __str__(self):
+        return f'{self.name}, {self.time_start} ~ {self.time_end}'
+
+
 class Setting(models.Model):
     name = models.TextField()
     value = models.TextField()
@@ -146,7 +163,7 @@ class ClassTeacher(models.Model):
         return f'{self.classroom} {self.teacher}'
 
 
-class Session(models.Model):
+class Schedule(models.Model):
     classroom = models.ForeignKey(
         ClassMetadata,
         on_delete=models.CASCADE
@@ -166,8 +183,8 @@ class Session(models.Model):
 
 
 class Attendance(models.Model):
-    session = models.ForeignKey(
-        Session,
+    schedule = models.ForeignKey(
+        Schedule,
         on_delete=models.CASCADE
     )
     student = models.ForeignKey(
@@ -191,7 +208,7 @@ class Attendance(models.Model):
         ]
 
     def __str__(self):
-        return f'{self.session} {self.status} {self.student}'
+        return f'{self.schedule} {self.status} {self.student}'
 
 
 class Log(models.Model):
