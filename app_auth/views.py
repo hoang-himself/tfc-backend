@@ -58,10 +58,11 @@ def login(request) -> Response:
     refresh_token = gen_ref_token(user)
     access_token = gen_acc_token(user)
 
-    response.set_cookie(key='refreshtoken', value=refresh_token, httponly=True)
+    response.set_cookie(key='accesstoken', value=access_token, httponly=True)
     response.status_code = status.HTTP_202_ACCEPTED
     response.data = {
         "token": {
+            "refresh": refresh_token,
             "access": access_token
         }
     }
