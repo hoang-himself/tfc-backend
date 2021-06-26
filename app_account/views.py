@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 from rest_framework.decorators import api_view, permission_classes
 
+from master_api.utils import has_perm
 from master_db.models import Role, MyUser
 from master_db.serializers import MyUserSerializer
 
@@ -248,6 +249,10 @@ def create_user(request) -> Response:
     # Insignificant factors:
     # - These factors are freely defined and do not affect
     # its corresponding account if input incorrectly.
+
+    check = has_perm(request, ['account_cred'])
+    if check.status_code >= 400:
+        return check
 
     first_name = request.POST.get('first_name')
     mid_name = request.POST.get('mid_name')
@@ -510,33 +515,60 @@ def recover_user(request):
     )
 
 
-@api_view(['GET', 'POST'])
+@api_view(['GET'])
 @permission_classes([AllowAny])
 @csrf_protect
 def list_user(request):
     """
         Return list of users with a specified view
     """
-    filterParam = {
-        "uuid": False,
-        "username": False,
-        "first_name": True,
-        "last_name": True,
-        "birth_date": True,
-        "email": True,
-        "mobile": True,
-        "male": True,
-        "password": False,
-        "address": True,
-        "role_id": True,
-        "avatar": True,
-        "created_at": False,
-        "updated_at": False,
+    check = has_perm(request, ['account_cred'])
+    if check.status_code >= 400:
+        return check
+
+    filter_query = request.GET.getlist('filter')
+
+    print(filter_query)
+    if not filter_query:
+        filter_query = [
+            'uuid',
+            'username',
+            'first_name',
+            'mid_name',
+            'last_name',
+            'email',
+            'birth_date',
+            'mobile',
+            'male',
+            'address',
+            'role',
+            'is_active',
+            'created_at',
+            'updated_at'
+        ]
+
+    filter_dict = {
+        'uuid': True,
+        'username': True,
+        'first_name': True,
+        'mid_name': True,
+        'last_name': True,
+        'email': True,
+        'password': False,
+        'birth_date': True,
+        'mobile': True,
+        'male': True,
+        'address': True,
+        'avatar': False,
+        'role': True,
+        'is_active': True,
+        'created_at': True,
+        'updated_at': True
     }
 
     listZ = []
-    for key in filterParam:  # Query filter for choosing views
-        if filterParam[key]:
+    for key in filter_query:  # Query filter for choosing views
+        if filter_dict[key]:
             listZ.append(key)
 
     # Asterisk expands list into separated args
