@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'app_account',
     'app_calendar',
     'app_class',
+    'app_role',
 
     # 3rd party
     'corsheaders',
