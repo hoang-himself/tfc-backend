@@ -242,7 +242,7 @@ def password_check(request) -> Response:
 @csrf_protect
 def create_user(request) -> Response:
     """
-        Requires every param: first_name, last_name, address, male, avatar, birth_date, role_id, email, mobile, username, password.
+        Requires every param: first_name, mid_name, last_name, address, male, avatar, birth_date, role_id, email, mobile, username, password.
 
         The role_id param takes in int type and represents the id of the role in database.
     """
@@ -553,7 +553,7 @@ def list_user(request):
             'mobile',
             'male',
             'address',
-            'role',
+            'role__name',
             'is_active',
             'created_at',
             'updated_at'
@@ -572,7 +572,7 @@ def list_user(request):
         'male': True,
         'address': True,
         'avatar': False,
-        'role': True,
+        'role__name': True,
         'is_active': True,
         'created_at': True,
         'updated_at': True
