@@ -214,8 +214,6 @@ class Calendar(models.Model):
     def __str__(self):
         time_start = datetime.datetime.fromtimestamp(self.time_start)
         time_end = datetime.datetime.fromtimestamp(self.time_end)
-        print(time_start)
-        print(time_end)
         return f'{self.name}, {time_start.hour + time_start.minute / 60} ~ {time_end.hour + time_end.minute / 60}'
 
 
