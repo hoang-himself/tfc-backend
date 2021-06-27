@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.contrib.auth.hashers import make_password
 from django.views.decorators.csrf import csrf_protect
+from django.core.exceptions import ValidationError
 
 from rest_framework import status
 from rest_framework.response import Response
@@ -331,6 +332,17 @@ def create_user(request) -> Response:
         created_at=created_at,
         updated_at=updated_at,
     )
+
+    try:
+        user.full_clean()
+    except ValidationError as message:
+        return Response(
+            data={
+                'details': 'Error',
+                'message': message
+            },
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
     user.save()
 
