@@ -6,19 +6,19 @@ from rest_framework.permissions import AllowAny
 from rest_framework.decorators import api_view, permission_classes
 
 from master_api.utils import has_perm
-from master_db.models import Calendar
+from master_db.models import Attendance
 
 # Create your views here.
 @api_view(['GET'])
 @permission_classes([AllowAny])
-@csrf_protect
-def list_calendar(request):
+# @csrf_protect
+def list_attend(request):
     """
         Return list of users with a specified view
     """
-    check = has_perm(request, ['account_cred'])
-    if check.status_code >= 400:
-        return check
+    # check = has_perm(request, ['account_cred'])
+    # if check.status_code >= 400:
+    #     return check
 
     filter_query = request.GET.getlist('filter')
 
@@ -51,5 +51,5 @@ def list_calendar(request):
 
     # Asterisk expands list into separated args
     # https://docs.python.org/2/tutorial/controlflow.html#unpacking-argument-lists
-    data = Calendar.objects.all().values(*listZ)
+    data = Attendance.objects.all().values(*listZ)
     return Response(data)

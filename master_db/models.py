@@ -162,7 +162,9 @@ class Schedule(models.Model):
         ]
 
     def __str__(self):
-        return f'{self.classroom} {self.time_start} {self.time_end}'
+        time_start = datetime.datetime.fromtimestamp(self.time_start)
+        time_end = datetime.datetime.fromtimestamp(self.time_end)
+        return f'{self.name}, {time_start.hour + time_start.minute / 60} ~ {time_end.hour + time_end.minute / 60}'
 
 
 class Attendance(models.Model):
