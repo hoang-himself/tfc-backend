@@ -1,6 +1,7 @@
 from django.db import models
 
 import uuid
+import datetime
 
 
 class Metatable(models.Model):
@@ -40,6 +41,9 @@ class Role(models.Model):
     setting = models.BooleanField(default=False)
     created_at = models.FloatField(default=False)
     updated_at = models.FloatField(default=False)
+
+    def __unicode__(self):
+        return self.__str__
 
     def __str__(self):
         return self.name
@@ -208,7 +212,11 @@ class Calendar(models.Model):
         ]
 
     def __str__(self):
-        return f'{self.name}, {self.time_start} ~ {self.time_end}'
+        time_start = datetime.datetime.fromtimestamp(self.time_start)
+        time_end = datetime.datetime.fromtimestamp(self.time_end)
+        print(time_start)
+        print(time_end)
+        return f'{self.name}, {time_start.hour + time_start.minute / 60} ~ {time_end.hour + time_end.minute / 60}'
 
 
 class Log(models.Model):
