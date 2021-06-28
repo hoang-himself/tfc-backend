@@ -39,10 +39,13 @@ INSTALLED_APPS = [
     # Custom
     'master_api',
     'master_db',
-    'app_auth',
     'app_account',
+    'app_attend',
+    'app_auth',
     'app_calendar',
     'app_class',
+    'app_course',
+    'app_log',
     'app_role',
     'app_schedule',
 
