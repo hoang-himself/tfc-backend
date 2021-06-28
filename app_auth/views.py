@@ -1,8 +1,9 @@
 from django.conf import settings
 from django.contrib.auth.hashers import check_password
 from django.views.decorators.csrf import csrf_protect, ensure_csrf_cookie
+from django.shortcuts import get_object_or_404
 
-from rest_framework import exceptions, status
+from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 from rest_framework.decorators import api_view, permission_classes
@@ -26,46 +27,41 @@ def login(request) -> Response:
     username = request.POST.get('username')
     password = request.POST.get('password')
 
-    if (username is None or username == ''):
-        errors["username"] = "This field is required"
+    if not username:
+        errors['username'] = 'This field is required.'
         valid = False
-    if (password is None or password == ''):
-        errors["password"] = "This field is required"
-        valid = False
-    if (valid == False):
-        response.data = errors
-        return response
 
-    user = MyUser.objects.get(username=username)
-    if (user is None):
+    user = get_object_or_404(MyUser, username=username)
+
+    if not password:
+        errors['password'] = 'This field is required.'
+        valid = False
+
+    if (valid == False):
         response.data = {
-            "username": [
-                "Not found"
-            ]
+            'detail': errors
         }
         return response
 
     tmp_user = MyUserSerializer(user).data
-    if not check_password(password, tmp_user.get("password")):
-        response.status_code = status.HTTP_400_BAD_REQUEST
+    if not check_password(password, tmp_user['password']):
+        response.status_code = status.HTTP_404_NOT_FOUND
         response.data = {
-            "password": [
-                "No matching username and password"
-            ]
+            'detail': 'Not found.'
         }
         return response
 
     refresh_token = gen_ref_token(user)
     access_token = gen_acc_token(user)
 
-    response.set_cookie(key='access_token', value=access_token, httponly=True)
-    response.set_cookie(key='refresh_token',
+    response.set_cookie(key='accesstoken', value=access_token, httponly=True)
+    response.set_cookie(key='refreshtoken',
                         value=refresh_token, httponly=True)
-    response.status_code = status.HTTP_202_ACCEPTED
+    response.status_code = status.HTTP_200_OK
     response.data = {
-        "token": {
-            "refresh": refresh_token,
-            "access": access_token
+        'token': {
+            'refresh': refresh_token,
+            'access': access_token
         }
     }
     return response
@@ -76,12 +72,12 @@ def login(request) -> Response:
 @csrf_protect
 def check(request):
     response = Response()
-    access_token = request.COOKIES.get('access_token')
+    access_token = request.COOKIES.get('accesstoken')
 
     if not access_token:
         response.status_code = status.HTTP_401_UNAUTHORIZED
         response.data = {
-            'message': 'User not logged in'
+            'message': 'User not logged in.'
         }
         return response
     try:
@@ -90,21 +86,21 @@ def check(request):
     except jwt.ExpiredSignatureError:
         response.status_code = status.HTTP_401_UNAUTHORIZED
         response.data = {
-            'message': 'Session expired'
+            'message': 'Session expired.'
         }
         return response
 
     if payload['typ'] != 'access':
         response.status_code = status.HTTP_400_BAD_REQUEST
         response.data = {
-            'message': 'Invalid refresh token'
+            'message': 'Invalid access token.'
         }
         return response
 
     response.status_code = status.HTTP_200_OK
     response.data = {
-        "role": payload['role'],
-        "perms": payload['perms']
+        'role': payload['role'],
+        'perms': payload['perms']
     }
     return response
 
@@ -115,8 +111,10 @@ def logout(request) -> Response:
     response = Response()
 
     # TODO Add token to blacklist
-    access_token = request.COOKIES.get('access_token', None)
-    refresh_token = request.COOKIES.get('refresh_token', None)
+
+    access_token = request.COOKIES.get('accesstoken', None)
+    refresh_token = request.COOKIES.get('refreshtoken', None)
+    csrf_token = request.COOKIES.get('csrftoken', None)
 
     if not (access_token and refresh_token):
         response.status_code = status.HTTP_200_OK
@@ -125,9 +123,11 @@ def logout(request) -> Response:
         }
         return response
     if access_token:
-        response.delete_cookie('access_token')
+        response.delete_cookie('accesstoken')
     if refresh_token:
-        response.delete_cookie('refresh_token')
+        response.delete_cookie('refreshtoken')
+    if csrf_token:
+        response.delete_cookie('csrftoken')
 
     response.status_code = status.HTTP_204_NO_CONTENT
     response.data = {
@@ -141,12 +141,12 @@ def logout(request) -> Response:
 @csrf_protect
 def refresh(request):
     response = Response()
-    refresh_token = request.COOKIES.get('refresh_token')
+    refresh_token = request.COOKIES.get('refreshtoken')
 
     if not refresh_token:
         response.status_code = status.HTTP_401_UNAUTHORIZED
         response.data = {
-            'message': 'User not logged in'
+            'message': 'User not logged in.'
         }
         return response
 
@@ -156,39 +156,33 @@ def refresh(request):
     except jwt.ExpiredSignatureError:
         response.status_code = status.HTTP_401_UNAUTHORIZED
         response.data = {
-            'message': 'Session expired'
+            'message': 'Session expired.'
         }
         return response
 
     if payload['typ'] != 'refresh':
         response.status_code = status.HTTP_400_BAD_REQUEST
         response.data = {
-            'message': 'Invalid refresh token'
+            'message': 'Invalid refresh token.'
         }
         return response
 
-    user = MyUser.objects.get(uuid=payload['user_id'])
-    if user is None:
-        response.status_code = status.HTTP_400_BAD_REQUEST
-        response.data = {
-            'message': 'User not found'
-        }
-        return response
+    user = get_object_or_404(MyUser, uuid=payload['user_id'])
 
     if not user.is_active:
         response.status_code = status.HTTP_401_UNAUTHORIZED
         response.data = {
-            'message': 'User inactive'
+            'message': 'User inactive.'
         }
         return response
 
     access_token = gen_acc_token(user)
 
-    response.set_cookie(key='access_token', value=access_token, httponly=True)
+    response.set_cookie(key='accesstoken', value=access_token, httponly=True)
     response.status_code = status.HTTP_200_OK
     response.data = {
-        "token": {
-            "access": access_token
+        'token': {
+            'access': access_token
         }
     }
     return response

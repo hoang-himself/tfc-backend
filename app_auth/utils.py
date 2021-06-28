@@ -68,7 +68,7 @@ def gen_acc_token(user):
 
 def has_perm(request, perms):
     response = Response()
-    access_token = request.COOKIES.get('access_token')
+    access_token = request.COOKIES.get('accesstoken')
 
     if not access_token:
         response.status_code = status.HTTP_401_UNAUTHORIZED
