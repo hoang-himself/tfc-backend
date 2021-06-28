@@ -4,6 +4,14 @@ import uuid
 import datetime
 
 
+class LowerTextField(models.TextField):
+    def __init__(self, *args, **kwargs):
+        super(LowerTextField, self).__init__(*args, **kwargs)
+
+    def get_prep_value(self, value):
+        return str(value).lower()
+
+
 class Metatable(models.Model):
     name = models.TextField()
     created_at = models.FloatField()
@@ -116,36 +124,6 @@ class ClassMetadata(models.Model):
         return f'{self.status} {self.course} {self.name}'
 
 
-class ClassStudent(models.Model):
-    classroom = models.ForeignKey(
-        ClassMetadata,
-        on_delete=models.CASCADE
-    )
-    student = models.ForeignKey(
-        MyUser,
-        on_delete=models.CASCADE)
-    created_at = models.FloatField()
-    updated_at = models.FloatField()
-
-    def __str__(self):
-        return f'{self.classrom} {self.student}'
-
-
-class ClassTeacher(models.Model):
-    classroom = models.ForeignKey(
-        ClassMetadata,
-        on_delete=models.CASCADE
-    )
-    teacher = models.ForeignKey(
-        MyUser,
-        on_delete=models.CASCADE)
-    created_at = models.FloatField()
-    updated_at = models.FloatField()
-
-    def __str__(self):
-        return f'{self.classroom} {self.teacher}'
-
-
 class Schedule(models.Model):
     classroom = models.ForeignKey(
         ClassMetadata,
@@ -165,6 +143,36 @@ class Schedule(models.Model):
         time_start = datetime.datetime.fromtimestamp(self.time_start)
         time_end = datetime.datetime.fromtimestamp(self.time_end)
         return f'{self.name}, {time_start.hour + time_start.minute / 60} ~ {time_end.hour + time_end.minute / 60}'
+
+
+class ClassStudent(models.Model):
+    session = models.ForeignKey(
+        Schedule,
+        on_delete=models.CASCADE
+    )
+    student = models.ForeignKey(
+        MyUser,
+        on_delete=models.CASCADE)
+    created_at = models.FloatField()
+    updated_at = models.FloatField()
+
+    def __str__(self):
+        return f'{self.classrom} {self.student}'
+
+
+class ClassTeacher(models.Model):
+    session = models.ForeignKey(
+        Schedule,
+        on_delete=models.CASCADE
+    )
+    teacher = models.ForeignKey(
+        MyUser,
+        on_delete=models.CASCADE)
+    created_at = models.FloatField()
+    updated_at = models.FloatField()
+
+    def __str__(self):
+        return f'{self.classroom} {self.teacher}'
 
 
 class Attendance(models.Model):
