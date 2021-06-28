@@ -9,7 +9,7 @@ from rest_framework.decorators import api_view, permission_classes
 
 from master_db.models import MyUser
 from master_db.serializers import MyUserSerializer
-from master_api.utils import gen_ref_token, gen_acc_token
+from app_auth.utils import gen_ref_token, gen_acc_token
 
 import jwt
 
@@ -59,6 +59,8 @@ def login(request) -> Response:
     access_token = gen_acc_token(user)
 
     response.set_cookie(key='access_token', value=access_token, httponly=True)
+    response.set_cookie(key='refresh_token',
+                        value=refresh_token, httponly=True)
     response.status_code = status.HTTP_202_ACCEPTED
     response.data = {
         "token": {
@@ -99,19 +101,24 @@ def check(request):
 def logout(request) -> Response:
     response = Response()
 
-    # TODO
+    # TODO Add token to blacklist
     access_token = request.COOKIES.get('access_token', None)
-    if access_token:
-        response.delete_cookie('access_token')
-        response.status_code = status.HTTP_204_NO_CONTENT
+    refresh_token = request.COOKIES.get('refresh_token', None)
+
+    if not (access_token and refresh_token):
+        response.status_code = status.HTTP_200_OK
         response.data = {
-            'message': 'Logged out successfully.'
+            'message': 'User is already logged out.'
         }
         return response
+    if access_token:
+        response.delete_cookie('access_token')
+    if refresh_token:
+        response.delete_cookie('refresh_token')
 
-    response.status_code = status.HTTP_200_OK
+    response.status_code = status.HTTP_204_NO_CONTENT
     response.data = {
-        'message': 'User is already logged out.'
+        'message': 'Logged out successfully.'
     }
     return response
 
@@ -121,7 +128,7 @@ def logout(request) -> Response:
 @csrf_protect
 def refresh(request):
     response = Response()
-    refresh_token = request.POST.get('refresh')
+    refresh_token = request.COOKIES.get('refresh_token')
 
     if not refresh_token:
         response.status_code = status.HTTP_401_UNAUTHORIZED

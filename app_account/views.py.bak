@@ -14,6 +14,10 @@ from master_db.serializers import MyUserSerializer
 
 import re
 import datetime
+import json
+import jwt
+import base64
+from cryptography.fernet import Fernet
 
 # Create your views here.
 
@@ -348,6 +352,178 @@ def create_user(request) -> Response:
             "message": "User created",
         },
         status=status.HTTP_201_CREATED
+    )
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def send_activation(request) -> Response:
+    """
+        Take in email and return a token for activating account
+    """
+    email = request.GET.get('email')
+
+    # Check for existence
+    if not MyUser.objects.filter(email=email).exists():
+        return Response(
+            data={
+                "details": "Error",
+                'message': 'Email not found',
+            },
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    data = {
+        "aud": email,
+        "exp": datetime.datetime.timestamp(datetime.datetime.utcnow() + datetime.timedelta(days=1)),
+        "iat": datetime.datetime.timestamp(datetime.datetime.utcnow()),
+    }
+
+    # TODO: Encrypt data
+    data = json.dumps(data).encode('utf-8')
+    # ! Hardcoding: A byte-like string with length = 32
+    key = base64.urlsafe_b64encode(b"PBKDFJHMACGEJHYRSNJSWASHYESGYWSA")
+    cipher_suite = Fernet(key)
+    data = cipher_suite.encrypt(data)
+
+    return Response(
+        data={
+            'details': 'Ok',
+            'code': data,
+        },
+        status=status.HTTP_200_OK
+    )
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def activate(request):
+    """
+        Take in a token, activate the account decrypted from that token and return state of activation
+    """
+    code = request.GET.get('code')
+
+    # TODO: Decrypt data
+    # ! Hardcoding: A byte-like string with length = 32
+    key = base64.urlsafe_b64encode(b"PBKDFJHMACGEJHYRSNJSWASHYESGYWSA")
+    cipher_suite = Fernet(key)
+    data = json.loads(cipher_suite.decrypt(code.encode('utf-8')))
+
+    # Check exp
+    now = datetime.datetime.utcnow().timestamp()
+    if now > data['exp']:
+        return Response(
+            data={
+                "details": "Error",
+                "message": "Token expired",
+            },
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    # Check for existence
+    user = MyUser.objects.filter(email=data['aud'])
+    if not user.exists():
+        return Response(
+            data={
+                "details": "Error",
+                "message": "Email not found",
+            },
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    # TODO: Activate account
+    user = user.first()
+
+    return Response(
+        data={
+            "details": "Ok",
+            "message": "Account Activated",
+            # ! For testing purposes only - should be removed
+            "user": MyUserSerializer(user).data,
+        },
+        status=status.HTTP_200_OK
+    )
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def send_recover(request):
+    """
+        Take in email and send a token for recovering account
+    """
+    email = request.POST.get('email')
+    userFilter = MyUser.objects.filter(email=email)
+
+    # Check for existence
+    if userFilter.exists():
+        user = userFilter.first()
+        payload = {
+            "email": user.email,
+            "cur_password": user.password,
+            "exp": datetime.datetime.timestamp(datetime.datetime.utcnow() + datetime.timedelta(days=1)),
+            "iat": datetime.datetime.timestamp(datetime.datetime.utcnow()),
+        }
+        recover_token = jwt.encode(
+            payload, settings.SECRET_KEY, algorithm='HS256')
+        return Response(
+            data={
+                "details": "Ok",
+                "recover_token": recover_token,
+            },
+            status=status.HTTP_200_OK
+        )
+
+    return Response(
+        data={
+            "details": "Error",
+            "message": "Email not found",
+        },
+        status=status.HTTP_400_BAD_REQUEST,
+    )
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def recover_user(request):
+    """
+        Take in a token and new password, verify the token and change the password of the account encrypted in the token to the new one
+    """
+    recover_token = request.POST.get('code')
+    new_password = request.POST.get('new_password')
+    data = jwt.decode(recover_token, settings.SECRET_KEY, algorithms='HS256')
+
+    # Check exp
+    if datetime.datetime.now().timestamp() > data['exp']:
+        return Response(
+            data={
+                "details": "Error",
+                "message": "Token has expired"
+            },
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    user = MyUser.objects.get(email=data['email'])
+
+    # Check current password
+    if user.password != data['cur_password']:
+        return Response(
+            data={
+                "details": "Error",
+                "message": "Invalid token"
+            },
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    # TODO: Update password of the user in database
+    # ! This does not update the user state in db, still in production
+    user.password = new_password
+
+    return Response(
+        data={
+            "details": "Ok",
+            "user": MyUserSerializer(user).data,
+        },
+        status=status.HTTP_200_OK
     )
 
 
