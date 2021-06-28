@@ -17,7 +17,7 @@ class BranchSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class BranchSerializer(serializers.ModelSerializer):
+class CalendarSerializer(serializers.ModelSerializer):
     class Meta:
         model = Calendar
         fields = '__all__'

@@ -40,10 +40,13 @@ INSTALLED_APPS = [
     # Custom
     'master_api',
     'master_db',
-    'app_auth',
     'app_account',
+    'app_attend',
+    'app_auth',
     'app_calendar',
     'app_class',
+    'app_course',
+    'app_log',
     'app_role',
     'app_schedule',
 
@@ -160,7 +163,7 @@ CORS_ALLOWED_ORIGINS = [
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'master_api.authentication.SafeJWTAuthentication',
+        'app_auth.authentication.SafeJWTAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',

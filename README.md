@@ -65,6 +65,24 @@ python manage.py <host>:<port>
 `<host>` defaults to `127.0.0.1`\
 `<port>` defaults to `8000`
 
-## Running tests
+## FAQ
 
-`TODO`
+### Generating a password hash
+
+Activate django shell
+
+```bash
+python manage.py shell
+```
+
+Call the hasher
+
+```python
+from django.contrib.auth.hashers import make_password
+make_password('sample')
+```
+
+### CSRF token
+
+On login, a CSRF token is generated and stored in your cookie.
+Take this token, put it in the header and name it `X-CRSFTOKEN`
