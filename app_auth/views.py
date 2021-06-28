@@ -36,7 +36,7 @@ def login(request) -> Response:
         response.data = errors
         return response
 
-    user = MyUser.objects.filter(username=username).first()
+    user = MyUser.objects.get(username=username)
     if (user is None):
         response.data = {
             "username": [
@@ -78,15 +78,28 @@ def check(request):
     response = Response()
     access_token = request.COOKIES.get('access_token')
 
-    if access_token is None:
-        raise exceptions.AuthenticationFailed(
-            'Authentication credentials were not provided')
+    if not access_token:
+        response.status_code = status.HTTP_401_UNAUTHORIZED
+        response.data = {
+            'message': 'User not logged in'
+        }
+        return response
     try:
         payload = jwt.decode(
             access_token, settings.SECRET_KEY, algorithms=['HS256'])
     except jwt.ExpiredSignatureError:
-        raise exceptions.AuthenticationFailed(
-            'Refresh token expired')
+        response.status_code = status.HTTP_401_UNAUTHORIZED
+        response.data = {
+            'message': 'Session expired'
+        }
+        return response
+
+    if payload['typ'] != 'access':
+        response.status_code = status.HTTP_400_BAD_REQUEST
+        response.data = {
+            'message': 'Invalid refresh token'
+        }
+        return response
 
     response.status_code = status.HTTP_200_OK
     response.data = {
@@ -147,7 +160,14 @@ def refresh(request):
         }
         return response
 
-    user = MyUser.objects.filter(uuid=payload['user_id']).first()
+    if payload['typ'] != 'refresh':
+        response.status_code = status.HTTP_400_BAD_REQUEST
+        response.data = {
+            'message': 'Invalid refresh token'
+        }
+        return response
+
+    user = MyUser.objects.get(uuid=payload['user_id'])
     if user is None:
         response.status_code = status.HTTP_400_BAD_REQUEST
         response.data = {

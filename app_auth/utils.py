@@ -87,6 +87,13 @@ def has_perm(request, perms):
         }
         return response
 
+    if payload['typ'] != 'access':
+        response.status_code = status.HTTP_400_BAD_REQUEST
+        response.data = {
+            'message': 'Invalid access token'
+        }
+        return response
+
     claimed_perms = payload['perms']
     for perm in perms:
         if perm in claimed_perms:
