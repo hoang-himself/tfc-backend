@@ -1,5 +1,7 @@
 from django.db import models
 
+from taggit.managers import TaggableManager
+
 import uuid
 import datetime
 
@@ -88,24 +90,22 @@ class MyUser(models.Model):
     def __str__(self):
         return f'{self.first_name} {self.last_name}'
 
-
 class Course(models.Model):
     name = models.TextField(unique=True)
     desc = models.TextField()
     short_desc = models.TextField()
-    cert = models.TextField()
+    tags = TaggableManager()
     duration = models.SmallIntegerField()
     created_at = models.FloatField()
     updated_at = models.FloatField()
 
     class Meta:
         indexes = [
-            models.Index(fields=['cert', ]),
             models.Index(fields=['duration', ])
         ]
 
     def __str__(self):
-        return f'{self.cert} {self.name}'
+        return f'{self.name}'
 
 
 class ClassMetadata(models.Model):
@@ -148,7 +148,8 @@ class Schedule(models.Model):
 class ClassStudent(models.Model):
     session = models.ForeignKey(
         Schedule,
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        null=True
     )
     student = models.ForeignKey(
         MyUser,
@@ -163,7 +164,8 @@ class ClassStudent(models.Model):
 class ClassTeacher(models.Model):
     session = models.ForeignKey(
         Schedule,
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        null=True
     )
     teacher = models.ForeignKey(
         MyUser,

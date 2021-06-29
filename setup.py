@@ -33,6 +33,8 @@ setup(
         'cryptography',
         'dj-database-url',
         'Django',
+        'django-taggit',
+        'django-taggit-serializer',
         'django-annoying',
         'django-cors-headers',
         'django-extensions',

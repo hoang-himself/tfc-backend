@@ -4,6 +4,7 @@ from master_db.models import (
     ClassMetadata, ClassStudent, ClassTeacher, Schedule, Attendance, Log
 )
 
+from taggit_serializer.serializers import TaggitSerializer, TagListSerializerField
 
 class MetatableSerializer(serializers.ModelSerializer):
     class Meta:
@@ -42,6 +43,8 @@ class MyUserSerializer(serializers.ModelSerializer):
 
 
 class CourseSerializer(serializers.ModelSerializer):
+    tags = TagListSerializerField()
+    
     class Meta:
         model = Course
         fields = '__all__'
