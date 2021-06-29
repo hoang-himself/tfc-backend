@@ -2,7 +2,7 @@ from django.conf import settings
 from rest_framework import status
 from rest_framework.response import Response
 
-from master_db.serializers import MyUserSerializer, RoleSerializer
+from master_db.serializers import MyUserSerializer, MyGroupSerializer
 
 import datetime
 import jwt
@@ -11,7 +11,7 @@ import jwt
 def gen_ref_token(user):
     payload = {}
 
-    role = RoleSerializer(user.role).data
+    role = MyGroupSerializer(user.role).data
     perms = []
     not_role = ['id', 'name', 'created_at', 'updated_at']
     for key in role:
@@ -40,7 +40,7 @@ def gen_ref_token(user):
 def gen_acc_token(user):
     payload = {}
 
-    role = RoleSerializer(user.role).data
+    role = MyGroupSerializer(user.role).data
     perms = []
     not_role = ['id', 'name', 'created_at', 'updated_at']
     for key in role:

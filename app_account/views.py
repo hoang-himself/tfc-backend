@@ -9,7 +9,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.decorators import api_view, permission_classes
 
 from app_auth.utils import has_perm
-from master_db.models import Role, MyUser
+from master_db.models import MyGroup, MyUser
 from master_db.serializers import MyUserSerializer
 
 import re
@@ -240,7 +240,7 @@ def create_user(request) -> Response:
     """
         Requires every param: first_name, mid_name, last_name, address, male, avatar, birth_date, role_id, email, mobile, username, password.
 
-        The role_id param takes in int type and represents the id of the role in database.
+        The role_id param takes in int type and represents the id of the group in database.
     """
 
     # Insignificant factors:
@@ -296,17 +296,17 @@ def create_user(request) -> Response:
 
     created_at = datetime.datetime.now().timestamp()
     updated_at = created_at
-    role = request.POST.get('role')
+    group = request.POST.get('group')
 
-    # Get role from role_id
-    role = Role.objects.filter(name=role)
-    if role.exists():
-        role = role.first()
+    # Get group from group_id
+    group = MyGroup.objects.filter(name=group)
+    if group.exists():
+        group = group.first()
     else:
         return Response(
             data={
                 'details': 'Error',
-                'message': 'Role does not exist'
+                'message': 'Group does not exist'
             },
             status=status.HTTP_400_BAD_REQUEST
         )
@@ -323,7 +323,7 @@ def create_user(request) -> Response:
         male=male,
         password=make_password(password),
         address=address,
-        role=role,
+        group=group,
         avatar=avatar,
         created_at=created_at,
         updated_at=updated_at,

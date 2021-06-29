@@ -1,4 +1,7 @@
+from tabnanny import verbose
 from django.db import models
+from django.contrib.auth.models import Group, AbstractUser
+from django.utils.translation import gettext_lazy as _
 
 from taggit.managers import TaggableManager
 
@@ -14,43 +17,59 @@ class LowerTextField(models.TextField):
         return str(value).lower()
 
 
+#
 class Metatable(models.Model):
     name = models.TextField()
     created_at = models.FloatField()
     updated_at = models.FloatField()
 
+    class Meta:
+        verbose_name = 'table'
+        verbose_name_plural = 'tables'
+
     def __str__(self):
         return self.name
 
 
+#
 class Branch(models.Model):
     addr = models.TextField()
     short_adr = models.TextField()
+    phone = models.TextField()
     created_at = models.FloatField()
     updated_at = models.FloatField()
+
+    class Meta:
+        verbose_name = 'branch'
+        verbose_name_plural = 'branches'
 
     def __str__(self):
         return self.short_adr
 
 
+#
 class Setting(models.Model):
     name = models.TextField()
     value = models.TextField()
     created_at = models.FloatField()
     updated_at = models.FloatField()
 
+    class Meta:
+        verbose_name = 'setting'
+        verbose_name_plural = 'settings'
+
     def __str__(self):
         return self.name
 
 
-class Role(models.Model):
-    name = models.TextField(unique=True)
-    class_session = models.BooleanField(default=False)
-    account_cred = models.BooleanField(default=False)
-    kanban = models.BooleanField(default=False)
-    setting = models.BooleanField(default=False)
+#
+class MyGroup(Group):
     created_at = models.FloatField(default=False)
     updated_at = models.FloatField(default=False)
+
+    class Meta:
+        verbose_name = 'group'
+        verbose_name_plural = 'groups'
 
     def __unicode__(self):
         return self.__str__
@@ -73,7 +92,7 @@ class MyUser(models.Model):
     address = models.TextField()
     avatar = models.ImageField(
         upload_to='images/profile/%Y/%m/%d/', null=True, blank=True)
-    role = models.ForeignKey(Role, on_delete=models.CASCADE)
+    group = models.ForeignKey(MyGroup, on_delete=models.CASCADE)
     is_active = models.BooleanField(default=True, blank=True)
     created_at = models.FloatField()
     updated_at = models.FloatField()
@@ -84,12 +103,14 @@ class MyUser(models.Model):
             models.Index(fields=['last_name', ]),
             models.Index(fields=['birth_date', ]),
             models.Index(fields=['male', ]),
-            models.Index(fields=['role', ]),
+            models.Index(fields=['group', ]),
         ]
 
     def __str__(self):
         return f'{self.first_name} {self.last_name}'
 
+
+#
 class Course(models.Model):
     name = models.TextField(unique=True)
     desc = models.TextField()
@@ -100,6 +121,8 @@ class Course(models.Model):
     updated_at = models.FloatField()
 
     class Meta:
+        verbose_name = 'course'
+        verbose_name_plural = 'courses'
         indexes = [
             models.Index(fields=['duration', ])
         ]
@@ -108,6 +131,7 @@ class Course(models.Model):
         return f'{self.name}'
 
 
+#
 class ClassMetadata(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     name = models.TextField(unique=True)
@@ -116,6 +140,8 @@ class ClassMetadata(models.Model):
     updated_at = models.FloatField()
 
     class Meta:
+        verbose_name = 'class'
+        verbose_name_plural = 'classes'
         indexes = [
             models.Index(fields=['status', ])
         ]
@@ -124,6 +150,7 @@ class ClassMetadata(models.Model):
         return f'{self.status} {self.course} {self.name}'
 
 
+# Schedule for students
 class Schedule(models.Model):
     classroom = models.ForeignKey(
         ClassMetadata,
@@ -135,6 +162,8 @@ class Schedule(models.Model):
     updated_at = models.FloatField()
 
     class Meta:
+        verbose_name = 'session'
+        verbose_name_plural = 'sessions'
         indexes = [
             models.Index(fields=['time_start', 'time_end'])
         ]
@@ -145,9 +174,10 @@ class Schedule(models.Model):
         return f'{self.name}, {time_start.hour + time_start.minute / 60} ~ {time_end.hour + time_end.minute / 60}'
 
 
+#
 class ClassStudent(models.Model):
-    session = models.ForeignKey(
-        Schedule,
+    classroom = models.ForeignKey(
+        ClassMetadata,
         on_delete=models.CASCADE,
         null=True
     )
@@ -157,13 +187,18 @@ class ClassStudent(models.Model):
     created_at = models.FloatField()
     updated_at = models.FloatField()
 
+    class Meta:
+        verbose_name = 'class student'
+        verbose_name_plural = 'class students'
+
     def __str__(self):
         return f'{self.classrom} {self.student}'
 
 
+#
 class ClassTeacher(models.Model):
-    session = models.ForeignKey(
-        Schedule,
+    classroom = models.ForeignKey(
+        ClassMetadata,
         on_delete=models.CASCADE,
         null=True
     )
@@ -173,12 +208,17 @@ class ClassTeacher(models.Model):
     created_at = models.FloatField()
     updated_at = models.FloatField()
 
+    class Meta:
+        verbose_name = 'class teacher'
+        verbose_name_plural = 'class teachers'
+
     def __str__(self):
         return f'{self.classroom} {self.teacher}'
 
 
+#
 class Attendance(models.Model):
-    schedule = models.ForeignKey(
+    session = models.ForeignKey(
         Schedule,
         on_delete=models.CASCADE
     )
@@ -187,17 +227,19 @@ class Attendance(models.Model):
         on_delete=models.CASCADE
     )
     status = models.BooleanField(null=True, blank=True)
-    date = models.TextField()
     created_at = models.FloatField()
     updated_at = models.FloatField()
 
     class Meta:
+        verbose_name = 'attendance'
+        verbose_name_plural = 'attendances'
         indexes = [
-            models.Index(fields=['status', ])
+            models.Index(fields=['student', 'status']),
+            models.Index(fields=['session', ])
         ]
         constraints = [
             models.UniqueConstraint(
-                fields=['student', 'date'],
+                fields=['student', 'session'],
                 name='unique_attendance'
             )
         ]
@@ -206,6 +248,7 @@ class Attendance(models.Model):
         return f'{self.schedule} {self.status} {self.student}'
 
 
+# Calendar for staff only
 class Calendar(models.Model):
     user = models.ForeignKey(
         MyUser,
@@ -229,6 +272,7 @@ class Calendar(models.Model):
         return f'{self.name}, {time_start.hour + time_start.minute / 60} ~ {time_end.hour + time_end.minute / 60}'
 
 
+#
 class Log(models.Model):
     user = models.ForeignKey(
         MyUser,
@@ -247,6 +291,7 @@ class Log(models.Model):
         return self.short_desc
 
 
+#
 class BlacklistedToken(models.Model):
     user = models.ForeignKey(MyUser, on_delete=models.DO_NOTHING)
     token = models.TextField()

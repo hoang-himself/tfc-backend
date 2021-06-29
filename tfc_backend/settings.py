@@ -36,6 +36,21 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
+    # Built-in
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+
+    # 3rd party
+    'corsheaders',
+    'django_filters',
+    'django_extensions',
+    'rest_framework',
+    'taggit',
+
     # Custom
     'master_api',
     'master_db',
@@ -48,21 +63,6 @@ INSTALLED_APPS = [
     'app_log',
     'app_role',
     'app_schedule',
-
-    # 3rd party
-    'corsheaders',
-    'django_filters',
-    'django_extensions',
-    'rest_framework',
-    'taggit',
-
-    # Built-in
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
 ]
 
 MIDDLEWARE = [
