@@ -113,11 +113,196 @@ def edit_course(request):
         },
         status=status.HTTP_202_ACCEPTED
     )
-
+    
+def formdata_bool(var):
+    low = var.lower()
+    if low == 'true':
+        return True
+    if low == 'false':
+        return False
+    return None
+    
 @api_view(['POST'])
 @permission_classes([AllowAny])
+def delete_course(request):
+    """
+        There are 2 options.
+        
+        Option 1: delete by name. This will only delete 1 course with the corresponding name because name is unique
+        
+        Option 2: delete by tags. Param tags, many, exact must be specified. Param many and exact is boolean type (valid if after lowered it is 'true' or 'false'). Param many allows to delete multiple with the tags, exact allows to delete course with exact tags or not.
+        
+        Param tags must be in the form of: tag1, tag2, tag3 (whitespace is optional)
+    """
+    
+    # Option 1: name is presence, delete 1 course by name
+    name = request.POST.get('name')
+    if not name is None:
+        try:
+            Course.objects.get(name=name).delete()
+        except Course.DoesNotExist:
+            return Response(
+                data={
+                    'details': 'Error',
+                    'message': 'Course does not exist'
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        return Response(
+            data={'details': 'Ok'},
+            status=status.HTTP_200_OK
+        )
+    
+    # Option 2: name is not presence, all other params are mandatory
+    tags = request.POST.get('tags')
+    many = request.POST.get('many')
+    exact = request.POST.get('exact')
+    
+    # Check for all param presence
+    returnDict = {}
+    if tags is None:
+        returnDict.update({'tags': 'This field cannot be empty'})
+    else:
+        tags = tags.replace(' ', '').split(',')
+        
+    if many is None:
+        returnDict.update({'many': 'This field cannot be empty'})
+    else:
+        many = formdata_bool(many)
+        
+    if exact is None:
+        returnDict.update({'exact': 'This field cannot be empty'})
+    else:
+        exact = formdata_bool(exact)
+        
+    # Return if at least one is missing
+    if bool(returnDict):
+        return Response(
+            data={
+                'details': 'Error',
+                'message': returnDict,
+            },
+            status=status.HTTP_400_BAD_REQUEST
+        )
+        
+    # Validate boolean values
+    if many is None or exact is None:
+        return Response(
+            data={
+                'details': 'Error',
+                'message': 'Boolean value should be True or False',
+            },
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    # Get filter by exact tags or not
+    if exact:
+        filter_name = {'tags__name': tags}
+    else:
+        filter_name = {'tags__name__in': tags}
+    
+    # Filter by tags
+    course = Course.objects.filter(**filter_name)
+    if not course:
+        return Response(
+            data={
+                'details': 'Ok',
+                'message': 'Deleted nothing'
+            },
+            status=status.HTTP_204_NO_CONTENT
+        )
+    
+    # Check if delete many or not
+    if not many:
+        course = course.first()
+        names = course.name
+    else:
+        names = course.values_list('name', flat=True)
+        
+    # Delete
+    course.delete()
+    
+    return Response(
+            data={
+                'details': 'Ok',
+                'deleted_names': names
+            },
+            status=status.HTTP_202_ACCEPTED
+    )
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_tags(request):
+    """
+        Take in limit (optional)
+        
+        Get all tags in db sorted in most frequently used. If limit is specified, only return 'limit' number of tags.
+    """
+    limit = request.GET.get('limit')
+    if limit is None:
+        tags = Course.tags.most_common().values('name', 'num_times')
+    else:
+        tags = Course.tags.most_common()[:int(limit)].values('name', 'num_times')
+    
+    return Response(
+        data={
+            'details': 'Ok',
+            'names': tags
+        },
+        status=status.HTTP_200_OK
+    )
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def recommend_tags(request):
+    """
+        Take in txt.
+        
+        Return all tags containing txt as substring. If txt is empty return empty list.
+    """
+    txt = request.GET.get('txt')
+    if txt is None or txt == '':
+        return Response(
+            data=[],
+            status=status.HTTP_200_OK
+        )
+    
+    tag_names = Course.objects.all().values_list('tags__name', flat=True).distinct()
+    returnList = []
+    for name in tag_names:
+        if txt in name:
+            returnList.append(name)
+    
+    return Response(
+        data=returnList,
+        status=status.HTTP_200_OK
+    )
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
 def list_course(request):
-    data = CourseSerializer(Course.objects.all(), many=True).data
+    """
+        Take in tags and exact. If there is no tags the result will be all courses in the database. 
+
+        If exact is True result will be courses with the exact tags, else result will be all courses with at least one same tag.
+
+        Param tags must be in the form of: tag1, tag2, tag3 (whitespace is optional)
+    """
+    tags = request.GET.get('tags')
+    
+    if tags is None:
+        course = Course.objects.all()
+    else:
+        exact = bool(request.GET.get('exact'))
+        tags = tags.replace(' ', '').split(',')
+        if exact:
+            filter_name = {'tags__name': tags}
+        else:
+            filter_name = {'tags__name__in': tags}
+        course = Course.objects.filter(**filter_name).distinct()
+    
+    data = CourseSerializer(course, many=True).data
     
     return Response(
         data=data,
