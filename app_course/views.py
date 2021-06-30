@@ -24,6 +24,7 @@ def create_course(request):
         Param tags must be in the form of: tag1, tag2, tag3 (whitespace is optional)
     """
     
+    # Get fields. Should not use **request.POST because it will cause everything to be string -> invalid type
     now = datetime.datetime.now().timestamp()
     course = Course(
         name=request.POST.get('name'),
@@ -34,6 +35,7 @@ def create_course(request):
         updated_at=now
     )
     
+    # Validate model
     try:
         course.full_clean()
     except ValidationError as message:
@@ -45,6 +47,7 @@ def create_course(request):
             status=status.HTTP_400_BAD_REQUEST
         )
         
+    # Save and update tags (Tags must be done this way to be saved in the database)
     course.save()
     course.tags.add(*request.POST.get('tags').replace(' ', '').split(','))
             
@@ -107,7 +110,7 @@ def edit_course(request):
             # ! For testing purposes only, should be removed
             'data': CourseSerializer(course).data    
         },
-        status=status.HTTP_200_OK
+        status=status.HTTP_202_ACCEPTED
     )
 
 @api_view(['POST'])
