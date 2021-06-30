@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from master_db.models import (
     Metatable, Branch, Calendar, MyUser, Setting, MyGroup, Course,
-    ClassMetadata, ClassStudent, ClassTeacher, Schedule, Attendance, Log
+    ClassMetadata, ClassStudent, Schedule, Attendance, Log
 )
 
 from taggit_serializer.serializers import TaggitSerializer, TagListSerializerField
@@ -60,12 +60,6 @@ class ClassMetadataSerializer(serializers.ModelSerializer):
 class ClassStudentSerializer(serializers.ModelSerializer):
     class Meta:
         model = ClassStudent
-        fields = '__all__'
-
-
-class ClassTeacherSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ClassTeacher
         fields = '__all__'
 
 

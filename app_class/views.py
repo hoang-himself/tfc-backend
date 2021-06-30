@@ -10,7 +10,7 @@ from rest_framework.decorators import api_view, permission_classes
 
 
 from app_auth.utils import has_perm
-from master_db.models import MyUser, ClassMetadata, Course, ClassStudent, ClassTeacher
+from master_db.models import MyUser, ClassMetadata, Course, ClassStudent
 from master_db.serializers import MyUserSerializer
 
 import re
@@ -36,6 +36,7 @@ def list_class(request):
         filter_query = [
             'course',
             'name',
+            'teacher',
             'status',
             'created_at',
             'updated_at'
@@ -44,6 +45,7 @@ def list_class(request):
     filter_dict = {
         'course': True,
         'name': True,
+        'teacher': True,
         'status': True,
         'created_at': True,
         'updated_at': True
@@ -117,10 +119,8 @@ def list_user(request, class_name):
             listZ.append(key)
 
     students = class_obj.classstudent_set
-    teachers = class_obj.classteacher_set
 
     # Asterisk expands list into separated args
     # https://docs.python.org/2/tutorial/controlflow.html#unpacking-argument-lists
-    data = teachers.objects.all().values(*listZ)
-    data.update(students.objects.all().values(*listZ))
+    data = students.objects.all().values(*listZ)
     return Response(data)

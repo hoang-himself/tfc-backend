@@ -135,6 +135,9 @@ class Course(models.Model):
 class ClassMetadata(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     name = models.TextField(unique=True)
+    teacher = models.ForeignKey(
+        MyUser,
+        on_delete=models.CASCADE)
     status = models.TextField()
     created_at = models.FloatField()
     updated_at = models.FloatField()
@@ -193,27 +196,6 @@ class ClassStudent(models.Model):
 
     def __str__(self):
         return f'{self.classrom} {self.student}'
-
-
-#
-class ClassTeacher(models.Model):
-    classroom = models.ForeignKey(
-        ClassMetadata,
-        on_delete=models.CASCADE,
-        null=True
-    )
-    teacher = models.ForeignKey(
-        MyUser,
-        on_delete=models.CASCADE)
-    created_at = models.FloatField()
-    updated_at = models.FloatField()
-
-    class Meta:
-        verbose_name = 'class teacher'
-        verbose_name_plural = 'class teachers'
-
-    def __str__(self):
-        return f'{self.classroom} {self.teacher}'
 
 
 #

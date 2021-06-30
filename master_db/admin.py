@@ -4,7 +4,7 @@ from django.contrib.auth.admin import GroupAdmin
 
 from .models import (
     Metatable, Branch, Calendar, Setting, MyGroup, MyUser, Course,
-    ClassMetadata, ClassStudent, ClassTeacher, Schedule, Attendance, Log
+    ClassMetadata, ClassStudent, Schedule, Attendance, Log
 )
 
 
@@ -22,7 +22,6 @@ admin.site.register(MyUser)
 admin.site.register(Course)
 admin.site.register(ClassMetadata)
 admin.site.register(ClassStudent)
-admin.site.register(ClassTeacher)
 admin.site.register(Schedule)
 admin.site.register(Attendance)
 admin.site.register(Log)
