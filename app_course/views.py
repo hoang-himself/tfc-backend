@@ -58,6 +58,60 @@ def create_course(request):
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
+def edit_course(request):
+    """
+        Take in target_name, name, desc, short_desc, tags and duration. Param target_name is the name of the course that needs editing, the other params are the fields that needs changing
+        
+        Param tags must be in the form of: tag1, tag2, tag3 (whitespace is optional)
+    """
+    
+    # Check existence
+    try:
+        course = Course.objects.get(name=request.POST.get('target_name'))
+    except Course.DoesNotExist:
+        return Response(
+            data={
+                'details': 'Error',
+                'message': 'Course does not exist'
+            },
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    # Update model: Set attributes and update updated_at
+    data = request.POST.copy()
+    data['tags'] = data['tags'].replace(' ', '').split(',')
+    data['updated_at'] = datetime.datetime.now().timestamp()
+    
+    for key, value in data.items():
+        if hasattr(course, key):
+            setattr(course, key, value)
+    
+    # Validate model
+    try:
+        course.full_clean()
+    except ValidationError as message:
+        return Response(
+            data={
+                'details': 'Error',
+                'message': message
+            },
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    # Save
+    course.save()
+    
+    return Response(
+        data={
+            'details': 'Ok',
+            # ! For testing purposes only, should be removed
+            'data': CourseSerializer(course).data    
+        },
+        status=status.HTTP_200_OK
+    )
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
 def list_course(request):
     data = CourseSerializer(Course.objects.all(), many=True).data
     
