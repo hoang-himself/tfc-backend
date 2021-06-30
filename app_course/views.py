@@ -82,11 +82,10 @@ def edit_course(request):
     
     # Update model: Set attributes and update updated_at
     data = request.POST.copy()
-    data['tags'] = data['tags'].replace(' ', '').split(',')
     data['updated_at'] = datetime.datetime.now().timestamp()
     
     for key, value in data.items():
-        if hasattr(course, key):
+        if hasattr(course, key) and key != 'tags':
             setattr(course, key, value)
     
     # Validate model
@@ -101,14 +100,16 @@ def edit_course(request):
             status=status.HTTP_400_BAD_REQUEST
         )
     
-    # Save
+    # Save and update tags (Tags must be done this way to be saved in the database)
     course.save()
+    course.tags.clear()
+    course.tags.add(*request.POST.get('tags').replace(' ', '').split(','))
     
     return Response(
         data={
             'details': 'Ok',
             # ! For testing purposes only, should be removed
-            'data': CourseSerializer(course).data    
+            'data': CourseSerializer(course).data
         },
         status=status.HTTP_202_ACCEPTED
     )
