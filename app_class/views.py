@@ -113,6 +113,103 @@ def create_class(request):
         status=status.HTTP_201_CREATED
     )
 
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def add_student(request):
+    std_uuids = request.POST.get('uuids')
+    
+    try:
+        classMeta = ClassMetadata.objects.get(name=request.POST.get('name'))
+    except ClassMetadata.DoesNotExist:
+        return Response(
+            data={
+                'details': 'Error',
+                'message': 'Class does not exist'
+            },
+            status=status.HTTP_400_BAD_REQUEST
+        )
+        
+    uuids = None
+    if not std_uuids is None:
+        std_uuids = std_uuids.replace(' ', '').split(',')
+        # Handling UUID validation 
+        try:
+            db = MyUser.objects.filter(uuid__in=std_uuids)
+        except ValidationError as message:
+            return Response(
+                data={
+                    'details': 'Error',
+                    'message': message
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Store students id for adding
+        students = db.values_list('pk', flat=True)
+        # Store uuids for visualizing added students, if one does not show up it is not found
+        uuids = db.values_list('uuid', flat=True)
+        
+    classMeta.students.add(*students)
+
+    return Response(
+        data={
+            'details': 'Ok',
+            'students_added': uuids
+        },
+        status=status.HTTP_202_ACCEPTED
+    )
+    
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def delete_student(request):
+    std_uuids = request.POST.get('uuids')
+    
+    try:
+        classMeta = ClassMetadata.objects.get(name=request.POST.get('name'))
+    except ClassMetadata.DoesNotExist:
+        return Response(
+            data={
+                'details': 'Error',
+                'message': 'Class does not exist'
+            },
+            status=status.HTTP_400_BAD_REQUEST
+        )
+        
+    uuids = None
+    if not std_uuids is None:
+        std_uuids = std_uuids.replace(' ', '').split(',')
+        # Handling UUID validation 
+        try:
+            students = classMeta.students.filter(uuid__in=std_uuids)
+        except ValidationError as message:
+            return Response(
+                data={
+                    'details': 'Error',
+                    'message': message
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        # Store uuids for visualizing added students, if one does not show up it is not found
+        uuids = [str(o) for o in students.values_list('uuid', flat=True).filter()]
+
+        if len(uuids) != len(std_uuids):
+            return Response(
+                data={
+                    'details': 'Error',
+                    # Average: O(N), Worst: O(N^2)
+                    'not_found': set(std_uuids).difference(set(uuids))
+                }
+            )
+            
+    classMeta.students.remove(*students.values_list('pk', flat=True))
+
+    return Response(
+        data={
+            'details': 'Ok',
+        },
+        status=status.HTTP_202_ACCEPTED
+    )
+    
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def list_class(request):
