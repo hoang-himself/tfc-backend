@@ -48,7 +48,7 @@ def create_class(request):
             teacher = MyUser.objects.get(uuid=teacher)
         except (MyUser.DoesNotExist, ValidationError) as e:
             if type(e).__name__ == 'DoesNotExist':
-                message = 'User does not exist'
+                message = 'Teacher user does not exist'
             else:
                 message = e
             return Response(
