@@ -137,7 +137,7 @@ class ClassMetadata(models.Model):
     name = models.TextField(unique=True)
     teacher = models.ForeignKey(
         MyUser,
-        on_delete=models.CASCADE,
+        on_delete=models.DO_NOTHING,
         related_name='teacher',
         blank=True
     )
