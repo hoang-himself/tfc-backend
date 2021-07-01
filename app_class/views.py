@@ -48,7 +48,7 @@ def create_class(request):
             teacher = MyUser.objects.get(uuid=teacher)
         except (MyUser.DoesNotExist, ValidationError) as e:
             if type(e).__name__ == 'DoesNotExist':
-                message = 'Teacher user does not exist'
+                message = 'User does not exist'
             else:
                 message = e
             return Response(
@@ -206,6 +206,96 @@ def delete_student(request):
     return Response(
         data={
             'details': 'Ok',
+        },
+        status=status.HTTP_202_ACCEPTED
+    )
+    
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def edit_class(request):
+    teacher = request.POST.get('teacher_uuid')
+    course = request.POST.get('course_name')
+    name = request.POST.get('name')
+    status = request.POST.get('status')
+    
+    modifiedList = []
+    
+    try:
+        classMeta = ClassMetadata.objects.get(name=request.POST.get('class_name'))
+    except ClassMetadata.DoesNotExist:
+        return Response(
+            data={
+                'details': 'Error',
+                'message': 'Class does not exist'
+            },
+            status=status.HTTP_400_BAD_REQUEST
+        )
+        
+    if not teacher is None:
+        try:
+            teacher = MyUser.objects.get(uuid=teacher)
+        except (MyUser.DoesNotExist, ValidationError) as e:
+            if type(e).__name__ == 'DoesNotExist':
+                message = 'Teacher user does not exist'
+            else:
+                message = e
+            return Response(
+                data={
+                    'details': 'Error',
+                    'message': message
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+    if not course is None:
+        try:
+            course = MyUser.objects.get(name=course)
+        except (MyUser.DoesNotExist, ValidationError) as e:
+            if type(e).__name__ == 'DoesNotExist':
+                message = 'Teacher user does not exist'
+            else:
+                message = e
+            return Response(
+                data={
+                    'details': 'Error',
+                    'message': message
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+    if not name is None:
+        classMeta.name = name
+        modifiedList.append('name')
+    if not course is None:
+        classMeta.course = course
+        modifiedList.append('course')
+    if not teacher is None:
+        classMeta.teacher = teacher
+        modifiedList.append('teacher')
+    if not status is None:
+        classMeta.status = status
+        modifiedList.append('status')
+    if bool(modifiedList):
+        classMeta.updated_at = datetime.datetime.now().timestamp()
+        modifiedList.append('updated_at')
+    
+    try:
+        classMeta.full_clean()
+    except ValidationError as message:
+        return Response(
+            data={
+                'details': 'Error',
+                'message': message
+            },
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    return Response(
+        data={
+            'details': 'Ok',
+            'modified': modifiedList,
+            # ! For testing purposes only, should be removed
+            'data': ClassMetadataSerializer(classMeta).data
         },
         status=status.HTTP_202_ACCEPTED
     )
