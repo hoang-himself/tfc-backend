@@ -10,8 +10,8 @@ from rest_framework.decorators import api_view, permission_classes
 
 
 from app_auth.utils import has_perm
-from master_db.models import MyUser, ClassMetadata, Course, ClassStudent
-from master_db.serializers import MyUserSerializer, ClassMetadataSerializer
+from master_db.models import MyUser, ClassMetadata, Course
+from master_db.serializers import ClassMetadataSerializer
 
 import re
 import datetime
@@ -39,7 +39,7 @@ def create_class(request):
                 'details': 'Error',
                 'message': 'Course does not exist'
             },
-            status=status.HTTP_400_BAD_REQUEST
+            status=status.HTTP_404_NOT_FOUND
         )
         
     # Get teacher if available
@@ -49,14 +49,16 @@ def create_class(request):
         except (MyUser.DoesNotExist, ValidationError) as e:
             if type(e).__name__ == 'DoesNotExist':
                 message = 'Teacher user does not exist'
+                stat = status.HTTP_404_NOT_FOUND
             else:
                 message = e
+                stat = status.HTTP_400_BAD_REQUEST
             return Response(
                 data={
                     'details': 'Error',
                     'message': message
                 },
-                status=status.HTTP_400_BAD_REQUEST
+                status=stat
             )
         
     # Construct model
@@ -132,7 +134,7 @@ def add_student(request):
                 'details': 'Error',
                 'message': 'Class does not exist'
             },
-            status=status.HTTP_400_BAD_REQUEST
+            status=status.HTTP_404_NOT_FOUND
         )
         
     # Get all students with uuids
@@ -188,7 +190,7 @@ def delete_student(request):
                 'details': 'Error',
                 'message': 'Class does not exist'
             },
-            status=status.HTTP_400_BAD_REQUEST
+            status=status.HTTP_404_NOT_FOUND
         )
         
     # Get students uuids
@@ -255,7 +257,7 @@ def edit_class(request):
                 'details': 'Error',
                 'message': 'Class does not exist'
             },
-            status=status.HTTP_400_BAD_REQUEST
+            status=status.HTTP_404_NOT_FOUND
         )
         
     # Get teacher if provided
@@ -282,14 +284,16 @@ def edit_class(request):
         except (MyUser.DoesNotExist, ValidationError) as e:
             if type(e).__name__ == 'DoesNotExist':
                 message = 'Teacher user does not exist'
+                stat = status.HTTP_404_NOT_FOUND
             else:
                 message = e
+                stat = status.HTTP_400_BAD_REQUEST
             return Response(
                 data={
                     'details': 'Error',
                     'message': message
                 },
-                status=status.HTTP_400_BAD_REQUEST
+                status=stat
             )
         
     # Update the provided fields
