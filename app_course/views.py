@@ -68,6 +68,8 @@ def edit_course(request):
         Param tags must be in the form of: tag1, tag2, tag3 (whitespace is optional)
     """
     
+    modifiedList = []
+    
     # Check existence
     try:
         course = Course.objects.get(name=request.POST.get('target_name'))
@@ -82,11 +84,11 @@ def edit_course(request):
     
     # Update model: Set attributes and update updated_at
     data = request.POST.copy()
-    data['updated_at'] = datetime.datetime.now().timestamp()
     
     for key, value in data.items():
         if hasattr(course, key) and key != 'tags':
             setattr(course, key, value)
+            modifiedList.append(key)
     
     # Validate model
     try:
@@ -101,13 +103,22 @@ def edit_course(request):
         )
     
     # Save and update tags (Tags must be done this way to be saved in the database)
+    tags = request.POST.get('tags')
+    if not tags is None:
+        modifiedList.append('tags')
+        course.tags.clear()
+        course.tags.add(*tags.replace(' ', '').split(','))
+
+    if bool(modifiedList):
+        modifiedList.append('updated_at')
+        course.updated_at = datetime.datetime.now().timestamp()
+
     course.save()
-    course.tags.clear()
-    course.tags.add(*request.POST.get('tags').replace(' ', '').split(','))
-    
+
     return Response(
         data={
             'details': 'Ok',
+            'modified': modifiedList,
             # ! For testing purposes only, should be removed
             'data': CourseSerializer(course).data
         },
