@@ -235,7 +235,7 @@ def password_check(request) -> Response:
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
-@csrf_protect
+# @csrf_protect
 def create_user(request) -> Response:
     """
         Requires every param: first_name, mid_name, last_name, address, male, avatar, birth_date, role_id, email, mobile, username, password.
@@ -247,9 +247,9 @@ def create_user(request) -> Response:
     # - These factors are freely defined and do not affect
     # its corresponding account if input incorrectly.
 
-    check = has_perm(request, ['account_cred'])
-    if check.status_code >= 400:
-        return check
+    # check = has_perm(request, ['account_cred'])
+    # if check.status_code >= 400:
+    #     return check
 
     first_name = request.POST.get('first_name')
     mid_name = request.POST.get('mid_name')
@@ -296,20 +296,20 @@ def create_user(request) -> Response:
 
     created_at = datetime.datetime.now().timestamp()
     updated_at = created_at
-    group = request.POST.get('group')
+    # group = request.POST.get('group')
 
     # Get group from group_id
-    group = MyGroup.objects.filter(name=group)
-    if group.exists():
-        group = group.first()
-    else:
-        return Response(
-            data={
-                'details': 'Error',
-                'message': 'Group does not exist'
-            },
-            status=status.HTTP_400_BAD_REQUEST
-        )
+    # group = MyGroup.objects.filter(name=group)
+    # if group.exists():
+    #     group = group.first()
+    # else:
+    #     return Response(
+    #         data={
+    #             'details': 'Error',
+    #             'message': 'Group does not exist'
+    #         },
+    #         status=status.HTTP_400_BAD_REQUEST
+    #     )
 
     #
     user = MyUser(
@@ -323,7 +323,7 @@ def create_user(request) -> Response:
         male=male,
         password=make_password(password),
         address=address,
-        group=group,
+        # group=group,
         avatar=avatar,
         created_at=created_at,
         updated_at=updated_at,
@@ -353,19 +353,20 @@ def create_user(request) -> Response:
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
-@csrf_protect
+# @csrf_protect
 def list_user(request):
     """
         Return list of users with a specified view
     """
-    check = has_perm(request, ['account_cred'])
-    if check.status_code >= 400:
-        return check
+    # check = has_perm(request, ['account_cred'])
+    # if check.status_code >= 400:
+    #     return check
 
     filter_query = request.GET.getlist('filter')
 
     if not filter_query:
         filter_query = [
+            'pk',
             'uuid',
             'username',
             'first_name',
@@ -376,13 +377,14 @@ def list_user(request):
             'mobile',
             'male',
             'address',
-            'role__name',
+            # 'role__name',
             'is_active',
             'created_at',
             'updated_at'
         ]
 
     filter_dict = {
+        'pk': True,
         'uuid': True,
         'username': True,
         'first_name': True,
@@ -395,7 +397,7 @@ def list_user(request):
         'male': True,
         'address': True,
         'avatar': False,
-        'role__name': True,
+        # 'role__name': True,
         'is_active': True,
         'created_at': True,
         'updated_at': True

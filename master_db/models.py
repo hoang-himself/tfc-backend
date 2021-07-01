@@ -92,7 +92,7 @@ class MyUser(models.Model):
     address = models.TextField()
     avatar = models.ImageField(
         upload_to='images/profile/%Y/%m/%d/', null=True, blank=True)
-    group = models.ForeignKey(MyGroup, on_delete=models.CASCADE)
+    # group = models.ForeignKey(MyGroup, on_delete=models.CASCADE)
     is_active = models.BooleanField(default=True, blank=True)
     created_at = models.FloatField()
     updated_at = models.FloatField()
@@ -103,7 +103,7 @@ class MyUser(models.Model):
             models.Index(fields=['last_name', ]),
             models.Index(fields=['birth_date', ]),
             models.Index(fields=['male', ]),
-            models.Index(fields=['group', ]),
+            # models.Index(fields=['group', ]),
         ]
 
     def __str__(self):
@@ -137,7 +137,15 @@ class ClassMetadata(models.Model):
     name = models.TextField(unique=True)
     teacher = models.ForeignKey(
         MyUser,
-        on_delete=models.CASCADE)
+        on_delete=models.CASCADE,
+        related_name='teacher',
+        blank=True
+    )
+    students = models.ManyToManyField(
+        MyUser,
+        related_name='students',
+        blank=True
+    )
     status = models.TextField()
     created_at = models.FloatField()
     updated_at = models.FloatField()
