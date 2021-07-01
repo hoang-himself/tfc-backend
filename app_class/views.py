@@ -116,8 +116,14 @@ def create_class(request):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def add_student(request):
+    """
+        Take in name, uuids. Param name represents class name and uuids is a list of student's uuid
+        
+        Param uuids must be in the form of: uuid1, uuid2, uuid3 (whitespace is optional)
+    """
     std_uuids = request.POST.get('uuids')
     
+    # Get class 
     try:
         classMeta = ClassMetadata.objects.get(name=request.POST.get('name'))
     except ClassMetadata.DoesNotExist:
@@ -129,6 +135,7 @@ def add_student(request):
             status=status.HTTP_400_BAD_REQUEST
         )
         
+    # Get all students with uuids
     uuids = None
     if not std_uuids is None:
         std_uuids = std_uuids.replace(' ', '').split(',')
@@ -149,6 +156,7 @@ def add_student(request):
         # Store uuids for visualizing added students, if one does not show up it is not found
         uuids = db.values_list('uuid', flat=True)
         
+    # Add students 
     classMeta.students.add(*students)
 
     return Response(
@@ -162,8 +170,16 @@ def add_student(request):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def delete_student(request):
+    """
+        Take in name and uuids. Param name represents class name, uuids is a list of student uuid.
+        
+        Every uuid must be a valid student or else removal will not be performed.
+        
+        Param uuids must be in the form of: uuid1, uuid2, uuid3 (whitespace is optional)
+    """
     std_uuids = request.POST.get('uuids')
     
+    # Get class
     try:
         classMeta = ClassMetadata.objects.get(name=request.POST.get('name'))
     except ClassMetadata.DoesNotExist:
@@ -175,6 +191,7 @@ def delete_student(request):
             status=status.HTTP_400_BAD_REQUEST
         )
         
+    # Get students uuids
     uuids = None
     if not std_uuids is None:
         std_uuids = std_uuids.replace(' ', '').split(',')
@@ -201,6 +218,7 @@ def delete_student(request):
                 }
             )
             
+    # Remove students from class if all uuids are present
     classMeta.students.remove(*students.values_list('pk', flat=True))
 
     return Response(
@@ -213,13 +231,22 @@ def delete_student(request):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def edit_class(request):
+    """
+        Take in class_name, course_name (optional), teacher (optional), course (optional), name (optional), status (optional).
+
+        The optional params if not provided will not be updated.
+        
+        If at least one optional param is provided, updated_at will be updated
+    """
     teacher = request.POST.get('teacher_uuid')
     course = request.POST.get('course_name')
     name = request.POST.get('name')
     status = request.POST.get('status')
     
+    # List represents modified fields
     modifiedList = []
     
+    # Get class
     try:
         classMeta = ClassMetadata.objects.get(name=request.POST.get('class_name'))
     except ClassMetadata.DoesNotExist:
@@ -231,6 +258,7 @@ def edit_class(request):
             status=status.HTTP_400_BAD_REQUEST
         )
         
+    # Get teacher if provided
     if not teacher is None:
         try:
             teacher = MyUser.objects.get(uuid=teacher)
@@ -247,6 +275,7 @@ def edit_class(request):
                 status=status.HTTP_400_BAD_REQUEST
             )
         
+    # Get course if provided
     if not course is None:
         try:
             course = MyUser.objects.get(name=course)
@@ -263,6 +292,7 @@ def edit_class(request):
                 status=status.HTTP_400_BAD_REQUEST
             )
         
+    # Update the provided fields
     if not name is None:
         classMeta.name = name
         modifiedList.append('name')
@@ -279,6 +309,7 @@ def edit_class(request):
         classMeta.updated_at = datetime.datetime.now().timestamp()
         modifiedList.append('updated_at')
     
+    # Validate model
     try:
         classMeta.full_clean()
     except ValidationError as message:
