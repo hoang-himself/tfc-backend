@@ -138,12 +138,12 @@ class ClassMetadata(models.Model):
     teacher = models.ForeignKey(
         MyUser,
         on_delete=models.DO_NOTHING,
-        related_name='teacher',
+        related_name='teacher_classes',
         blank=True
     )
     students = models.ManyToManyField(
         MyUser,
-        related_name='students',
+        related_name='students_classes',
         blank=True
     )
     status = models.TextField()
