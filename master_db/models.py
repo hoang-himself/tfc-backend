@@ -158,7 +158,7 @@ class ClassMetadata(models.Model):
         ]
 
     def __str__(self):
-        return f'{self.status} {self.course} {self.name}'
+        return f'{self.name} {self.course} {self.status}'
 
 
 # Schedule for students
