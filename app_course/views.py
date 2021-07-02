@@ -7,16 +7,16 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework.exceptions import NotFound, ParseError
 
 from app_auth.utils import has_perm
 from master_db.models import Course
 from master_db.serializers import CourseSerializer
+from master_api.utils import get_object_or_404, model_full_clean
 
 import datetime
 
 # Create your views here.
-
-
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def create_course(request):
@@ -38,16 +38,7 @@ def create_course(request):
     )
 
     # Validate model
-    try:
-        course.full_clean()
-    except ValidationError as message:
-        return Response(
-            data={
-                'details': 'Error',
-                'message': dict(message)
-            },
-            status=status.HTTP_400_BAD_REQUEST
-        )
+    model_full_clean(course)
 
     # Save and update tags (Tags must be done this way to be saved in the database)
     course.save()
@@ -55,8 +46,7 @@ def create_course(request):
 
     return Response(
         data={
-            'details': 'Ok',
-            'data': CourseSerializer(course).data
+            'detail': 'Ok',
         },
         status=status.HTTP_200_OK
     )
@@ -73,46 +63,32 @@ def edit_course(request):
         Param tags must be in the form of: tag1, tag2, tag3 (whitespace is optional)
     """
 
-    modifiedList = []
+    modifiedDict = request.POST.copy()
+    modifiedDict.pop('updated_at', None)
+    modifiedDict.pop('created_at', None)
 
-    # Check existence
-    try:
-        course = Course.objects.get(name=request.POST.get('target_name'))
-    except Course.DoesNotExist:
-        return Response(
-            data={
-                'details': 'Error',
-                'message': 'Course does not exist'
-            },
-            status=status.HTTP_400_BAD_REQUEST
-        )
-
+    # Get course
+    course = get_object_or_404(Course, 'Course', name=modifiedDict.get('target_name'))
+    
     # Update model: Set attributes and update updated_at
-    data = request.POST.copy()
+    modifiedList = []
+    
+    if not modifiedDict.get('duration') is None:
+        modifiedDict['duration'] = int(modifiedDict['duration'])
 
-    for key, value in data.items():
+    for key, value in modifiedDict.items():
         if hasattr(course, key) and value != getattr(course, key) and key != 'tags':
             setattr(course, key, value)
             modifiedList.append(key)
 
     # Validate model
-    try:
-        course.full_clean()
-    except ValidationError as message:
-        return Response(
-            data={
-                'details': 'Error',
-                'message': dict(message)
-            },
-            status=status.HTTP_400_BAD_REQUEST
-        )
+    model_full_clean(course)
 
     # Save and update tags (Tags must be done this way to be saved in the database)
-    tags = request.POST.get('tags')
-    if not tags is None:
+    if not modifiedDict.get('tags') is None:
         modifiedList.append('tags')
         course.tags.clear()
-        course.tags.add(*tags.replace(' ', '').split(','))
+        course.tags.add(*modifiedDict['tags'].replace(' ', '').split(','))
 
     if bool(modifiedList):
         modifiedList.append('updated_at')
@@ -122,7 +98,6 @@ def edit_course(request):
 
     return Response(
         data={
-            'details': 'Ok',
             'modified': modifiedList,
             # ! For testing purposes only, should be removed
             'data': CourseSerializer(course).data
@@ -159,13 +134,7 @@ def delete_course(request):
         try:
             Course.objects.get(name=name).delete()
         except Course.DoesNotExist:
-            return Response(
-                data={
-                    'details': 'Error',
-                    'message': 'Course does not exist'
-                },
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            raise NotFound('Course does not exist')
 
         return Response(
             data={'details': 'Ok'},
@@ -196,23 +165,11 @@ def delete_course(request):
 
     # Return if at least one is missing
     if bool(returnDict):
-        return Response(
-            data={
-                'details': 'Error',
-                'message': returnDict,
-            },
-            status=status.HTTP_400_BAD_REQUEST
-        )
+        raise ParseError(returnDict)
 
     # Validate boolean values
     if many is None or exact is None:
-        return Response(
-            data={
-                'details': 'Error',
-                'message': 'Boolean value should be True or False',
-            },
-            status=status.HTTP_400_BAD_REQUEST
-        )
+        raise ParseError('Boolean value should be True or False')
 
     # Get filter by exact tags or not
     if exact:
@@ -225,8 +182,7 @@ def delete_course(request):
     if not course:
         return Response(
             data={
-                'details': 'Ok',
-                'message': 'Deleted nothing'
+                'detail': 'Deleted nothing'
             },
             status=status.HTTP_204_NO_CONTENT
         )
@@ -234,16 +190,15 @@ def delete_course(request):
     # Check if delete many or not
     if not many:
         course = course.first()
-        names = course.name
+        names = [course.name]
     else:
-        names = course.values_list('name', flat=True)
+        names = list(course.values_list('name', flat=True))
 
     # Delete
     course.delete()
 
     return Response(
         data={
-            'details': 'Ok',
             'deleted_names': names
         },
         status=status.HTTP_202_ACCEPTED
@@ -266,10 +221,7 @@ def get_tags(request):
             limit)].values('name', 'num_times')
 
     return Response(
-        data={
-            'details': 'Ok',
-            'names': tags
-        },
+        data=tags,
         status=status.HTTP_200_OK
     )
 

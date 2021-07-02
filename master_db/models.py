@@ -139,7 +139,8 @@ class ClassMetadata(models.Model):
         MyUser,
         on_delete=models.DO_NOTHING,
         related_name='teacher_classes',
-        blank=True
+        blank=True,
+        null=True
     )
     students = models.ManyToManyField(
         MyUser,
@@ -167,8 +168,8 @@ class Schedule(models.Model):
         ClassMetadata,
         on_delete=models.CASCADE
     )
-    time_start = models.FloatField()
-    time_end = models.FloatField()
+    time_start = models.IntegerField()
+    time_end = models.IntegerField()
     created_at = models.FloatField()
     updated_at = models.FloatField()
 
@@ -182,7 +183,7 @@ class Schedule(models.Model):
     def __str__(self):
         time_start = datetime.datetime.fromtimestamp(self.time_start)
         time_end = datetime.datetime.fromtimestamp(self.time_end)
-        return f'{self.classroom}, {time_start.hour + time_start.minute / 60} ~ {time_end.hour + time_end.minute / 60}'
+        return f'{self.classroom}, {time_start.hour}:{time_start.minute:02d} ~ {time_end.hour}:{time_end.minute:02d}'
 
 
 #
@@ -203,7 +204,7 @@ class ClassStudent(models.Model):
         verbose_name_plural = 'class students'
 
     def __str__(self):
-        return f'{self.classrom} {self.student}'
+        return f'{self.classroom} {self.student}'
 
 
 #
