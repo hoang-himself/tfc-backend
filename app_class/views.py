@@ -399,7 +399,7 @@ def list_class(request):
     """
         Take in uuid (optional). This represents uuid of a student. 
         
-        If uuid is provided return all classes of the given student, else return all classes in db.
+        If uuid is provided return all classes of the given student, else return all classes in db with number of students in each class.
     """
     uuid = request.GET.get('uuid')
     if uuid is None:
