@@ -203,7 +203,7 @@ class ClassStudent(models.Model):
         verbose_name_plural = 'class students'
 
     def __str__(self):
-        return f'{self.classrom} {self.student}'
+        return f'{self.classroom} {self.student}'
 
 
 #
