@@ -2,6 +2,7 @@ from django.conf import settings
 from django.views.decorators.csrf import csrf_protect
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
+from django.db import models
 
 from rest_framework import status
 from rest_framework.response import Response
@@ -13,10 +14,7 @@ from app_auth.utils import has_perm
 from master_db.models import MyUser, ClassMetadata, Course
 from master_db.serializers import ClassMetadataSerializer
 
-import re
 import datetime
-import json
-import jwt
 
 def verify_teacher(user):
     # In production
@@ -290,7 +288,7 @@ def edit_class(request):
             if type(e).__name__ == 'DoesNotExist':
                 message = 'Teacher user does not exist'
             else:
-                message = dict(e)
+                message = e
             return Response(
                 data={
                     'details': 'Error',
@@ -398,7 +396,41 @@ def delete_class(request):
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def list_class(request):
+    """
+        Take in uuid (optional). This represents uuid of a student. 
+        
+        If uuid is provided return all classes of the given student, else return all classes in db.
+    """
+    uuid = request.GET.get('uuid')
+    if uuid is None:
+        classMeta = ClassMetadata.objects
+    else:
+        # Get student by uuid
+        try:
+            student = MyUser.objects.get(uuid=uuid)
+        except (MyUser.DoesNotExist, ValidationError) as e:
+            if type(e).__name__ == 'DoesNotExist':
+                message = 'Student does not exist'
+                stat = status.HTTP_404_NOT_FOUND
+            else:
+                message = e
+                stat = status.HTTP_400_BAD_REQUEST
+            return Response(
+                data={
+                    'details': 'Error',
+                    'message': message
+                },
+                status=stat
+            )
+        classMeta = student.students_classes
+        
+    print(type(classMeta))
+    classMeta = classMeta.annotate(teacher_name=models.functions.Concat('teacher__last_name', models.Value(' '), 'teacher__mid_name', models.Value(' '), 'teacher__first_name', output_field=models.TextField()))
+    view = ['name', 'course__name', 'teacher_name', 'teacher__uuid', 'status']
+    if uuid is None:
+        classMeta = classMeta.annotate(num_students=models.Count('students')).order_by('-num_students')
+        view.append('num_students')
+    
     return Response(
-        data=ClassMetadataSerializer(
-            ClassMetadata.objects.all(), many=True).data
+        data=classMeta.all().values(*view)
     )
