@@ -335,6 +335,26 @@ def edit_class(request):
         status=status.HTTP_202_ACCEPTED
     )
     
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def delete_class(request):
+    name = request.POST.get('name')
+    
+    try:
+        classMeta = ClassMetadata.objects.get(name=name)
+    except ClassMetadata.DoesNotExist:
+        return Response(
+            data={
+                'details': 'Error',
+                'message': 'Class does not exist'
+            },
+            status=status.HTTP_400_BAD_REQUEST
+        )
+        
+    return Response(
+        data=ClassMetadataSerializer(classMeta).data
+    )
+    
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def list_class(request):
