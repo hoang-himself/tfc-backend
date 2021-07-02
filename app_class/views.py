@@ -54,7 +54,7 @@ def create_class(request):
                 message = 'Teacher user does not exist'
                 stat = status.HTTP_404_NOT_FOUND
             else:
-                message = dict(e)
+                message = e
                 stat = status.HTTP_400_BAD_REQUEST
             return Response(
                 data={
