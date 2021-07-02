@@ -182,7 +182,7 @@ class Schedule(models.Model):
     def __str__(self):
         time_start = datetime.datetime.fromtimestamp(self.time_start)
         time_end = datetime.datetime.fromtimestamp(self.time_end)
-        return f'{self.name}, {time_start.hour + time_start.minute / 60} ~ {time_end.hour + time_end.minute / 60}'
+        return f'{self.classroom.name}, {time_start.hour + time_start.minute / 60} ~ {time_end.hour + time_end.minute / 60}'
 
 
 #
@@ -203,7 +203,7 @@ class ClassStudent(models.Model):
         verbose_name_plural = 'class students'
 
     def __str__(self):
-        return f'{self.classroom} {self.student}'
+        return f'{self.classrom} {self.student}'
 
 
 #
