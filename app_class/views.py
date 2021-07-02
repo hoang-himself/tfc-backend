@@ -234,7 +234,7 @@ def delete_student(request):
 @permission_classes([AllowAny])
 def edit_class(request):
     """
-        Take in class_name, course_name (optional), teacher (optional), course (optional), name (optional), status (optional).
+        Take in target_name, course_name (optional), teacher (optional), course (optional), name (optional), status (optional).
 
         The optional params if not provided will not be updated. If the content provided is the same as the source, no change will be made.
         
@@ -250,7 +250,7 @@ def edit_class(request):
     
     # Get class
     try:
-        classMeta = ClassMetadata.objects.get(name=request.POST.get('class_name'))
+        classMeta = ClassMetadata.objects.get(name=request.POST.get('target_name'))
     except ClassMetadata.DoesNotExist:
         return Response(
             data={
