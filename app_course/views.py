@@ -63,7 +63,9 @@ def create_course(request):
 @permission_classes([AllowAny])
 def edit_course(request):
     """
-        Take in target_name, name, desc, short_desc, tags and duration. Param target_name is the name of the course that needs editing, the other params are the fields that needs changing
+        Take in target_name, name (optional), desc (optional), short_desc (optional), tags (optional) and duration (optional). Param target_name is the name of the course that needs editing, the other params are the fields that needs changing
+        
+        The optional params if not provided will not be updated. If the content provided is the same as the source, no change will be made.
         
         Param tags must be in the form of: tag1, tag2, tag3 (whitespace is optional)
     """
@@ -86,7 +88,7 @@ def edit_course(request):
     data = request.POST.copy()
     
     for key, value in data.items():
-        if hasattr(course, key) and key != 'tags':
+        if hasattr(course, key) and value != getattr(course, key) and key != 'tags':
             setattr(course, key, value)
             modifiedList.append(key)
     

@@ -236,14 +236,14 @@ def edit_class(request):
     """
         Take in class_name, course_name (optional), teacher (optional), course (optional), name (optional), status (optional).
 
-        The optional params if not provided will not be updated.
+        The optional params if not provided will not be updated. If the content provided is the same as the source, no change will be made.
         
         If at least one optional param is provided, updated_at will be updated
     """
     teacher = request.POST.get('teacher_uuid')
     course = request.POST.get('course_name')
     name = request.POST.get('name')
-    status = request.POST.get('status')
+    stat = request.POST.get('status')
     
     # List represents modified fields
     modifiedList = []
@@ -296,18 +296,18 @@ def edit_class(request):
                 status=stat
             )
         
-    # Update the provided fields
-    if not name is None:
+    # Update the provided fields if content changed
+    if not name is None and name != classMeta.name:
         classMeta.name = name
         modifiedList.append('name')
-    if not course is None:
+    if not course is None and course != classMeta.course:
         classMeta.course = course
         modifiedList.append('course')
-    if not teacher is None:
+    if not teacher is None and teacher != classMeta.teacher:
         classMeta.teacher = teacher
         modifiedList.append('teacher')
-    if not status is None:
-        classMeta.status = status
+    if not stat is None and stat != classMeta.status:
+        classMeta.status = stat
         modifiedList.append('status')
     if bool(modifiedList):
         classMeta.updated_at = datetime.datetime.now().timestamp()
@@ -324,6 +324,9 @@ def edit_class(request):
             },
             status=status.HTTP_400_BAD_REQUEST
         )
+        
+    # Save
+    classMeta.save()
     
     return Response(
         data={
