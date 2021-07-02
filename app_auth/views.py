@@ -31,17 +31,15 @@ def login(request) -> Response:
         errors['username'] = 'This field is required.'
         valid = False
 
-    user = get_object_or_404(MyUser, username=username)
-
     if not password:
         errors['password'] = 'This field is required.'
         valid = False
 
     if (valid == False):
-        response.data = {
-            'detail': errors
-        }
+        response.data = errors
         return response
+
+    user = get_object_or_404(MyUser, username=username)
 
     tmp_user = MyUserSerializer(user).data
     if not check_password(password, tmp_user['password']):
