@@ -51,10 +51,22 @@ class CourseSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class UserRelatedField(serializers.RelatedField):
+    def to_representation(self, obj):
+        return {
+            'name': obj.first_name + (' ' if obj.mid_name is None else ' ' + obj.mid_name + ' ') + obj.last_name,
+            'mobile': obj.mobile,
+            'email': obj.email,
+            'uuid': obj.uuid,
+        }
+
 class ClassMetadataSerializer(serializers.ModelSerializer):
+    students = UserRelatedField(many=True, read_only=True)
+    teacher = UserRelatedField(read_only=True)
+    
     class Meta:
         model = ClassMetadata
-        fields = '__all__'
+        exclude = ('id', )
 
 
 class ClassStudentSerializer(serializers.ModelSerializer):
@@ -63,7 +75,15 @@ class ClassStudentSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class ClassRelatedField(serializers.RelatedField):
+    def to_representation(self, obj):
+        return {
+            'name': obj.name,
+            'course': obj.course.name
+        }
 class ScheduleSerializer(serializers.ModelSerializer):
+    classroom = ClassRelatedField(read_only=True)
+
     class Meta:
         model = Schedule
         fields = '__all__'

@@ -37,11 +37,17 @@ def get_object_or_404(klass, name_print, *args, **kwargs):
     except queryset.model.DoesNotExist:
         raise NotFound(f'{name_print} does not exist')
     
-def model_full_clean(klass):
+def model_full_clean(model):
     try:
-        klass.full_clean()
+        model.full_clean()
     except ValidationError as message:
         raise ParseError(dict(message))
+    
+def edit_object(model, modifiedDict, modifiedList, avoid=[]):
+    for key, value in modifiedDict.items():
+        if hasattr(model, key) and value != getattr(model, key) and not key in avoid:
+            setattr(model, key, value)
+            modifiedList.append(key)
     
 
 
@@ -64,3 +70,19 @@ def get_list_or_404(klass, name_print, *args, **kwargs):
     if not obj_list:
         raise NotFound(f'{name_print} does not exist')
     return obj_list
+
+def get_queryset(klass, *args, **kwargs):
+    """
+    Use filter() to return a list of objects.
+
+    klass may be a Model, Manager, or QuerySet object. All other passed
+    arguments and keyword arguments are used in the filter() query.
+    """
+    queryset = _get_queryset(klass)
+    if not hasattr(queryset, 'filter'):
+        klass__name = klass.__name__ if isinstance(klass, type) else klass.__class__.__name__
+        raise ValueError(
+            "First argument to get_queryset() must be a Model, Manager, or "
+            "QuerySet, not '%s'." % klass__name
+        )
+    return queryset.filter(*args, **kwargs)

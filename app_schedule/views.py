@@ -12,15 +12,10 @@ from rest_framework.exceptions import NotFound, ParseError
 from app_auth.utils import has_perm
 from master_db.models import MyUser, ClassMetadata, Schedule
 from master_db.serializers import ScheduleSerializer
-from master_api.utils import get_object_or_404, model_full_clean
+from master_api.utils import get_object_or_404, model_full_clean, edit_object
 
 
 import datetime
-
-
-def handle_page_not_found(request, exception):
-    return Response(data='Fuck')
-
 
 def validate_sched(sched):
     model_full_clean(sched)
@@ -98,10 +93,7 @@ def edit_sched(request):
 
     # Make changes
     modifiedList = []
-    for key, value in modifiedDict.items():
-        if hasattr(sched, key) and value != getattr(sched, key):
-            setattr(sched, key, value)
-            modifiedList.append(key)
+    edit_object(sched, modifiedDict, modifiedList)
 
     # If changed update updated_at
     if bool(modifiedList):
@@ -117,8 +109,6 @@ def edit_sched(request):
     return Response(
         data={
             'modified': modifiedList,
-            # ! For testing purposes only, should be removed
-            'data': ScheduleSerializer(sched).data
         }
     )
 
@@ -139,4 +129,23 @@ def delete_sched(request):
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def list_sched(request):
-    return Response(ScheduleSerializer(Schedule.objects.all(), many=True).data)
+    classMeta = request.GET.get('class_name')
+    if not classMeta is None:
+        classMeta = get_object_or_404(ClassMetadata,'Class', name=classMeta)
+        return Response(ScheduleSerializer(classMeta.schedule_set, many=True).data)
+    
+    student = request.GET.get('student_uuid')
+    if not student is None:
+        try:
+            student = get_object_or_404(MyUser, 'Student', uuid=student)
+        except ValidationError as message:
+            raise ParseError({'detail': list(message)})
+        
+        classes = student.student_classes.all()
+        data = []
+        for c in classes:
+            data.extend(ScheduleSerializer(c.schedule_set, many=True).data)
+            
+        return Response(data)
+    
+    raise ParseError('Need parameter class_name or student_uuid')

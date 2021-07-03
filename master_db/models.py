@@ -144,7 +144,7 @@ class ClassMetadata(models.Model):
     )
     students = models.ManyToManyField(
         MyUser,
-        related_name='students_classes',
+        related_name='student_classes',
         blank=True
     )
     status = models.TextField()
@@ -166,7 +166,7 @@ class ClassMetadata(models.Model):
 class Schedule(models.Model):
     classroom = models.ForeignKey(
         ClassMetadata,
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
     )
     time_start = models.IntegerField()
     time_end = models.IntegerField()

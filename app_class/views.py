@@ -13,14 +13,29 @@ from rest_framework.exceptions import NotFound, ParseError
 from app_auth.utils import has_perm
 from master_db.models import MyUser, ClassMetadata, Course
 from master_db.serializers import ClassMetadataSerializer
-from master_api.utils import get_object_or_404, model_full_clean
+from master_api.utils import get_object_or_404, model_full_clean, edit_object, get_queryset
 
 import datetime
 
+def get_teacher_by_uuid(uuid):
+    try:
+        teacher = get_object_or_404(MyUser, 'Teacher user', uuid=uuid)
+    except ValidationError as message:
+        raise ParseError({'detail': list(message)})
+    
+    verify_teacher(teacher)
+    return teacher
+    
+def get_std_by_uuids(klass, uuids):
+    try:
+        return get_queryset(klass, uuid__in=uuids)
+    except ValidationError as message:
+        raise ParseError({'details': list(message)})
 
 def verify_teacher(user):
     # In production
-    return user.mobile == '0919877216'
+    if not user.mobile == '0919877216':
+        raise ParseError('User is not a teacher')
 
 
 @api_view(['POST'])
@@ -40,16 +55,7 @@ def create_class(request):
 
     # Get teacher if available
     if teacher is not None:
-        teacher = get_object_or_404(MyUser, 'Teacher user', uuid=teacher)
-
-        if not verify_teacher(teacher):
-            return Response(
-                data={
-                    'details': 'Error',
-                    'message': 'User is not a teacher'
-                },
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        teacher = get_teacher_by_uuid(teacher)
 
     # Construct model
     now = datetime.datetime.now().timestamp()
@@ -69,11 +75,7 @@ def create_class(request):
     uuids = None
     if not std_uuids is None:
         # Handling UUID validation
-        try:
-            db = MyUser.objects.filter(
-                uuid__in=std_uuids.replace(' ', '').split(','))
-        except ValidationError as message:
-            raise ParseError(message)
+        db = get_std_by_uuids(MyUser, std_uuids)
 
         # Store students id for adding
         students = db.values_list('pk', flat=True)
@@ -87,7 +89,6 @@ def create_class(request):
 
     return Response(
         data={
-            'details': 'Ok',
             'teacher_added': not teacher is None,
             'students_added': uuids
         },
@@ -103,21 +104,19 @@ def add_student(request):
 
         Param uuids must be in the form of: uuid1, uuid2, uuid3 (whitespace is optional)
     """
-    std_uuids = request.POST.get('uuids')
+    
 
     # Get class
     classMeta = get_object_or_404(
         ClassMetadata, 'Class', name=request.POST.get('name'))
 
     # Get all students with uuids
+    std_uuids = request.POST.get('uuids')
     uuids = None
     if not std_uuids is None:
         std_uuids = std_uuids.replace(' ', '').split(',')
         # Handling UUID validation
-        try:
-            db = MyUser.objects.filter(uuid__in=std_uuids)
-        except ValidationError as message:
-            raise ParseError(detail=message)
+        db = get_std_by_uuids(MyUser, std_uuids)
 
         # Store students id for adding
         students = db.values_list('pk', flat=True)
@@ -129,7 +128,6 @@ def add_student(request):
 
     return Response(
         data={
-            'details': 'Ok',
             'students_added': uuids
         },
         status=status.HTTP_202_ACCEPTED
@@ -146,31 +144,28 @@ def delete_student(request):
 
         Param uuids must be in the form of: uuid1, uuid2, uuid3 (whitespace is optional)
     """
-    std_uuids = request.POST.get('uuids')
 
     # Get class
     classMeta = get_object_or_404(
         ClassMetadata, 'Class', name=request.POST.get('name'))
 
     # Get students uuids
-    uuids = None
-    if not std_uuids is None:
-        std_uuids = std_uuids.replace(' ', '').split(',')
-        # Handling UUID validation
-        try:
-            students = classMeta.students.filter(uuid__in=std_uuids)
-        except ValidationError as message:
-            raise ParseError(message)
-        # Store uuids for visualizing added students, if one does not show up it is not found
-        uuids = [str(o)
-                 for o in students.values_list('uuid', flat=True).filter()]
+    try:
+        std_uuids = request.POST.get('uuids').replace(' ', '').split(',')
+    except:
+        raise ParseError({'uuids': ['This field cannot be null.']})
+    # Handling UUID validation
+    students = get_std_by_uuids(classMeta.students, std_uuids)
+    # Store uuids for visualizing added students, if one does not show up it is not found
 
-        if len(uuids) != len(std_uuids):
-            raise ParseError(
-                {'not_found': list(set(std_uuids).difference(set(uuids)))})
+    if len(students) != len(std_uuids):
+        uuids = (str(o)
+                for o in students.values_list('uuid', flat=True).filter())
+        raise ParseError(
+            {'not_found': list(set(std_uuids).difference(uuids))})
 
     # Remove students from class if all uuids are present
-    classMeta.students.remove(*students.values_list('pk', flat=True))
+    classMeta.students.remove(*students)
 
     return Response(
         data={
@@ -184,40 +179,33 @@ def delete_student(request):
 @permission_classes([AllowAny])
 def edit_class(request):
     """
-        Take in target_name, course_name (optional), teacher (optional), course (optional), name (optional), status (optional).
+        Take in target_name, course_name (optional), teacher_uuid (optional), course (optional), name (optional), status (optional).
 
         The optional params if not provided will not be updated. If the content provided is the same as the source, no change will be made.
 
         If at least one optional param is provided, updated_at will be updated
     """
     modifiedDict = request.POST.copy()
-    modifiedDict.pop('students')
-    modifiedDict.pop('created_at')
-    modifiedDict.pop('updated_at')
+    modifiedDict.pop('students', None)
+    modifiedDict.pop('created_at', None)
+    modifiedDict.pop('updated_at', None)
 
     # Get class
     classMeta = get_object_or_404(
         ClassMetadata, 'Class', name=request.POST.get('target_name'))
 
     # Get teacher if provided
-    if not modifiedDict.get('teacher') is None:
-        modifiedDict['teacher'] = get_object_or_404(
-            MyUser, 'Teacher user', uuid=modifiedDict['teacher'])
-
-        if not verify_teacher(modifiedDict['teacher']):
-            raise ParseError('User is not a teacher')
+    if not modifiedDict.get('teacher_uuid') is None:
+        modifiedDict['teacher'] = get_teacher_by_uuid(modifiedDict['teacher_uuid'])
 
     # Get course if provided
-    if not modifiedDict.get('course') is None:
+    if not modifiedDict.get('course_name') is None:
         modifiedDict['course'] = get_object_or_404(
-            Course, 'Course', name=modifiedDict['course'])
+            Course, 'Course', name=modifiedDict['course_name'])
 
     # Update the provided fields if content changed
     modifiedList = []
-    for key, value in modifiedDict.items():
-        if hasattr(classMeta, key) and value != getattr(classMeta, key):
-            setattr(classMeta, key, value)
-            modifiedList.append(key)
+    edit_object(classMeta, modifiedDict, modifiedList)
 
     if bool(modifiedList):
         classMeta.updated_at = datetime.datetime.now().timestamp()
@@ -233,8 +221,6 @@ def edit_class(request):
         data={
             'details': 'Ok',
             'modified': modifiedList,
-            # ! For testing purposes only, should be removed
-            'data': ClassMetadataSerializer(classMeta).data
         },
         status=status.HTTP_202_ACCEPTED
     )
@@ -256,8 +242,6 @@ def delete_class(request):
     return Response(
         data={
             'details': 'Ok',
-            # ! For testing purposes only, should be removed
-            'data': ClassMetadataSerializer(classMeta).data,
         },
         status=status.HTTP_202_ACCEPTED
     )
@@ -271,36 +255,26 @@ def list_class(request):
 
         If uuid is provided return all classes of the given student, else return all classes in db with number of students in each class.
     """
+    classMeta = ClassMetadata.objects.all()
+    
+    name = request.GET.get('name')
+    if not name is None:
+        # Get class
+        classMeta = get_object_or_404(ClassMetadata, 'Class', name=name)
+        return Response(ClassMetadataSerializer(classMeta).data)
+    
     uuid = request.GET.get('uuid')
-    if uuid is None:
-        classMeta = ClassMetadata.objects
-    else:
+    if not uuid is None:
         # Get student by uuid
         try:
-            student = MyUser.objects.get(uuid=uuid)
-        except (MyUser.DoesNotExist, ValidationError) as e:
-            if type(e).__name__ == 'DoesNotExist':
-                message = 'Student does not exist'
-                stat = status.HTTP_404_NOT_FOUND
-            else:
-                message = e
-                stat = status.HTTP_400_BAD_REQUEST
-            return Response(
-                data={
-                    'detail': message
-                },
-                status=stat
-            )
-        classMeta = student.students_classes
+            student = get_object_or_404(MyUser, 'Student', uuid=uuid)
+        except ValidationError as message:
+            raise ParseError({'detail': list(message)})
+            
+        classMeta = student.student_classes.all()
 
-    classMeta = classMeta.annotate(teacher_name=models.functions.Concat('teacher__last_name', models.Value(
-        ' '), 'teacher__mid_name', models.Value(' '), 'teacher__first_name', output_field=models.TextField()))
-    view = ['name', 'course__name', 'teacher_name', 'teacher__uuid', 'status']
-    if uuid is None:
-        classMeta = classMeta.annotate(num_students=models.Count(
-            'students')).order_by('-num_students')
-        view.append('num_students')
+    data = ClassMetadataSerializer(classMeta, many=True).data
+    for d in data:
+        d['num_students'] = len(d.pop('students', None))
 
-    return Response(
-        data=classMeta.all().values(*view)
-    )
+    return Response(data)

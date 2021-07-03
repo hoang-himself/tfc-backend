@@ -12,7 +12,7 @@ from rest_framework.exceptions import NotFound, ParseError
 from app_auth.utils import has_perm
 from master_db.models import Course
 from master_db.serializers import CourseSerializer
-from master_api.utils import get_object_or_404, model_full_clean
+from master_api.utils import get_object_or_404, model_full_clean, edit_object
 
 import datetime
 
@@ -76,10 +76,7 @@ def edit_course(request):
     if not modifiedDict.get('duration') is None:
         modifiedDict['duration'] = int(modifiedDict['duration'])
 
-    for key, value in modifiedDict.items():
-        if hasattr(course, key) and value != getattr(course, key) and key != 'tags':
-            setattr(course, key, value)
-            modifiedList.append(key)
+    edit_object(course, modifiedDict, modifiedList, ['tags'])
 
     # Validate model
     model_full_clean(course)
@@ -99,8 +96,6 @@ def edit_course(request):
     return Response(
         data={
             'modified': modifiedList,
-            # ! For testing purposes only, should be removed
-            'data': CourseSerializer(course).data
         },
         status=status.HTTP_202_ACCEPTED
     )
