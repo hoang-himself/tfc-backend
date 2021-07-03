@@ -3,13 +3,11 @@ from master_db.models import (
     Metatable, Branch, Calendar, MyUser, Setting, MyGroup, Course,
     ClassMetadata, ClassStudent, Schedule, Attendance, Log
 )
-
-
 from taggit_serializer.serializers import TaggitSerializer, TagListSerializerField
 
 # For enhanced models
 from collections import OrderedDict
-from rest_framework.fields import SkipField
+from rest_framework.fields import SkipField, empty
 from rest_framework.relations import PKOnlyObject
 
 
@@ -29,12 +27,13 @@ class EnhancedListSerializer(serializers.ListSerializer):
 
 
 class EnhancedModelSerializer(serializers.ModelSerializer):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        meta = getattr(self.__class__, 'Meta', None)
-        if not isinstance(meta, EnhancedListSerializer):
+    def __new__(cls, *args, **kwargs):
+        meta = getattr(cls, 'Meta', None)
+        list_serializer_class = getattr(meta, 'list_serializer_class', None)
+        if not isinstance(list_serializer_class, EnhancedListSerializer.__class__):
             raise TypeError(
-                "To use EnhancedModelSerializer in Meta must declare: list_serializer_class = EnhancedListSerializer")
+                f"In {cls.__name__}, to use EnhancedModelSerializer in Meta must declare: list_serializer_class = EnhancedListSerializer")
+        return super().__new__(cls, *args, **kwargs)
         
     def add_ignore_field(self, field):
         if getattr(self, 'ignore', None) is None:
@@ -129,7 +128,14 @@ class UserRelatedField(serializers.RelatedField):
             'uuid': obj.uuid,
         }
 
+class CourseRelatedField(serializers.RelatedField):
+    def to_representation(self, obj):
+        return {
+            'name': obj.name,
+        }
+
 class ClassMetadataSerializer(EnhancedModelSerializer):
+    course = CourseRelatedField(read_only=True)
     students = UserRelatedField(many=True, read_only=True)
     teacher = UserRelatedField(read_only=True)
 
