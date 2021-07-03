@@ -68,14 +68,10 @@ class EnhancedListSerializer(serializers.ListSerializer):
                 "To use EnhancedListSerializer the origin serializer must be EnhancedModelSerializer")
 
     def add_ignore_field(self, field):
-        if getattr(self.child, 'ignore', None) is None:
-            self.child.ignore = [field]
-        else:
-            self.child.ignore.append(field)
+        self.child.add_ignore_field(field)
 
     def clear_ignore(self):
-        if getattr(self.child, 'ignore', None) is not None:
-            del self.child.ignore
+        self.child.clear_ignore()
 
 
 class EnhancedModelSerializer(serializers.ModelSerializer):
