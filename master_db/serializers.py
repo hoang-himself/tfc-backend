@@ -1,65 +1,19 @@
 from rest_framework import serializers
-from rest_framework.utils import representation
 from master_db.models import (
     Metatable, Branch, Calendar, MyUser, Setting, MyGroup, Course,
     ClassMetadata, ClassStudent, Schedule, Attendance, Log
 )
-from django.db import models
 
-from collections import OrderedDict
-from rest_framework.fields import SkipField
 
 from taggit_serializer.serializers import TaggitSerializer, TagListSerializerField
-from rest_framework.exceptions import NotFound, ParseError
+
+# For enhanced models
+from collections import OrderedDict
+from rest_framework.fields import SkipField
 from rest_framework.relations import PKOnlyObject
 
 
-class MetatableSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Metatable
-        fields = '__all__'
-
-
-class BranchSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Branch
-        fields = '__all__'
-
-
-class CalendarSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Calendar
-        fields = '__all__'
-
-
-class SettingSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Setting
-        fields = '__all__'
-
-
-class MyGroupSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = MyGroup
-        fields = '__all__'
-
-
-class MyUserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = MyUser
-        fields = '__all__'
-
-
-class CourseSerializer(serializers.ModelSerializer):
-    tags = TagListSerializerField()
-
-    class Meta:
-        model = Course
-        fields = '__all__'
-
 # Enhanced models: Add ignoring fields feauture when call data property
-
-
 class EnhancedListSerializer(serializers.ListSerializer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -115,6 +69,42 @@ class EnhancedModelSerializer(serializers.ModelSerializer):
 
         return ret
 
+class MetatableSerializer(EnhancedModelSerializer):
+    class Meta:
+        model = Metatable
+        fields = '__all__'
+
+class BranchSerializer(EnhancedModelSerializer):
+    class Meta:
+        model = Branch
+        fields = '__all__'
+
+class CalendarSerializer(EnhancedModelSerializer):
+    class Meta:
+        model = Calendar
+        fields = '__all__'
+
+class SettingSerializer(EnhancedModelSerializer):
+    class Meta:
+        model = Setting
+        fields = '__all__'
+
+class MyGroupSerializer(EnhancedModelSerializer):
+    class Meta:
+        model = MyGroup
+        fields = '__all__'
+
+class MyUserSerializer(EnhancedModelSerializer):
+    class Meta:
+        model = MyUser
+        fields = '__all__'
+
+class CourseSerializer(EnhancedModelSerializer):
+    tags = TagListSerializerField()
+
+    class Meta:
+        model = Course
+        fields = '__all__'
 
 class UserRelatedField(serializers.RelatedField):
     def to_representation(self, obj):
@@ -125,7 +115,6 @@ class UserRelatedField(serializers.RelatedField):
             'uuid': obj.uuid,
         }
 
-
 class ClassMetadataSerializer(EnhancedModelSerializer):
     students = UserRelatedField(many=True, read_only=True)
     teacher = UserRelatedField(read_only=True)
@@ -135,12 +124,10 @@ class ClassMetadataSerializer(EnhancedModelSerializer):
         exclude = ('id', )
         list_serializer_class = EnhancedListSerializer
 
-
-class ClassStudentSerializer(serializers.ModelSerializer):
+class ClassStudentSerializer(EnhancedModelSerializer):
     class Meta:
         model = ClassStudent
         fields = '__all__'
-
 
 class ClassRelatedField(serializers.RelatedField):
     def to_representation(self, obj):
@@ -149,22 +136,19 @@ class ClassRelatedField(serializers.RelatedField):
             'course': obj.course.name
         }
 
-
-class ScheduleSerializer(serializers.ModelSerializer):
+class ScheduleSerializer(EnhancedModelSerializer):
     classroom = ClassRelatedField(read_only=True)
 
     class Meta:
         model = Schedule
         fields = '__all__'
 
-
-class AttendanceSerializer(serializers.ModelSerializer):
+class AttendanceSerializer(EnhancedModelSerializer):
     class Meta:
         model = Attendance
         fields = '__all__'
 
-
-class LogSerializer(serializers.ModelSerializer):
+class LogSerializer(EnhancedModelSerializer):
     class Meta:
         model = Log
         fields = '__all__'
