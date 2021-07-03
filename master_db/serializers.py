@@ -29,6 +29,13 @@ class EnhancedListSerializer(serializers.ListSerializer):
 
 
 class EnhancedModelSerializer(serializers.ModelSerializer):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        meta = getattr(self.__class__, 'Meta', None)
+        if not isinstance(meta, EnhancedListSerializer):
+            raise TypeError(
+                "To use EnhancedModelSerializer in Meta must declare: list_serializer_class = EnhancedListSerializer")
+        
     def add_ignore_field(self, field):
         if getattr(self, 'ignore', None) is None:
             self.ignore = [field]
@@ -73,31 +80,37 @@ class MetatableSerializer(EnhancedModelSerializer):
     class Meta:
         model = Metatable
         fields = '__all__'
+        list_serializer_class = EnhancedListSerializer
 
 class BranchSerializer(EnhancedModelSerializer):
     class Meta:
         model = Branch
         fields = '__all__'
+        list_serializer_class = EnhancedListSerializer
 
 class CalendarSerializer(EnhancedModelSerializer):
     class Meta:
         model = Calendar
         fields = '__all__'
+        list_serializer_class = EnhancedListSerializer
 
 class SettingSerializer(EnhancedModelSerializer):
     class Meta:
         model = Setting
         fields = '__all__'
+        list_serializer_class = EnhancedListSerializer
 
 class MyGroupSerializer(EnhancedModelSerializer):
     class Meta:
         model = MyGroup
         fields = '__all__'
+        list_serializer_class = EnhancedListSerializer
 
 class MyUserSerializer(EnhancedModelSerializer):
     class Meta:
         model = MyUser
         fields = '__all__'
+        list_serializer_class = EnhancedListSerializer
 
 class CourseSerializer(EnhancedModelSerializer):
     tags = TagListSerializerField()
@@ -105,6 +118,7 @@ class CourseSerializer(EnhancedModelSerializer):
     class Meta:
         model = Course
         fields = '__all__'
+        list_serializer_class = EnhancedListSerializer
 
 class UserRelatedField(serializers.RelatedField):
     def to_representation(self, obj):
@@ -128,6 +142,7 @@ class ClassStudentSerializer(EnhancedModelSerializer):
     class Meta:
         model = ClassStudent
         fields = '__all__'
+        list_serializer_class = EnhancedListSerializer
 
 class ClassRelatedField(serializers.RelatedField):
     def to_representation(self, obj):
@@ -142,13 +157,16 @@ class ScheduleSerializer(EnhancedModelSerializer):
     class Meta:
         model = Schedule
         fields = '__all__'
+        list_serializer_class = EnhancedListSerializer
 
 class AttendanceSerializer(EnhancedModelSerializer):
     class Meta:
         model = Attendance
         fields = '__all__'
+        list_serializer_class = EnhancedListSerializer
 
 class LogSerializer(EnhancedModelSerializer):
     class Meta:
         model = Log
         fields = '__all__'
+        list_serializer_class = EnhancedListSerializer
