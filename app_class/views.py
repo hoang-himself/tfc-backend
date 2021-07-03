@@ -251,29 +251,39 @@ def delete_class(request):
 @permission_classes([AllowAny])
 def list_class(request):
     """
-        Take in uuid (optional). This represents uuid of a student. 
+        Take in name (optional), student_uuid (optional). Param student_uuid represents uuid of a student, name represents name of a class. 
+        
+        If name is provided return explicit info of that class (User info will be provided with name, mobile, email and uuid).
 
-        If uuid is provided return all classes of the given student, else return all classes in db with number of students in each class.
+        If student_uuid is provided return all classes of the given student (No explicit info of students, just number of students).
+        
+        If none is provided return all classes in db with similar format of student_uuid.
+        
+        Param name has higher priority.
     """
     classMeta = ClassMetadata.objects.all()
     
+    # name is provided
     name = request.GET.get('name')
     if not name is None:
         # Get class
         classMeta = get_object_or_404(ClassMetadata, 'Class', name=name)
         return Response(ClassMetadataSerializer(classMeta).data)
     
-    uuid = request.GET.get('uuid')
-    if not uuid is None:
+    # student_uuid is provided
+    student_uuid = request.GET.get('uuid')
+    if not student_uuid is None:
         # Get student by uuid
         try:
-            student = get_object_or_404(MyUser, 'Student', uuid=uuid)
+            student = get_object_or_404(MyUser, 'Student', uuid=student_uuid)
         except ValidationError as message:
             raise ParseError({'detail': list(message)})
             
         classMeta = student.student_classes.all()
 
     data = ClassMetadataSerializer(classMeta, many=True).data
+    
+    # Remove detailed students's info and replace it with number of students
     for d in data:
         d['num_students'] = len(d.pop('students', None))
 
