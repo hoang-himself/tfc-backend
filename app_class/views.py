@@ -73,7 +73,7 @@ def create_class(request):
 
     # Get students from std_uuids
     uuids = None
-    if not std_uuids is None:
+    if std_uuids is not None:
         # Handling UUID validation
         db = get_std_by_uuids(MyUser, std_uuids)
 
@@ -84,7 +84,7 @@ def create_class(request):
 
     # Save and add students (M2M field must be added this way to save)
     classMeta.save()
-    if not std_uuids is None:
+    if std_uuids is not None:
         classMeta.students.add(*students)
 
     return Response(
@@ -113,7 +113,7 @@ def add_student(request):
     # Get all students with uuids
     std_uuids = request.POST.get('uuids')
     uuids = None
-    if not std_uuids is None:
+    if std_uuids is not None:
         std_uuids = std_uuids.replace(' ', '').split(',')
         # Handling UUID validation
         db = get_std_by_uuids(MyUser, std_uuids)
@@ -195,11 +195,11 @@ def edit_class(request):
         ClassMetadata, 'Class', name=request.POST.get('target_name'))
 
     # Get teacher if provided
-    if not modifiedDict.get('teacher_uuid') is None:
+    if modifiedDict.get('teacher_uuid') is not None:
         modifiedDict['teacher'] = get_teacher_by_uuid(modifiedDict['teacher_uuid'])
 
     # Get course if provided
-    if not modifiedDict.get('course_name') is None:
+    if modifiedDict.get('course_name') is not None:
         modifiedDict['course'] = get_object_or_404(
             Course, 'Course', name=modifiedDict['course_name'])
 
@@ -265,14 +265,14 @@ def list_class(request):
     
     # name is provided
     name = request.GET.get('name')
-    if not name is None:
+    if name is not None:
         # Get class
         classMeta = get_object_or_404(ClassMetadata, 'Class', name=name)
         return Response(ClassMetadataSerializer(classMeta).data)
     
     # student_uuid is provided
     student_uuid = request.GET.get('uuid')
-    if not student_uuid is None:
+    if student_uuid is not None:
         # Get student by uuid
         try:
             student = get_object_or_404(MyUser, 'Student', uuid=student_uuid)
@@ -281,10 +281,6 @@ def list_class(request):
             
         classMeta = student.student_classes.all()
 
-    data = ClassMetadataSerializer(classMeta, many=True).data
-    
-    # Remove detailed students's info and replace it with number of students
-    for d in data:
-        d['num_students'] = len(d.pop('students', None))
+    data = ClassMetadataSerializer(classMeta, many=True)
 
-    return Response(data)
+    return Response(data.data)
