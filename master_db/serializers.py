@@ -6,12 +6,9 @@ from master_db.models import (
 from taggit_serializer.serializers import TaggitSerializer, TagListSerializerField
 
 # For enhanced models
-from collections import OrderedDict
-from rest_framework.fields import SkipField, empty
-from rest_framework.relations import PKOnlyObject
 
 
-# Enhanced models: Add ignoring fields feauture when call data property
+# Enhanced models: Add excluding fields feauture
 class EnhancedListSerializer(serializers.ListSerializer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -19,12 +16,9 @@ class EnhancedListSerializer(serializers.ListSerializer):
             raise TypeError(
                 "To use EnhancedListSerializer the origin serializer must be EnhancedModelSerializer")
 
-    def add_ignore_field(self, field):
-        self.child.add_ignore_field(field)
-
-    def clear_ignore(self):
-        self.child.clear_ignore()
-
+    def exclude_field(self, field):
+        self.child.exclude_field(field)
+        return self
 
 class EnhancedModelSerializer(serializers.ModelSerializer):
     def __new__(cls, *args, **kwargs):
@@ -35,45 +29,9 @@ class EnhancedModelSerializer(serializers.ModelSerializer):
                 f"In {cls.__name__}, to use EnhancedModelSerializer in Meta must declare: list_serializer_class = EnhancedListSerializer")
         return super().__new__(cls, *args, **kwargs)
         
-    def add_ignore_field(self, field):
-        if getattr(self, 'ignore', None) is None:
-            self.ignore = [field]
-        else:
-            self.ignore.append(field)
-
-    def clear_ignore(self):
-        if getattr(self, 'ignore', None) is not None:
-            del self.ignore
-
-    def to_representation(self, instance):
-        """
-        Object instance -> Dict of primitive datatypes.
-        """
-
-        ret = OrderedDict()
-
-        fields = []
-        ignore = getattr(self, 'ignore', [])
-
-        # This is the key to override this class's parent method
-        for key, field in self.fields.items():
-            if not field.read_only and not key in ignore:
-                fields.append(field)
-
-        for field in fields:
-            try:
-                attribute = field.get_attribute(instance)
-            except SkipField:
-                continue
-
-            check_for_none = attribute.pk if isinstance(
-                attribute, PKOnlyObject) else attribute
-            if check_for_none is None:
-                ret[field.field_name] = None
-            else:
-                ret[field.field_name] = field.to_representation(attribute)
-
-        return ret
+    def exclude_field(self, field):
+        self.fields.pop(field)
+        return self
 
 class MetatableSerializer(EnhancedModelSerializer):
     class Meta:
