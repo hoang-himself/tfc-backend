@@ -281,6 +281,6 @@ def list_class(request):
             
         classMeta = student.student_classes.all()
 
-    data = ClassMetadataSerializer(classMeta, many=True).exclude_field('students').data
+    data = ClassMetadataSerializer(classMeta, many=True).exclude_field('student').data
 
     return Response(data)

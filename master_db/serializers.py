@@ -30,7 +30,11 @@ class EnhancedModelSerializer(serializers.ModelSerializer):
         return super().__new__(cls, *args, **kwargs)
         
     def exclude_field(self, field):
-        self.fields.pop(field)
+        try:
+            self.fields.pop(field)
+        except:
+            raise KeyError(f'There is no `{field}` field in {self.__class__.__name__}')
+        
         return self
 
 class MetatableSerializer(EnhancedModelSerializer):
