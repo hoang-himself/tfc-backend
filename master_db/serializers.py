@@ -14,7 +14,7 @@ class EnhancedListSerializer(serializers.ListSerializer):
         super().__init__(*args, **kwargs)
         if not isinstance(self.child, EnhancedModelSerializer):
             raise TypeError(
-                "To use EnhancedListSerializer the origin serializer must be EnhancedModelSerializer")
+                f"To use EnhancedListSerializer, {self.child.__class__.__name__} must inherit from EnhancedModelSerializer")
 
     def exclude_field(self, field):
         self.child.exclude_field(field)
@@ -33,7 +33,7 @@ class EnhancedModelSerializer(serializers.ModelSerializer):
         try:
             self.fields.pop(field)
         except:
-            raise KeyError(f'There is no `{field}` field in {self.__class__.__name__}')
+            raise KeyError(f"There is no `{field}` field in {self.__class__.__name__} to call exclude_field()")
         
         return self
 
