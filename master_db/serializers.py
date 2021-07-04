@@ -25,6 +25,9 @@ class EnhancedModelSerializer(serializers.ModelSerializer):
         meta = getattr(cls, 'Meta', None)
         if not hasattr(meta, 'list_serializer_class'):
             setattr(meta, 'list_serializer_class', EnhancedListSerializer)
+        elif not issubclass(meta.list_serializer_class, EnhancedListSerializer):
+            raise TypeError(f"In {cls.__name__}, list_serializer_class must be a class inherit from EnhancedListSerializer")
+        
         return super().__new__(cls, *args, **kwargs)
         
     def exclude_field(self, field):
