@@ -1,10 +1,10 @@
 import jwt
-from rest_framework.authentication import BaseAuthentication
-from django.middleware.csrf import CsrfViewMiddleware
-from rest_framework import exceptions
 from django.conf import settings
+from django.contrib.auth import get_user_model
+from django.middleware.csrf import CsrfViewMiddleware
 
-from master_db.models import MyUser
+from rest_framework import exceptions
+from rest_framework.authentication import BaseAuthentication
 
 
 class CSRFCheck(CsrfViewMiddleware):
@@ -36,7 +36,8 @@ class SafeJWTAuthentication(BaseAuthentication):
         except IndexError:
             raise exceptions.AuthenticationFailed('Token prefix missing')
 
-        user = MyUser.objects.filter(uuid=payload['user_id']).first()
+        CustomUser = get_user_model()
+        user = CustomUser.objects.filter(uuid=payload['user_id']).first()
         if user is None:
             raise exceptions.AuthenticationFailed('User not found')
 

@@ -1,7 +1,9 @@
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password
 from django.views.decorators.csrf import csrf_protect
 from django.core.exceptions import ValidationError
+
 
 from rest_framework import status
 from rest_framework.response import Response
@@ -9,8 +11,8 @@ from rest_framework.permissions import AllowAny
 from rest_framework.decorators import api_view, permission_classes
 
 from app_auth.utils import has_perm
-from master_db.models import MyGroup, MyUser
-from master_db.serializers import MyUserSerializer
+from master_db.models import CustomUser
+from master_db.serializers import CustomUserSerializer
 
 import re
 import datetime
@@ -49,7 +51,7 @@ def email_response(email) -> Response:
         )
 
     # Check for existence
-    if MyUser.objects.filter(email=email).exists():
+    if CustomUser.objects.filter(email=email).exists():
         return Response(
             data={
                 "details": "Error",
@@ -108,7 +110,7 @@ def mobile_response(mobile) -> Response:
         )
 
     # Check for existence
-    if MyUser.objects.filter(mobile=mobile).exists():
+    if CustomUser.objects.filter(mobile=mobile).exists():
         return Response(
             data={
                 "details": "Error",
@@ -151,7 +153,7 @@ def username_response(username) -> Response:
         )
 
     # Check for existence
-    if MyUser.objects.filter(username=username).exists():
+    if CustomUser.objects.filter(username=username).exists():
         return Response(
             data={
                 "details": "Error",
@@ -312,7 +314,7 @@ def create_user(request) -> Response:
     #     )
 
     #
-    user = MyUser(
+    user = CustomUser(
         username=username,
         first_name=first_name,
         mid_name=mid_name,
@@ -410,5 +412,5 @@ def list_user(request):
 
     # Asterisk expands list into separated args
     # https://docs.python.org/2/tutorial/controlflow.html#unpacking-argument-lists
-    data = MyUser.objects.all().values(*listZ)
+    data = CustomUser.objects.all().values(*listZ)
     return Response(data)

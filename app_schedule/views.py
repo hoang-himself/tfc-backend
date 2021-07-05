@@ -10,7 +10,7 @@ from rest_framework.exceptions import NotFound, ParseError
 
 
 from app_auth.utils import has_perm
-from master_db.models import MyUser, ClassMetadata, Schedule
+from master_db.models import CustomUser, ClassMetadata, Schedule
 from master_db.serializers import ScheduleSerializer
 from master_api.utils import get_object_or_404, model_full_clean, edit_object
 
@@ -146,7 +146,7 @@ def list_sched(request):
     if not student is None:
         # Get student
         try:
-            student = get_object_or_404(MyUser, 'Student', uuid=student)
+            student = get_object_or_404(CustomUser, 'Student', uuid=student)
         except ValidationError as message:
             raise ParseError({'detail': list(message)})
         

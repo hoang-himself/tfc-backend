@@ -2,7 +2,11 @@ from django.conf import settings
 from rest_framework import status
 from rest_framework.response import Response
 
-from master_db.serializers import MyUserSerializer, MyGroupSerializer
+from master_db.serializers import (
+    CustomUserSerializer,
+    # MyGroupSerializer
+)
+
 
 import datetime
 import jwt
@@ -11,16 +15,16 @@ import jwt
 def gen_ref_token(user):
     payload = {}
 
-    role = MyGroupSerializer(user.role).data
-    perms = []
-    not_role = ['id', 'name', 'created_at', 'updated_at']
-    for key in role:
-        if key in not_role:
-            continue
-        elif role[key] == True:
-            perms.append(key)
+    # role = MyGroupSerializer(user.role).data
+    # perms = []
+    # not_role = ['id', 'name', 'created_at', 'updated_at']
+    # for key in role:
+    #     if key in not_role:
+    #         continue
+    #     elif role[key] == True:
+    #         perms.append(key)
 
-    user = MyUserSerializer(user).data
+    user = CustomUserSerializer(user).data
 
     payload['typ'] = 'refresh'
     payload['iss'] = 'TFC'
@@ -29,9 +33,9 @@ def gen_ref_token(user):
     payload['iat'] = datetime.datetime.utcnow()
     payload['nbf'] = datetime.datetime.utcnow()
     payload['jti'] = ''
-    payload['role'] = role['name']
-    payload['perms'] = perms
-    payload['user_id'] = user['uuid']
+    # payload['role'] = role['name']
+    # payload['perms'] = perms
+    # payload['user_id'] = user['uuid']
 
     token = jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
     return token
@@ -40,16 +44,16 @@ def gen_ref_token(user):
 def gen_acc_token(user):
     payload = {}
 
-    role = MyGroupSerializer(user.role).data
-    perms = []
-    not_role = ['id', 'name', 'created_at', 'updated_at']
-    for key in role:
-        if key in not_role:
-            continue
-        elif role[key] == True:
-            perms.append(key)
+    # role = MyGroupSerializer(user.role).data
+    # perms = []
+    # not_role = ['id', 'name', 'created_at', 'updated_at']
+    # for key in role:
+    #     if key in not_role:
+    #         continue
+    #     elif role[key] == True:
+    #         perms.append(key)
 
-    user = MyUserSerializer(user).data
+    user = CustomUserSerializer(user).data
 
     payload['typ'] = 'access'
     payload['iss'] = 'TFC'
@@ -58,9 +62,9 @@ def gen_acc_token(user):
     payload['iat'] = datetime.datetime.utcnow()
     payload['nbf'] = datetime.datetime.utcnow()
     payload['jti'] = ''
-    payload['role'] = role['name']
-    payload['perms'] = perms
-    payload['user_id'] = user['uuid']
+    # payload['role'] = role['name']
+    # payload['perms'] = perms
+    # payload['user_id'] = user['uuid']
 
     token = jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
     return token

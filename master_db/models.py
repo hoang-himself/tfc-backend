@@ -1,20 +1,14 @@
 from tabnanny import verbose
 from django.db import models
-from django.contrib.auth.models import Group, AbstractUser
-from django.utils.translation import gettext_lazy as _
+from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 
 from taggit.managers import TaggableManager
 
+from .managers import CustomUserManager
+
 import uuid
 import datetime
-
-
-class LowerTextField(models.TextField):
-    def __init__(self, *args, **kwargs):
-        super(LowerTextField, self).__init__(*args, **kwargs)
-
-    def get_prep_value(self, value):
-        return str(value).lower()
+import time
 
 
 #
@@ -62,52 +56,42 @@ class Setting(models.Model):
         return self.name
 
 
-#
-class MyGroup(Group):
-    created_at = models.FloatField(default=False)
-    updated_at = models.FloatField(default=False)
+class CustomUser(AbstractBaseUser, PermissionsMixin):
+    username = None
+    email = models.EmailField(unique=True)
 
-    class Meta:
-        verbose_name = 'group'
-        verbose_name_plural = 'groups'
-
-    def __unicode__(self):
-        return self.__str__
-
-    def __str__(self):
-        return self.name
-
-
-class MyUser(models.Model):
-    uuid = models.UUIDField(default=uuid.uuid4, editable=False)
-    username = models.TextField(unique=True)
     first_name = models.TextField()
     mid_name = models.TextField(null=True, blank=True)
     last_name = models.TextField()
-    email = models.EmailField(unique=True)
-    password = models.TextField()
-    birth_date = models.FloatField()
-    mobile = models.TextField(unique=True)
-    male = models.BooleanField(null=True, blank=True)
-    address = models.TextField()
-    avatar = models.ImageField(
-        upload_to='images/profile/%Y/%m/%d/', null=True, blank=True)
-    # group = models.ForeignKey(MyGroup, on_delete=models.CASCADE)
-    is_active = models.BooleanField(default=True, blank=True)
-    created_at = models.FloatField()
-    updated_at = models.FloatField()
+    # birth_date = models.FloatField()
+    # mobile = models.TextField(unique=True)
+    # male = models.BooleanField(null=True, blank=True)
+    # address = models.TextField()
+    # avatar = models.ImageField(
+    #     upload_to='images/profile/%Y/%m/%d/', null=True, blank=True)
+
+    is_active = models.BooleanField(default=True)
+    is_staff = models.BooleanField(default=False)
+    created_at = models.FloatField(
+        default=time.time, editable=False, blank=True)
+    updated_at = models.FloatField(default=time.time, blank=True)
+
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = []
+    objects = CustomUserManager()
 
     class Meta:
-        indexes = [
-            models.Index(fields=['first_name', ]),
-            models.Index(fields=['last_name', ]),
-            models.Index(fields=['birth_date', ]),
-            models.Index(fields=['male', ]),
-            # models.Index(fields=['group', ]),
-        ]
+        verbose_name = 'user'
+        verbose_name_plural = 'users'
+    #     indexes = [
+    #         models.Index(fields=['first_name', ]),
+    #         models.Index(fields=['last_name', ]),
+    #         models.Index(fields=['birth_date', ]),
+    #         models.Index(fields=['male', ]),
+    #     ]
 
-    def __str__(self):
-        return f'{self.first_name} {self.last_name}'
+    # def __str__(self):
+    #     return f'{self.first_name} {self.last_name}'
 
 
 #
@@ -136,14 +120,14 @@ class ClassMetadata(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     name = models.TextField(unique=True)
     teacher = models.ForeignKey(
-        MyUser,
+        CustomUser,
         on_delete=models.DO_NOTHING,
         related_name='teacher_classes',
         blank=True,
         null=True
     )
     students = models.ManyToManyField(
-        MyUser,
+        CustomUser,
         related_name='student_classes',
         blank=True
     )
@@ -194,7 +178,7 @@ class ClassStudent(models.Model):
         null=True
     )
     student = models.ForeignKey(
-        MyUser,
+        CustomUser,
         on_delete=models.CASCADE)
     created_at = models.FloatField()
     updated_at = models.FloatField()
@@ -214,7 +198,7 @@ class Attendance(models.Model):
         on_delete=models.CASCADE
     )
     student = models.ForeignKey(
-        MyUser,
+        CustomUser,
         on_delete=models.CASCADE
     )
     status = models.BooleanField(null=True, blank=True)
@@ -242,7 +226,7 @@ class Attendance(models.Model):
 # Calendar for staff only
 class Calendar(models.Model):
     user = models.ForeignKey(
-        MyUser,
+        CustomUser,
         on_delete=models.CASCADE
     )
     name = models.TextField()
@@ -266,7 +250,7 @@ class Calendar(models.Model):
 #
 class Log(models.Model):
     user = models.ForeignKey(
-        MyUser,
+        CustomUser,
         on_delete=models.DO_NOTHING
     )
     table = models.ForeignKey(
@@ -284,7 +268,7 @@ class Log(models.Model):
 
 #
 class BlacklistedToken(models.Model):
-    user = models.ForeignKey(MyUser, on_delete=models.DO_NOTHING)
+    user = models.ForeignKey(CustomUser, on_delete=models.DO_NOTHING)
     token = models.TextField()
     blacklisted_at = models.FloatField()
 

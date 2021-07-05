@@ -7,11 +7,9 @@ from rest_framework.decorators import api_view, permission_classes
 @api_view(['POST', 'GET', 'PATCH', 'DELETE'])
 @permission_classes([AllowAny])
 def ping(request):
-    response = Response()
-
-    response.status = status.HTTP_200_OK
-    response.data = {
-        "pong"
-    }
-
-    return response
+    return Response(
+        data={
+            'detail': 'pong'
+        },
+        status=status.HTTP_200_OK
+    )

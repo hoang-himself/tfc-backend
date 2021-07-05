@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import check_password
 from django.views.decorators.csrf import csrf_protect, ensure_csrf_cookie
 from django.shortcuts import get_object_or_404
@@ -8,8 +9,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 from rest_framework.decorators import api_view, permission_classes
 
-from master_db.models import MyUser
-from master_db.serializers import MyUserSerializer
+from master_db.serializers import CustomUserSerializer
 from app_auth.utils import gen_ref_token, gen_acc_token
 
 import jwt
@@ -19,16 +19,15 @@ import jwt
 @permission_classes([AllowAny])
 @ensure_csrf_cookie
 def login(request) -> Response:
-    response = Response()
-    response.status_code = status.HTTP_400_BAD_REQUEST
+    CustomUser = get_user_model()
     valid = True
     errors = {}
 
-    username = request.POST.get('username')
+    email = request.POST.get('email')
     password = request.POST.get('password')
 
-    if not username:
-        errors['username'] = 'This field is required.'
+    if not email:
+        errors['email'] = 'This field is required.'
         valid = False
 
     if not password:
@@ -36,22 +35,28 @@ def login(request) -> Response:
         valid = False
 
     if (valid == False):
-        response.data = errors
-        return response
+        return Response(
+            data={
+                'detail': errors
+            },
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
-    user = get_object_or_404(MyUser, username=username)
+    user = get_object_or_404(CustomUser, email=email)
 
-    tmp_user = MyUserSerializer(user).data
+    tmp_user = CustomUserSerializer(user).data
     if not check_password(password, tmp_user.get('password')):
-        response.status_code = status.HTTP_404_NOT_FOUND
-        response.data = {
-            'detail': 'Not found.'
-        }
-        return response
+        return Response(
+            data={
+                'detail': 'User not found'
+            },
+            status=status.HTTP_404_NOT_FOUND
+        )
 
     refresh_token = gen_ref_token(user)
     access_token = gen_acc_token(user)
 
+    response = Response()
     response.set_cookie(key='accesstoken', value=access_token, httponly=True)
     response.status_code = status.HTTP_200_OK
     response.data = {
@@ -135,7 +140,8 @@ def logout(request) -> Response:
 @permission_classes([AllowAny])
 @csrf_protect
 def refresh(request):
-    refresh_token = request.POST.get('refresh')
+    CustomUser = get_user_model()
+    refresh_token = request.COOKIES.get('refresh')
 
     if not refresh_token:
         return Response(
@@ -163,7 +169,7 @@ def refresh(request):
             status=status.HTTP_401_UNAUTHORIZED
         )
 
-    user = get_object_or_404(MyUser, uuid=payload.get('user_id'))
+    user = get_object_or_404(CustomUser, uuid=payload.get('user_id'))
 
     if not user.is_active:
         return Response(

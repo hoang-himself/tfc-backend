@@ -11,7 +11,7 @@ from rest_framework.exceptions import NotFound, ParseError
 
 
 from app_auth.utils import has_perm
-from master_db.models import MyUser, ClassMetadata, Course
+from master_db.models import CustomUser, ClassMetadata, Course
 from master_db.serializers import ClassMetadataSerializer
 from master_api.utils import get_object_or_404, model_full_clean, edit_object, get_queryset
 
@@ -19,7 +19,7 @@ import datetime
 
 def get_teacher_by_uuid(uuid):
     try:
-        teacher = get_object_or_404(MyUser, 'Teacher user', uuid=uuid)
+        teacher = get_object_or_404(CustomUser, 'Teacher user', uuid=uuid)
     except ValidationError as message:
         raise ParseError({'detail': list(message)})
     
@@ -75,7 +75,7 @@ def create_class(request):
     uuids = None
     if std_uuids is not None:
         # Handling UUID validation
-        db = get_std_by_uuids(MyUser, std_uuids)
+        db = get_std_by_uuids(CustomUser, std_uuids)
 
         # Store students id for adding
         students = db.values_list('pk', flat=True)
@@ -116,7 +116,7 @@ def add_student(request):
     if std_uuids is not None:
         std_uuids = std_uuids.replace(' ', '').split(',')
         # Handling UUID validation
-        db = get_std_by_uuids(MyUser, std_uuids)
+        db = get_std_by_uuids(CustomUser, std_uuids)
 
         # Store students id for adding
         students = db.values_list('pk', flat=True)
@@ -275,7 +275,7 @@ def list_class(request):
     if student_uuid is not None:
         # Get student by uuid
         try:
-            student = get_object_or_404(MyUser, 'Student', uuid=student_uuid)
+            student = get_object_or_404(CustomUser, 'Student', uuid=student_uuid)
         except ValidationError as message:
             raise ParseError({'detail': list(message)})
             
