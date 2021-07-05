@@ -3,7 +3,7 @@ from django.core.exceptions import ValidationError
 
 def formdata_bool(var):
     # Null for boolean
-    if var is None:
+    if var is None or var == '':
         return None
 
     low = var.lower()
