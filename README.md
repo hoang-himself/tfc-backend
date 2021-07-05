@@ -84,7 +84,7 @@ crontab -e
 Content needed for crontab -e
 ```sh
 SHELL=/bin/bash
-* * * * * /<project-location>/cron.sh >> /<optional-log>/cronjob.log
+*/3 * * * * . /<project-location>/venv/bin/activate && python /<project-location>/manage.py
 ```
 
 cron format helper: https://crontab.guru/
