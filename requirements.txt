@@ -50,6 +50,8 @@ pyjwt==2.1.0
     # via tfc-backend (setup.py)
 python-dotenv==0.18.0
     # via tfc-backend (setup.py)
+python-dotenv==0.18.0
+    # via tfc-backend (setup.py)
 pytz==2021.1
     # via django
 six==1.16.0
