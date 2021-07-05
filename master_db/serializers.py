@@ -40,6 +40,9 @@ class EnhancedModelSerializer(serializers.ModelSerializer):
                 f"There is no `{field}` field in {self.__class__.__name__} to call exclude_field()")
 
         return self
+    
+    def exclude_created_updated(self):
+        return self.exclude_field('created_at').exclude_field('updated_at')
 
 
 class MetatableSerializer(EnhancedModelSerializer):
@@ -134,11 +137,16 @@ class ScheduleSerializer(EnhancedModelSerializer):
         model = Schedule
         fields = '__all__'
 
+class ScheduleRelatedField(serializers.RelatedField):
+    def to_representation(self, obj):
+        return ScheduleSerializer(obj).exclude_created_updated().data
 
 class AttendanceSerializer(EnhancedModelSerializer):
+    student = UserRelatedField(read_only=True)
+    session = ScheduleRelatedField(read_only=True)
     class Meta:
         model = Attendance
-        fields = '__all__'
+        exclude = ('id', )
 
 
 class LogSerializer(EnhancedModelSerializer):

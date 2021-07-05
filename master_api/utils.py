@@ -1,6 +1,19 @@
 from rest_framework.exceptions import NotFound, ParseError
 from django.core.exceptions import ValidationError
 
+def formdata_bool(var):
+    # Null for boolean
+    if var is None:
+        return None
+
+    low = var.lower()
+    if low == 'true':
+        return True
+    if low == 'false':
+        return False
+    
+    raise ParseError('Boolean value must be `true` or `false` after being lowered')
+
 def _get_queryset(klass):
     """
     Return a QuerySet or a Manager.

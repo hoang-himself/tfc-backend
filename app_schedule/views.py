@@ -127,11 +127,13 @@ def delete_sched(request):
 @permission_classes([AllowAny])
 def list_sched(request):
     """
-        Take in class_name (optional), student_uuid (optional). Must have at least one param.
+        Take in class_name (optional), student_uuid (optional).
 
         If class_name is provided, result will be all schedules for that class.
 
         If student_uuid is provided, result will be all schedules for all the classes that have that student
+
+        If none, result will be all schedules in db.
 
         Param class_name takes higher priority
     """
@@ -160,5 +162,5 @@ def list_sched(request):
 
         return Response(data)
 
-    # None are provided -> Bad request
-    raise ParseError('Need parameter class_name or student_uuid')
+    # None are provided
+    return Response(ScheduleSerializer(Schedule.objects.all(), many=True).data)
