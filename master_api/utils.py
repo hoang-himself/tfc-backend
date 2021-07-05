@@ -6,7 +6,7 @@ def formdata_bool(var):
     if var is None or var == '':
         return None
 
-    low = var.lower()
+    low = var.lower().strip()
     if low == 'true':
         return True
     if low == 'false':
