@@ -62,13 +62,13 @@ def add_attend(request):
 @permission_classes([AllowAny])
 def edit_attend(request):
     """
-        Take in student_uuid, status.
+        Take in student_uuid, sched_id, status.
 
         Change the student status to requested status.
     """
     # Get student
     try:
-        attend = get_object_or_404(Attendance, 'Student', student__uuid=request.POST.get('student_uuid'))
+        attend = get_object_or_404(Attendance, 'Attendance with the given student and schedule', student__uuid=request.POST.get('student_uuid'), session__id=request.POST.get('sched_id'))
     except ValidationError as message:
         raise ParseError({'detail': list(message)})
     
