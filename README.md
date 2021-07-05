@@ -65,6 +65,30 @@ python manage.py <host>:<port>
 `<host>` defaults to `127.0.0.1`\
 `<port>` defaults to `8000`
 
+## WSL Cron
+
+Activating Cron
+
+```bash
+sudo usermod -a -G crontab <username>
+sudo service cron
+service cron status
+```
+
+First time running cron
+
+```bash
+crontab -e
+```
+
+Content needed for crontab -e
+```sh
+SHELL=/bin/bash
+* * * * * /<project-location>/cron.sh >> /<optional-log>/cronjob.log
+```
+
+cron format helper: https://crontab.guru/
+
 ## FAQ
 
 ### Generating a password hash
