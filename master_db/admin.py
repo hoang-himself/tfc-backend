@@ -9,23 +9,36 @@ from .models import (
 
 
 class CustomUserAdmin(UserAdmin):
-    add_form = CustomUserCreationForm
-    form = CustomUserChangeForm
     model = CustomUser
-    list_display = ('email', 'is_staff', 'is_active',)
-    list_filter = ('email', 'is_staff', 'is_active',)
     fieldsets = (
-        (None, {'fields': ('email', 'password')}),
-        ('Permissions', {'fields': ('is_staff', 'is_active')}),
+        (None, {
+            'fields': ('password',)
+        }),
+        ('Personal info', {
+         'fields': ('first_name', 'mid_name', 'last_name', 'email',)
+         }),
+        ('Permissions', {
+            'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions',),
+        }),
+        ('Important dates', {
+         'fields': ('created_at', 'updated_at', 'last_login',)
+         }),
     )
+    readonly_fields = ('created_at',)
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('email', 'password1', 'password2', 'is_staff', 'is_active')}
-         ),
+            'fields': ('first_name', 'mid_name', 'last_name', 'email', 'password1', 'password2',),
+        }),
     )
-    search_fields = ('email',)
+    form = CustomUserChangeForm
+    add_form = CustomUserCreationForm
+    list_display = ('email', 'first_name', 'mid_name',
+                    'last_name', 'is_staff', 'is_active')
+    list_filter = ('is_active', 'is_staff', 'is_superuser', 'groups')
+    search_fields = ('first_name', 'last_name', 'email')
     ordering = ('email',)
+    filter_horizontal = ('groups', 'user_permissions',)
 
 
 admin.site.register(Metatable)

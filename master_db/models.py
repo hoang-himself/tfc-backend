@@ -1,7 +1,7 @@
-from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
+from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.utils.translation import gettext, gettext_lazy as _
 from tabnanny import verbose
-
 from taggit.managers import TaggableManager
 
 from .managers import CustomUserManager
@@ -56,8 +56,11 @@ class Setting(models.Model):
         return self.name
 
 
-class CustomUser(AbstractBaseUser, PermissionsMixin):
+class CustomUser(AbstractUser):
     username = None
+    date_joined = None
+
+    uuid = models.UUIDField(default=uuid.uuid4, blank=True)
     email = models.EmailField(unique=True)
 
     first_name = models.TextField()
@@ -70,28 +73,31 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     # avatar = models.ImageField(
     #     upload_to='images/profile/%Y/%m/%d/', null=True, blank=True)
 
-    is_active = models.BooleanField(default=True)
-    is_staff = models.BooleanField(default=False)
     created_at = models.FloatField(
-        default=time.time, editable=False, blank=True)
+        default=time.time, editable=False, blank=True
+    )
     updated_at = models.FloatField(default=time.time, blank=True)
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = []
+    REQUIRED_FIELDS = [
+        'first_name',
+        'mid_name',
+        'last_name',
+    ]
     objects = CustomUserManager()
 
     class Meta:
         verbose_name = 'user'
         verbose_name_plural = 'users'
-    #     indexes = [
-    #         models.Index(fields=['first_name', ]),
-    #         models.Index(fields=['last_name', ]),
-    #         models.Index(fields=['birth_date', ]),
-    #         models.Index(fields=['male', ]),
-    #     ]
+        indexes = [
+            models.Index(fields=['first_name', ]),
+            models.Index(fields=['last_name', ]),
+            #         models.Index(fields=['birth_date', ]),
+            #         models.Index(fields=['male', ]),
+        ]
 
-    # def __str__(self):
-    #     return f'{self.first_name} {self.last_name}'
+    def __str__(self):
+        return self.email
 
 
 #
