@@ -1,21 +1,20 @@
-from django.conf import settings
-from django.views.decorators.csrf import csrf_protect
+from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
+from django.views.decorators.csrf import csrf_protect
 
 from rest_framework import status
-from rest_framework.response import Response
-from rest_framework.permissions import AllowAny
-from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import NotFound, ParseError
-
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
 
 from app_auth.utils import has_perm
-from master_db.models import CustomUser, ClassMetadata, Schedule
-from master_db.serializers import ScheduleSerializer
 from master_api.utils import get_object_or_404, model_full_clean, edit_object
-
+from master_db.models import ClassMetadata, Schedule
+from master_db.serializers import ScheduleSerializer
 
 import datetime
+
 
 def validate_sched(sched):
     model_full_clean(sched)
@@ -128,19 +127,21 @@ def delete_sched(request):
 def list_sched(request):
     """
         Take in class_name (optional), student_uuid (optional). Must have at least one param.
-        
+
         If class_name is provided, result will be all schedules for that class.
-        
+
         If student_uuid is provided, result will be all schedules for all the classes that have that student
-        
+
         Param class_name takes higher priority
     """
+    CustomUser = get_user_model()
+
     # class_name is provided
     classMeta = request.GET.get('class_name')
     if not classMeta is None:
-        classMeta = get_object_or_404(ClassMetadata,'Class', name=classMeta)
+        classMeta = get_object_or_404(ClassMetadata, 'Class', name=classMeta)
         return Response(ScheduleSerializer(classMeta.schedule_set, many=True).data)
-    
+
     # student_uuid is provided
     student = request.GET.get('student_uuid')
     if not student is None:
@@ -149,16 +150,16 @@ def list_sched(request):
             student = get_object_or_404(CustomUser, 'Student', uuid=student)
         except ValidationError as message:
             raise ParseError({'detail': list(message)})
-        
+
         data = []
         # Get classes of student
         classes = student.student_classes.all()
-        
+
         # Iterate through each class and get its schedules
         for c in classes:
             data.extend(ScheduleSerializer(c.schedule_set, many=True).data)
-            
+
         return Response(data)
-    
+
     # None are provided -> Bad request
     raise ParseError('Need parameter class_name or student_uuid')

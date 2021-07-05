@@ -1,21 +1,18 @@
-from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password
-from django.views.decorators.csrf import csrf_protect
 from django.core.exceptions import ValidationError
-
+from django.views.decorators.csrf import csrf_protect
 
 from rest_framework import status
-from rest_framework.response import Response
-from rest_framework.permissions import AllowAny
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
 
 from app_auth.utils import has_perm
-from master_db.models import CustomUser
 from master_db.serializers import CustomUserSerializer
 
-import re
 import datetime
+import re
 
 # Create your views here.
 
@@ -40,6 +37,8 @@ def email_response(email) -> Response:
     """
         Return response when checking signed up email address in db
     """
+    CustomUser = get_user_model()
+
     # Validating email address
     if not email_validate(email):
         return Response(
@@ -99,6 +98,8 @@ def mobile_response(mobile) -> Response:
     """
         Return response when checking signed up mobile phone number in db
     """
+    CustomUser = get_user_model()
+
     # Validating mobile address
     if not mobile_validate(mobile):
         return Response(
@@ -142,6 +143,8 @@ def username_response(username) -> Response:
     """
         Return response when checking signed up username in db
     """
+    CustomUser = get_user_model()
+
     # Check nullity
     if username is None or username == '':
         return Response(
@@ -244,6 +247,7 @@ def create_user(request) -> Response:
 
         The role_id param takes in int type and represents the id of the group in database.
     """
+    CustomUser = get_user_model()
 
     # Insignificant factors:
     # - These factors are freely defined and do not affect
@@ -360,6 +364,8 @@ def list_user(request):
     """
         Return list of users with a specified view
     """
+    CustomUser = get_user_model()
+
     # check = has_perm(request, ['account_cred'])
     # if check.status_code >= 400:
     #     return check

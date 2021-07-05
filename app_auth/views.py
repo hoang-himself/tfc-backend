@@ -5,12 +5,12 @@ from django.views.decorators.csrf import csrf_protect, ensure_csrf_cookie
 from django.shortcuts import get_object_or_404
 
 from rest_framework import status
-from rest_framework.response import Response
-from rest_framework.permissions import AllowAny
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
 
-from master_db.serializers import CustomUserSerializer
 from app_auth.utils import gen_ref_token, gen_acc_token
+from master_db.serializers import CustomUserSerializer
 
 import jwt
 
