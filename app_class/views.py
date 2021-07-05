@@ -13,7 +13,7 @@ from rest_framework.exceptions import NotFound, ParseError
 from app_auth.utils import has_perm
 from master_db.models import MyUser, ClassMetadata, Course
 from master_db.serializers import ClassMetadataSerializer
-from master_api.utils import get_object_or_404, model_full_clean, edit_object, get_queryset
+from master_api.utils import get_object_or_404, model_full_clean, edit_object
 
 import datetime
 
@@ -30,7 +30,7 @@ def get_teacher_by_uuid(uuid):
 
 def get_std_by_uuids(klass, uuids):
     try:
-        return get_queryset(klass, uuid__in=uuids)
+        return klass.objects.filter(uuid__in=uuids)
     except ValidationError as message:
         raise ParseError({'details': list(message)})
 
