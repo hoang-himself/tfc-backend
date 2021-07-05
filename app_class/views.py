@@ -17,20 +17,23 @@ from master_api.utils import get_object_or_404, model_full_clean, edit_object, g
 
 import datetime
 
+
 def get_teacher_by_uuid(uuid):
     try:
         teacher = get_object_or_404(MyUser, 'Teacher user', uuid=uuid)
     except ValidationError as message:
         raise ParseError({'detail': list(message)})
-    
+
     verify_teacher(teacher)
     return teacher
-    
+
+
 def get_std_by_uuids(klass, uuids):
     try:
         return get_queryset(klass, uuid__in=uuids)
     except ValidationError as message:
         raise ParseError({'details': list(message)})
+
 
 def verify_teacher(user):
     # In production
@@ -104,7 +107,6 @@ def add_student(request):
 
         Param uuids must be in the form of: uuid1, uuid2, uuid3 (whitespace is optional)
     """
-    
 
     # Get class
     classMeta = get_object_or_404(
@@ -160,7 +162,7 @@ def delete_student(request):
 
     if len(students) != len(std_uuids):
         uuids = (str(o)
-                for o in students.values_list('uuid', flat=True).filter())
+                 for o in students.values_list('uuid', flat=True).filter())
         raise ParseError(
             {'not_found': list(set(std_uuids).difference(uuids))})
 
@@ -196,7 +198,8 @@ def edit_class(request):
 
     # Get teacher if provided
     if modifiedDict.get('teacher_uuid') is not None:
-        modifiedDict['teacher'] = get_teacher_by_uuid(modifiedDict['teacher_uuid'])
+        modifiedDict['teacher'] = get_teacher_by_uuid(
+            modifiedDict['teacher_uuid'])
 
     # Get course if provided
     if modifiedDict.get('course_name') is not None:
@@ -252,24 +255,24 @@ def delete_class(request):
 def list_class(request):
     """
         Take in name (optional), student_uuid (optional). Param student_uuid represents uuid of a student, name represents name of a class. 
-        
+
         If name is provided return explicit info of that class (User info will be provided with name, mobile, email and uuid).
 
         If student_uuid is provided return all classes of the given student (No explicit info of students, just number of students).
-        
+
         If none is provided return all classes in db with similar format of student_uuid.
-        
+
         Param name has higher priority.
     """
     classMeta = ClassMetadata.objects.all()
-    
+
     # name is provided
     name = request.GET.get('name')
     if name is not None:
         # Get class
         classMeta = get_object_or_404(ClassMetadata, 'Class', name=name)
         return Response(ClassMetadataSerializer(classMeta).data)
-    
+
     # student_uuid is provided
     student_uuid = request.GET.get('uuid')
     if student_uuid is not None:
@@ -278,9 +281,10 @@ def list_class(request):
             student = get_object_or_404(MyUser, 'Student', uuid=student_uuid)
         except ValidationError as message:
             raise ParseError({'detail': list(message)})
-            
+
         classMeta = student.student_classes.all()
 
-    data = ClassMetadataSerializer(classMeta, many=True).exclude_field('students').data
+    data = ClassMetadataSerializer(
+        classMeta, many=True).exclude_field('students').data
 
     return Response(data)

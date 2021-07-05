@@ -17,6 +17,8 @@ from master_api.utils import get_object_or_404, model_full_clean, edit_object
 import datetime
 
 # Create your views here.
+
+
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def create_course(request):
@@ -68,11 +70,12 @@ def edit_course(request):
     modifiedDict.pop('created_at', None)
 
     # Get course
-    course = get_object_or_404(Course, 'Course', name=modifiedDict.get('target_name'))
-    
+    course = get_object_or_404(
+        Course, 'Course', name=modifiedDict.get('target_name'))
+
     # Update model: Set attributes and update updated_at
     modifiedList = []
-    
+
     if not modifiedDict.get('duration') is None:
         modifiedDict['duration'] = int(modifiedDict['duration'])
 

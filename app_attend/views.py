@@ -9,6 +9,12 @@ from app_auth.utils import has_perm
 from master_db.models import Attendance
 
 # Create your views here.
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def add_attend(request):
+    return Response()
+
 @api_view(['GET'])
 @permission_classes([AllowAny])
 # @csrf_protect

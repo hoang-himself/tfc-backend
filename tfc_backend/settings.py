@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'django_filters',
     'django_extensions',
+    'django_cron',
     'rest_framework',
     'taggit',
 
@@ -76,6 +77,14 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+# Cron jobs
+CRON_CLASSES = [
+    "master_api.cron.MyCronJob",
+    "master_api.cron.MyCronJob1",
+    # ...
+]
+
 
 ROOT_URLCONF = 'tfc_backend.urls'
 
