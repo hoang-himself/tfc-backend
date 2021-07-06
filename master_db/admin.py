@@ -15,20 +15,20 @@ class CustomUserAdmin(UserAdmin):
             'fields': ('password',)
         }),
         ('Personal info', {
-         'fields': ('first_name', 'mid_name', 'last_name', 'email',)
+         'fields': ('email', 'first_name', 'mid_name', 'last_name', 'birth_date', 'mobile', 'male', 'address',)
          }),
         ('Permissions', {
             'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions',),
         }),
         ('Important dates', {
-         'fields': ('created_at', 'updated_at', 'last_login',)
+         'fields': ('date_joined', 'date_updated', 'last_login',)
          }),
     )
-    readonly_fields = ('created_at',)
+    readonly_fields = ('date_joined', 'date_updated', 'last_login',)
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('first_name', 'mid_name', 'last_name', 'email', 'password1', 'password2',),
+            'fields': ('email', 'first_name', 'mid_name', 'last_name', 'birth_date', 'mobile', 'male', 'address', 'password1', 'password2',),
         }),
     )
     form = CustomUserChangeForm

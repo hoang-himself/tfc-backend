@@ -1,6 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-from django.utils.translation import gettext, gettext_lazy as _
+from django.utils import timezone
 from tabnanny import verbose
 from taggit.managers import TaggableManager
 
@@ -8,7 +8,6 @@ from .managers import CustomUserManager
 
 import uuid
 import datetime
-import time
 
 
 #
@@ -58,31 +57,32 @@ class Setting(models.Model):
 
 class CustomUser(AbstractUser):
     username = None
-    date_joined = None
-
     uuid = models.UUIDField(default=uuid.uuid4, blank=True)
     email = models.EmailField(unique=True)
 
     first_name = models.TextField()
     mid_name = models.TextField(null=True, blank=True)
     last_name = models.TextField()
-    # birth_date = models.FloatField()
-    # mobile = models.TextField(unique=True)
-    # male = models.BooleanField(null=True, blank=True)
-    # address = models.TextField()
+    birth_date = models.DateField()
+    mobile = models.TextField(unique=True)
+    male = models.BooleanField(null=True, blank=True)
+    address = models.TextField()
     # avatar = models.ImageField(
     #     upload_to='images/profile/%Y/%m/%d/', null=True, blank=True)
 
-    created_at = models.FloatField(
-        default=time.time, editable=False, blank=True
-    )
-    updated_at = models.FloatField(default=time.time, blank=True)
+    date_joined = models.DateTimeField(
+        'date joined', default=timezone.now, editable=False)
+    date_updated = models.DateTimeField('date updated', default=timezone.now)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = [
         'first_name',
         'mid_name',
         'last_name',
+        'birth_date',
+        'mobile',
+        'male',
+        'address',
     ]
     objects = CustomUserManager()
 
@@ -92,8 +92,8 @@ class CustomUser(AbstractUser):
         indexes = [
             models.Index(fields=['first_name', ]),
             models.Index(fields=['last_name', ]),
-            #         models.Index(fields=['birth_date', ]),
-            #         models.Index(fields=['male', ]),
+            models.Index(fields=['birth_date', ]),
+            models.Index(fields=['male', ]),
         ]
 
     def __str__(self):
