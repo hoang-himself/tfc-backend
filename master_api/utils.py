@@ -1,6 +1,7 @@
 from rest_framework.exceptions import NotFound, ParseError
 from django.core.exceptions import ValidationError
 
+
 def _get_queryset(klass):
     """
     Return a QuerySet or a Manager.
@@ -27,7 +28,8 @@ def get_object_or_404(klass, name_print, *args, **kwargs):
     """
     queryset = _get_queryset(klass)
     if not hasattr(queryset, 'get'):
-        klass__name = klass.__name__ if isinstance(klass, type) else klass.__class__.__name__
+        klass__name = klass.__name__ if isinstance(
+            klass, type) else klass.__class__.__name__
         raise ValueError(
             "First argument to get_object_or_404() must be a Model, Manager, "
             "or QuerySet, not '%s'." % klass__name
@@ -36,19 +38,20 @@ def get_object_or_404(klass, name_print, *args, **kwargs):
         return queryset.get(*args, **kwargs)
     except queryset.model.DoesNotExist:
         raise NotFound(f'{name_print} does not exist')
-    
+
+
 def model_full_clean(model):
     try:
         model.full_clean()
     except ValidationError as message:
         raise ParseError(dict(message))
-    
+
+
 def edit_object(model, modifiedDict, modifiedList, avoid=[]):
     for key, value in modifiedDict.items():
         if hasattr(model, key) and value != getattr(model, key) and not key in avoid:
             setattr(model, key, value)
             modifiedList.append(key)
-    
 
 
 def get_list_or_404(klass, name_print, *args, **kwargs):
@@ -61,7 +64,8 @@ def get_list_or_404(klass, name_print, *args, **kwargs):
     """
     queryset = _get_queryset(klass)
     if not hasattr(queryset, 'filter'):
-        klass__name = klass.__name__ if isinstance(klass, type) else klass.__class__.__name__
+        klass__name = klass.__name__ if isinstance(
+            klass, type) else klass.__class__.__name__
         raise ValueError(
             "First argument to get_list_or_404() must be a Model, Manager, or "
             "QuerySet, not '%s'." % klass__name
@@ -70,6 +74,7 @@ def get_list_or_404(klass, name_print, *args, **kwargs):
     if not obj_list:
         raise NotFound(f'{name_print} does not exist')
     return obj_list
+
 
 def get_queryset(klass, *args, **kwargs):
     """
@@ -80,7 +85,8 @@ def get_queryset(klass, *args, **kwargs):
     """
     queryset = _get_queryset(klass)
     if not hasattr(queryset, 'filter'):
-        klass__name = klass.__name__ if isinstance(klass, type) else klass.__class__.__name__
+        klass__name = klass.__name__ if isinstance(
+            klass, type) else klass.__class__.__name__
         raise ValueError(
             "First argument to get_queryset() must be a Model, Manager, or "
             "QuerySet, not '%s'." % klass__name
