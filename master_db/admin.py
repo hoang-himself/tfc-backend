@@ -15,7 +15,8 @@ class CustomUserAdmin(UserAdmin):
             'fields': ('password',)
         }),
         ('Personal info', {
-         'fields': ('email', 'first_name', 'mid_name', 'last_name', 'birth_date', 'mobile', 'male', 'address',)
+         'fields': ('email', 'first_name', 'mid_name', 'last_name', 'birth_date',
+                    'mobile', 'male', 'address', 'avatar',)
          }),
         ('Permissions', {
             'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions',),
@@ -28,7 +29,8 @@ class CustomUserAdmin(UserAdmin):
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('email', 'first_name', 'mid_name', 'last_name', 'birth_date', 'mobile', 'male', 'address', 'password1', 'password2',),
+            'fields': ('email', 'first_name', 'mid_name', 'last_name', 'birth_date',
+                       'mobile', 'male', 'address', 'avatar', 'password1', 'password2',),
         }),
     )
     form = CustomUserChangeForm

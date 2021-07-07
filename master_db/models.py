@@ -1,7 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-from django.utils import timezone
-from tabnanny import verbose
+from model_utils.models import TimeStampedModel
 from taggit.managers import TaggableManager
 
 from .managers import CustomUserManager
@@ -11,10 +10,8 @@ import datetime
 
 
 #
-class Metatable(models.Model):
-    name = models.TextField()
-    created_at = models.FloatField()
-    updated_at = models.FloatField()
+class Metatable(TimeStampedModel):
+    name = models.TextField(unique=True)
 
     class Meta:
         verbose_name = 'table'
@@ -25,12 +22,10 @@ class Metatable(models.Model):
 
 
 #
-class Branch(models.Model):
+class Branch(TimeStampedModel):
     addr = models.TextField()
     short_adr = models.TextField()
     phone = models.TextField()
-    created_at = models.FloatField()
-    updated_at = models.FloatField()
 
     class Meta:
         verbose_name = 'branch'
@@ -41,11 +36,9 @@ class Branch(models.Model):
 
 
 #
-class Setting(models.Model):
+class Setting(TimeStampedModel):
     name = models.TextField()
     value = models.TextField()
-    created_at = models.FloatField()
-    updated_at = models.FloatField()
 
     class Meta:
         verbose_name = 'setting'
@@ -64,15 +57,16 @@ class CustomUser(AbstractUser):
     mid_name = models.TextField(null=True, blank=True)
     last_name = models.TextField()
     birth_date = models.DateField()
-    mobile = models.TextField(unique=True)
+    mobile = models.CharField(max_length=12, unique=True)
     male = models.BooleanField(null=True, blank=True)
     address = models.TextField()
-    # avatar = models.ImageField(
-    #     upload_to='images/profile/%Y/%m/%d/', null=True, blank=True)
+    avatar = models.ImageField(
+        upload_to='images/profile/%Y/%m/%d/', null=True, blank=True)
 
     date_joined = models.DateTimeField(
-        'date joined', default=timezone.now, editable=False)
-    date_updated = models.DateTimeField('date updated', default=timezone.now)
+        'date joined', auto_now_add=True, editable=False)
+    date_updated = models.DateTimeField(
+        'date updated', auto_now=True)  # Auto update for every save()
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = [
@@ -101,14 +95,12 @@ class CustomUser(AbstractUser):
 
 
 #
-class Course(models.Model):
+class Course(TimeStampedModel):
     name = models.TextField(unique=True)
     desc = models.TextField()
     short_desc = models.TextField()
     tags = TaggableManager()
     duration = models.SmallIntegerField()
-    created_at = models.FloatField()
-    updated_at = models.FloatField()
 
     class Meta:
         verbose_name = 'course'
@@ -122,7 +114,7 @@ class Course(models.Model):
 
 
 #
-class ClassMetadata(models.Model):
+class ClassMetadata(TimeStampedModel):
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     name = models.TextField(unique=True)
     teacher = models.ForeignKey(
@@ -138,8 +130,6 @@ class ClassMetadata(models.Model):
         blank=True
     )
     status = models.TextField()
-    created_at = models.FloatField()
-    updated_at = models.FloatField()
 
     class Meta:
         verbose_name = 'class'
@@ -153,15 +143,13 @@ class ClassMetadata(models.Model):
 
 
 # Schedule for students
-class Schedule(models.Model):
+class Schedule(TimeStampedModel):
     classroom = models.ForeignKey(
         ClassMetadata,
         on_delete=models.CASCADE,
     )
     time_start = models.IntegerField()
     time_end = models.IntegerField()
-    created_at = models.FloatField()
-    updated_at = models.FloatField()
 
     class Meta:
         verbose_name = 'session'
@@ -177,7 +165,7 @@ class Schedule(models.Model):
 
 
 #
-class ClassStudent(models.Model):
+class ClassStudent(TimeStampedModel):
     classroom = models.ForeignKey(
         ClassMetadata,
         on_delete=models.CASCADE,
@@ -186,8 +174,6 @@ class ClassStudent(models.Model):
     student = models.ForeignKey(
         CustomUser,
         on_delete=models.CASCADE)
-    created_at = models.FloatField()
-    updated_at = models.FloatField()
 
     class Meta:
         verbose_name = 'class student'
@@ -198,7 +184,7 @@ class ClassStudent(models.Model):
 
 
 #
-class Attendance(models.Model):
+class Attendance(TimeStampedModel):
     session = models.ForeignKey(
         Schedule,
         on_delete=models.CASCADE
@@ -208,8 +194,6 @@ class Attendance(models.Model):
         on_delete=models.CASCADE
     )
     status = models.BooleanField(null=True, blank=True)
-    created_at = models.FloatField()
-    updated_at = models.FloatField()
 
     class Meta:
         verbose_name = 'attendance'
@@ -230,7 +214,7 @@ class Attendance(models.Model):
 
 
 # Calendar for staff only
-class Calendar(models.Model):
+class Calendar(TimeStampedModel):
     user = models.ForeignKey(
         CustomUser,
         on_delete=models.CASCADE
@@ -239,8 +223,6 @@ class Calendar(models.Model):
     desc = models.TextField(null=True, blank=True)
     time_start = models.FloatField()
     time_end = models.FloatField()
-    created_at = models.FloatField()
-    updated_at = models.FloatField()
 
     class Meta:
         indexes = [
@@ -254,7 +236,7 @@ class Calendar(models.Model):
 
 
 #
-class Log(models.Model):
+class Log(TimeStampedModel):
     user = models.ForeignKey(
         CustomUser,
         on_delete=models.DO_NOTHING
@@ -265,20 +247,6 @@ class Log(models.Model):
     )
     desc = models.TextField()
     short_desc = models.TextField()
-    created_at = models.FloatField()
-    updated_at = models.FloatField()
 
     def __str__(self):
         return self.short_desc
-
-
-#
-class BlacklistedToken(models.Model):
-    user = models.ForeignKey(CustomUser, on_delete=models.DO_NOTHING)
-    token = models.TextField()
-    blacklisted_at = models.FloatField()
-
-    class Meta:
-        indexes = [
-            models.Index(fields=['blacklisted_at'])
-        ]
