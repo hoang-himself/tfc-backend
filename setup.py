@@ -41,6 +41,7 @@ setup(
         'django-filter',
         'django-model-utils',
         'djangorestframework',
+        'djangorestframework-simplejwt',
         'Pillow',
         'psycopg2-binary',
         'PyJWT',

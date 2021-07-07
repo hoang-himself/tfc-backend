@@ -21,6 +21,7 @@ django==3.2.4
     #   django-model-utils
     #   django-taggit
     #   djangorestframework
+    #   djangorestframework-simplejwt
     #   tfc-backend (setup.py)
 django-annoying==0.10.6
     # via tfc-backend (setup.py)
@@ -39,6 +40,10 @@ django-taggit==1.4.0
 django-taggit-serializer==0.1.7
     # via tfc-backend (setup.py)
 djangorestframework==3.12.4
+    # via
+    #   djangorestframework-simplejwt
+    #   tfc-backend (setup.py)
+djangorestframework-simplejwt==4.7.2
     # via tfc-backend (setup.py)
 pillow==8.2.0
     # via tfc-backend (setup.py)
@@ -47,7 +52,9 @@ psycopg2-binary==2.8.6
 pycparser==2.20
     # via cffi
 pyjwt==2.1.0
-    # via tfc-backend (setup.py)
+    # via
+    #   djangorestframework-simplejwt
+    #   tfc-backend (setup.py)
 python-dotenv==0.18.0
     # via tfc-backend (setup.py)
 pytz==2021.1
