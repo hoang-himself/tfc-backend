@@ -40,6 +40,7 @@ setup(
         'django-extensions',
         'django-filter',
         'django-model-utils',
+        'django-cron',
         'djangorestframework',
         'Pillow',
         'psycopg2-binary',

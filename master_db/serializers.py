@@ -8,7 +8,7 @@ from taggit_serializer.serializers import TaggitSerializer, TagListSerializerFie
 # For enhanced models
 
 
-# Enhanced models: Add excluding fields feauture
+# Enhanced models: Add excluding fields feature
 class EnhancedListSerializer(serializers.ListSerializer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

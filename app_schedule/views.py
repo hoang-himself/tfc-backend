@@ -17,6 +17,7 @@ from master_api.utils import get_object_or_404, model_full_clean, edit_object
 
 import datetime
 
+
 def validate_sched(sched):
     model_full_clean(sched)
 
