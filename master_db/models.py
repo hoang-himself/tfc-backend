@@ -1,6 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-from model_utils.models import TimeStampedModel
+
+from model_utils.fields import (AutoCreatedField, AutoLastModifiedField)
 from taggit.managers import TaggableManager
 
 from .managers import CustomUserManager
@@ -9,8 +10,30 @@ import uuid
 import datetime
 
 
+class TemplateModel(models.Model):
+    created_at = AutoCreatedField('created')
+    updated_at = AutoLastModifiedField('updated')
+    desc = models.TextField(null=True, blank=True)
+    short_desc = models.TextField(null=True, blank=True)
+
+    class Meta:
+        abstract = True
+
+    def save(self, *args, **kwargs):
+        """
+        Overriding the save method in order to make sure that
+        modified field is updated even if it is not given as
+        a parameter to the update field argument.
+        """
+        update_fields = kwargs.get('update_fields', None)
+        if update_fields:
+            kwargs['update_fields'] = set(update_fields).union({'updated_at'})
+
+        super().save(*args, **kwargs)
+
+
 #
-class Metatable(TimeStampedModel):
+class Metatable(TemplateModel):
     name = models.TextField(unique=True)
 
     class Meta:
@@ -22,7 +45,7 @@ class Metatable(TimeStampedModel):
 
 
 #
-class Branch(TimeStampedModel):
+class Branch(TemplateModel):
     addr = models.TextField()
     short_adr = models.TextField()
     phone = models.TextField()
@@ -36,7 +59,7 @@ class Branch(TimeStampedModel):
 
 
 #
-class Setting(TimeStampedModel):
+class Setting(TemplateModel):
     name = models.TextField()
     value = models.TextField()
 
@@ -95,10 +118,8 @@ class CustomUser(AbstractUser):
 
 
 #
-class Course(TimeStampedModel):
+class Course(TemplateModel):
     name = models.TextField(unique=True)
-    desc = models.TextField()
-    short_desc = models.TextField()
     tags = TaggableManager()
     duration = models.SmallIntegerField()
 
@@ -114,7 +135,7 @@ class Course(TimeStampedModel):
 
 
 #
-class ClassMetadata(TimeStampedModel):
+class ClassMetadata(TemplateModel):
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     name = models.TextField(unique=True)
     teacher = models.ForeignKey(
@@ -143,7 +164,7 @@ class ClassMetadata(TimeStampedModel):
 
 
 # Schedule for students
-class Schedule(TimeStampedModel):
+class Schedule(TemplateModel):
     classroom = models.ForeignKey(
         ClassMetadata,
         on_delete=models.CASCADE,
@@ -165,7 +186,7 @@ class Schedule(TimeStampedModel):
 
 
 #
-class ClassStudent(TimeStampedModel):
+class ClassStudent(TemplateModel):
     classroom = models.ForeignKey(
         ClassMetadata,
         on_delete=models.CASCADE,
@@ -184,7 +205,7 @@ class ClassStudent(TimeStampedModel):
 
 
 #
-class Attendance(TimeStampedModel):
+class Attendance(TemplateModel):
     session = models.ForeignKey(
         Schedule,
         on_delete=models.CASCADE
@@ -214,13 +235,12 @@ class Attendance(TimeStampedModel):
 
 
 # Calendar for staff only
-class Calendar(TimeStampedModel):
+class Calendar(TemplateModel):
     user = models.ForeignKey(
         CustomUser,
         on_delete=models.CASCADE
     )
     name = models.TextField()
-    desc = models.TextField(null=True, blank=True)
     time_start = models.FloatField()
     time_end = models.FloatField()
 
@@ -236,7 +256,7 @@ class Calendar(TimeStampedModel):
 
 
 #
-class Log(TimeStampedModel):
+class Log(TemplateModel):
     user = models.ForeignKey(
         CustomUser,
         on_delete=models.DO_NOTHING
@@ -245,7 +265,6 @@ class Log(TimeStampedModel):
         Metatable,
         on_delete=models.DO_NOTHING
     )
-    desc = models.TextField()
     short_desc = models.TextField()
 
     def __str__(self):
