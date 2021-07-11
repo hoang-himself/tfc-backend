@@ -2,6 +2,21 @@ from rest_framework.exceptions import NotFound, ParseError
 from django.core.exceptions import ValidationError
 
 
+def formdata_bool(var):
+    # Null for boolean
+    if var is None or var == '':
+        return None
+
+    low = var.lower().strip()
+    if low == 'true':
+        return True
+    if low == 'false':
+        return False
+
+    raise ParseError(
+        'Boolean value must be `true` or `false` after being lowered')
+
+
 def _get_queryset(klass):
     """
     Return a QuerySet or a Manager.
@@ -74,21 +89,3 @@ def get_list_or_404(klass, name_print, *args, **kwargs):
     if not obj_list:
         raise NotFound(f'{name_print} does not exist')
     return obj_list
-
-
-def get_queryset(klass, *args, **kwargs):
-    """
-    Use filter() to return a list of objects.
-
-    klass may be a Model, Manager, or QuerySet object. All other passed
-    arguments and keyword arguments are used in the filter() query.
-    """
-    queryset = _get_queryset(klass)
-    if not hasattr(queryset, 'filter'):
-        klass__name = klass.__name__ if isinstance(
-            klass, type) else klass.__class__.__name__
-        raise ValueError(
-            "First argument to get_queryset() must be a Model, Manager, or "
-            "QuerySet, not '%s'." % klass__name
-        )
-    return queryset.filter(*args, **kwargs)

@@ -1,4 +1,3 @@
-from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.views.decorators.csrf import csrf_protect
 
@@ -8,10 +7,9 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from app_auth.utils import has_perm
 from master_db.models import Course
 from master_db.serializers import CourseSerializer
-from master_api.utils import get_object_or_404, model_full_clean, edit_object
+from master_api.utils import get_object_or_404, model_full_clean, edit_object, formdata_bool
 
 import datetime
 
@@ -102,16 +100,6 @@ def edit_course(request):
         status=status.HTTP_202_ACCEPTED
     )
 
-
-def formdata_bool(var):
-    low = var.lower()
-    if low == 'true':
-        return True
-    if low == 'false':
-        return False
-    return None
-
-
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def delete_course(request):
@@ -163,10 +151,6 @@ def delete_course(request):
     # Return if at least one is missing
     if bool(returnDict):
         raise ParseError(returnDict)
-
-    # Validate boolean values
-    if many is None or exact is None:
-        raise ParseError('Boolean value should be True or False')
 
     # Get filter by exact tags or not
     if exact:

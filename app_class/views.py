@@ -8,9 +8,8 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from app_auth.utils import has_perm
-from master_api.utils import get_object_or_404, model_full_clean, edit_object, get_queryset
-from master_db.models import ClassMetadata, Course
+from master_api.utils import get_object_or_404, model_full_clean, edit_object
+from master_db.models import CustomUser, ClassMetadata, Course
 from master_db.serializers import ClassMetadataSerializer
 
 import datetime
@@ -30,7 +29,7 @@ def get_teacher_by_uuid(uuid):
 
 def get_std_by_uuids(klass, uuids):
     try:
-        return get_queryset(klass, uuid__in=uuids)
+        return klass.objects.filter(uuid__in=uuids)
     except ValidationError as message:
         raise ParseError({'details': list(message)})
 

@@ -8,7 +8,6 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from app_auth.utils import has_perm
 from master_api.utils import get_object_or_404, model_full_clean, edit_object
 from master_db.models import ClassMetadata, Schedule
 from master_db.serializers import ScheduleSerializer
@@ -126,12 +125,21 @@ def delete_sched(request):
 @permission_classes([AllowAny])
 def list_sched(request):
     """
+<<<<<<< HEAD
         Take in class_name (optional), student_uuid (optional). Must have at least one param.
+=======
+        Take in class_name (optional), student_uuid (optional).
+>>>>>>> develop
 
         If class_name is provided, result will be all schedules for that class.
 
         If student_uuid is provided, result will be all schedules for all the classes that have that student
 
+<<<<<<< HEAD
+=======
+        If none, result will be all schedules in db.
+
+>>>>>>> develop
         Param class_name takes higher priority
     """
     CustomUser = get_user_model()
@@ -161,5 +169,5 @@ def list_sched(request):
 
         return Response(data)
 
-    # None are provided -> Bad request
-    raise ParseError('Need parameter class_name or student_uuid')
+    # None are provided
+    return Response(ScheduleSerializer(Schedule.objects.all(), many=True).data)
