@@ -40,6 +40,7 @@ setup(
         'django-extensions',
         'django-filter',
         'django-model-utils',
+        'django-cron',
         'djangorestframework',
         'djangorestframework-simplejwt',
         'Pillow',

@@ -1,8 +1,9 @@
 from rest_framework.exceptions import NotFound, ParseError
 from django.core.exceptions import ValidationError
+from django.shortcuts import _get_queryset
 
 
-def formdata_bool(var):
+def formdata_bool(var: str):
     # Null for boolean
     if var is None or var == '':
         return None
@@ -15,19 +16,6 @@ def formdata_bool(var):
 
     raise ParseError(
         'Boolean value must be `true` or `false` after being lowered')
-
-
-def _get_queryset(klass):
-    """
-    Return a QuerySet or a Manager.
-    Duck typing in action: any class with a `get()` method (for
-    get_object_or_404) or a `filter()` method (for get_list_or_404) might do
-    the job.
-    """
-    # If it is a model class or anything else with ._default_manager
-    if hasattr(klass, '_default_manager'):
-        return klass._default_manager.all()
-    return klass
 
 
 def get_object_or_404(klass, name_print, *args, **kwargs):
