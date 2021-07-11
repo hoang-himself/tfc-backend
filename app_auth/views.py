@@ -79,49 +79,6 @@ def login(request) -> Response:
     return response
 
 
-@api_view(['POST'])
-@permission_classes([AllowAny])
-@csrf_protect
-def check(request):
-    access_token = request.COOKIES.get('accesstoken')
-
-    if not access_token:
-        return Response(
-            data={
-                'detail': 'User not logged in.'
-            },
-            status=status.HTTP_401_UNAUTHORIZED
-        )
-
-    try:
-        payload = jwt.decode(
-            access_token, settings.JWT_KEY, algorithms=['HS256'])
-        if payload.get('typ') != 'access':
-            return Response(
-                data={
-                    'detail': 'Invalid access token.'
-                },
-                status=status.HTTP_400_BAD_REQUEST
-            )
-    except jwt.ExpiredSignatureError:
-        return Response(
-            data={
-                'detail': 'Session expired.'
-            },
-            status=status.HTTP_401_UNAUTHORIZED
-        )
-
-    # TODO List perms
-
-    return Response(
-        data={
-            'role': payload.get('role'),
-            'perms': payload.get('perms')
-        },
-        status=status.HTTP_200_OK
-    )
-
-
 @api_view(['DELETE'])
 @permission_classes([AllowAny])
 def logout(request) -> Response:
@@ -163,8 +120,7 @@ def logout(request) -> Response:
 @csrf_protect
 def refresh(request):
     CustomUser = get_user_model()
-
-    refresh_token = request.COOKIES.get('refresh')
+    refresh_token = request.POST.get('refresh')
     access_token = request.COOKIES.get('accesstoken')
 
     if not (access_token):
@@ -222,5 +178,7 @@ def refresh(request):
     response.set_cookie(key='accesstoken', value=str(
         access_token), httponly=True)
     response.status_code = status.HTTP_200_OK
-    response.data = {}
+    response.data = {
+        'detail': 'ok'
+    }
     return response
