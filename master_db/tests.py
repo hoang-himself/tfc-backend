@@ -1,21 +1,32 @@
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 
+import datetime
+
 
 class UsersManagersTests(TestCase):
 
     def test_create_user(self):
         CustomUser = get_user_model()
         user = CustomUser.objects.create_user(
-            email='normal@user.com', password='foo')
-        self.assertEqual(user.email, 'normal@user.com')
+            email='user1@tfc.com', password='iamuser1',
+            first_name='First', last_n_mid_name='Last',
+            birth_date='2001-07-31', mobile='0123456789',
+            male=True, address='My lovely home'
+        )
+
+        self.assertEqual(user.email, 'user1@tfc.com')
+        self.assertEqual(user.first_name, 'First')
+        self.assertEqual(user.last_n_mid_name, 'Last')
+        self.assertEqual(user.birth_date, '2001-07-31')
+        self.assertEqual(user.mobile, '0123456789')
+        self.assertTrue(user.male)
+        self.assertEqual(user.address, 'My lovely home')
         self.assertTrue(user.is_active)
         self.assertFalse(user.is_staff)
         self.assertFalse(user.is_superuser)
-        try:
-            self.assertIsNone(user.username)
-        except AttributeError:
-            pass
+        self.assertIsNone(user.username)
+
         with self.assertRaises(TypeError):
             CustomUser.objects.create_user()
         with self.assertRaises(TypeError):
@@ -24,16 +35,31 @@ class UsersManagersTests(TestCase):
             CustomUser.objects.create_user(email='', password="foo")
 
     def test_create_superuser(self):
-        User = get_user_model()
-        admin_user = User.objects.create_superuser('super@user.com', 'foo')
-        self.assertEqual(admin_user.email, 'super@user.com')
+        CustomUser = get_user_model()
+        admin_user = CustomUser.objects.create_superuser(
+            email='superuser1@tfc.com', password='iamsuperuser1',
+            first_name='First', last_n_mid_name='Last',
+            birth_date='2001-08-31', mobile='0123456789',
+            male=True, address='My lovely home'
+        )
+
+        self.assertEqual(admin_user.email, 'superuser1@tfc.com')
+        self.assertEqual(admin_user.first_name, 'First')
+        self.assertEqual(admin_user.last_n_mid_name, 'Last')
+        self.assertEqual(admin_user.birth_date, '2001-08-31')
+        self.assertEqual(admin_user.mobile, '0123456789')
+        self.assertTrue(admin_user.male)
+        self.assertEqual(admin_user.address, 'My lovely home')
         self.assertTrue(admin_user.is_active)
         self.assertTrue(admin_user.is_staff)
         self.assertTrue(admin_user.is_superuser)
-        try:
-            self.assertIsNone(admin_user.username)
-        except AttributeError:
-            pass
+        self.assertIsNone(admin_user.username)
+
+        with self.assertRaises(TypeError):
+            CustomUser.objects.create_superuser()
+        with self.assertRaises(TypeError):
+            CustomUser.objects.create_superuser(email='')
         with self.assertRaises(ValueError):
-            User.objects.create_superuser(
-                email='super@user.com', password='foo', is_superuser=False)
+            CustomUser.objects.create_superuser(
+                email='', password='foo', is_superuser=False
+            )
