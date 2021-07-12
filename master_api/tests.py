@@ -3,13 +3,12 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
-client = APIClient()
-
 
 class HeartbeatTests(TestCase):
     url = reverse('ping')
 
     def test_main_ping(self):
+        client = APIClient()
         response = client.get(self.url)
         serializer = {
             'detail': 'pong'

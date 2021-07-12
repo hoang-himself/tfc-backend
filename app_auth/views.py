@@ -2,11 +2,11 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import check_password
 from django.contrib.auth.models import update_last_login
-from django.views.decorators.csrf import csrf_protect, ensure_csrf_cookie
+from django.views.decorators.csrf import (csrf_protect, ensure_csrf_cookie)
 from annoying.functions import get_object_or_None
 
 from rest_framework import status
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import (api_view, permission_classes)
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -51,8 +51,8 @@ def login(request) -> Response:
             status=status.HTTP_404_NOT_FOUND
         )
 
-    tmp_user = CustomUserSerializer(user).data
-    if not check_password(password, tmp_user.get('password')):
+    ser_user = CustomUserSerializer(user).data
+    if not check_password(password, ser_user.get('password')):
         return Response(
             data={
                 'detail': 'User not found.'
@@ -72,45 +72,9 @@ def login(request) -> Response:
     )
     response.status_code = status.HTTP_200_OK
     response.data = {
-        'token': {
-            'refresh': str(refresh_token),
+        'detail': {
+            'refresh_token': str(refresh_token),
         }
-    }
-    return response
-
-
-@api_view(['DELETE'])
-@permission_classes([AllowAny])
-def logout(request) -> Response:
-    response = Response()
-
-    refresh_token = request.POST.get('refresh')
-    access_token = request.COOKIES.get('accesstoken')
-    csrf_token = request.COOKIES.get('csrftoken')
-
-    if not (access_token):
-        return Response(
-            data={
-                'detail': 'User already logged out.'
-            },
-            status=status.HTTP_204_NO_CONTENT
-        )
-    if not (refresh_token):
-        return Response(
-            data={
-                'refresh': 'This field is required.'
-            },
-            status=status.HTTP_400_BAD_REQUEST
-        )
-
-    response.delete_cookie('accesstoken')
-    if csrf_token:
-        response.delete_cookie('csrftoken')
-
-    RefreshToken(refresh_token).blacklist()
-    response.status_code = status.HTTP_204_NO_CONTENT
-    response.data = {
-        'detail': 'Logged out successfully.'
     }
     return response
 
@@ -120,7 +84,7 @@ def logout(request) -> Response:
 @csrf_protect
 def refresh(request):
     CustomUser = get_user_model()
-    refresh_token = request.POST.get('refresh')
+    refresh_token = request.POST.get('refresh_token')
     access_token = request.COOKIES.get('accesstoken')
 
     if not (access_token):
@@ -133,7 +97,7 @@ def refresh(request):
     if not (refresh_token):
         return Response(
             data={
-                'refresh': 'This field is required.'
+                'refresh_token': 'This field is required.'
             },
             status=status.HTTP_400_BAD_REQUEST
         )
@@ -180,5 +144,38 @@ def refresh(request):
     response.status_code = status.HTTP_200_OK
     response.data = {
         'detail': 'ok'
+    }
+    return response
+
+
+@api_view(['DELETE'])
+@permission_classes([AllowAny])
+def logout(request) -> Response:
+    response = Response()
+
+    refresh_token = request.POST.get('refresh')
+    access_token = request.COOKIES.get('accesstoken')
+
+    if not (access_token):
+        return Response(
+            data={
+                'detail': 'User already logged out.'
+            },
+            status=status.HTTP_204_NO_CONTENT
+        )
+    if not (refresh_token):
+        return Response(
+            data={
+                'refresh': 'This field is required.'
+            },
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    response.delete_cookie('accesstoken')
+
+    RefreshToken(refresh_token).blacklist()
+    response.status_code = status.HTTP_204_NO_CONTENT
+    response.data = {
+        'detail': 'Logged out successfully.'
     }
     return response
