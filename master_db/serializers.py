@@ -86,7 +86,7 @@ class CourseSerializer(EnhancedModelSerializer):
 class UserRelatedField(serializers.RelatedField):
     def to_representation(self, obj):
         return {
-            'name': obj.first_name + (' ' if obj.mid_name is None else ' ' + obj.mid_name + ' ') + obj.last_name,
+            'name': obj.first_name + obj.last_n_mid_name,
             'mobile': obj.mobile,
             'email': obj.email,
             'uuid': obj.uuid,

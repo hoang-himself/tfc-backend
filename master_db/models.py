@@ -11,6 +11,7 @@ import datetime
 
 
 class TemplateModel(models.Model):
+    uuid = models.UUIDField(default=uuid.uuid4, blank=True)
     created_at = AutoCreatedField('created')
     updated_at = AutoLastModifiedField('updated')
     desc = models.TextField(null=True, blank=True)
@@ -77,8 +78,7 @@ class CustomUser(AbstractUser):
     email = models.EmailField(unique=True)
 
     first_name = models.TextField()
-    mid_name = models.TextField(null=True, blank=True)
-    last_name = models.TextField()
+    last_n_mid_name = models.TextField()
     birth_date = models.DateField()
     mobile = models.CharField(max_length=12, unique=True)
     male = models.BooleanField(null=True, blank=True)
@@ -94,8 +94,7 @@ class CustomUser(AbstractUser):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = [
         'first_name',
-        'mid_name',
-        'last_name',
+        'last_n_mid_name',
         'birth_date',
         'mobile',
         'male',
@@ -108,7 +107,6 @@ class CustomUser(AbstractUser):
         verbose_name_plural = 'users'
         indexes = [
             models.Index(fields=['first_name', ]),
-            models.Index(fields=['last_name', ]),
             models.Index(fields=['birth_date', ]),
             models.Index(fields=['male', ]),
         ]
@@ -265,7 +263,6 @@ class Log(TemplateModel):
         Metatable,
         on_delete=models.DO_NOTHING
     )
-    short_desc = models.TextField()
 
     def __str__(self):
         return self.short_desc
