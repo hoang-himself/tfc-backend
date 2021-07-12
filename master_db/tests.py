@@ -1,13 +1,12 @@
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 
-import datetime
+CustomUser = get_user_model()
 
 
 class UsersManagersTests(TestCase):
 
     def test_create_user(self):
-        CustomUser = get_user_model()
         user = CustomUser.objects.create_user(
             email='user1@tfc.com', password='iamuser1',
             first_name='First', last_n_mid_name='Last',
@@ -35,7 +34,6 @@ class UsersManagersTests(TestCase):
             CustomUser.objects.create_user(email='', password="foo")
 
     def test_create_superuser(self):
-        CustomUser = get_user_model()
         admin_user = CustomUser.objects.create_superuser(
             email='superuser1@tfc.com', password='iamsuperuser1',
             first_name='First', last_n_mid_name='Last',

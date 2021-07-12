@@ -1,3 +1,19 @@
 from django.test import TestCase
+from django.urls import reverse
+from rest_framework import status
+from rest_framework.test import APIClient
 
-# Create your tests here.
+client = APIClient()
+
+
+class HeartbeatTests(TestCase):
+    url = reverse('ping')
+
+    def test_main_ping(self):
+        response = client.get(self.url)
+        serializer = {
+            'detail': 'pong'
+        }
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, serializer)
