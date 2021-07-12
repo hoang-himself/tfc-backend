@@ -78,7 +78,7 @@ class CustomUser(AbstractUser):
     email = models.EmailField(unique=True)
 
     first_name = models.TextField()
-    last_n_mid_name = models.TextField()
+    last_and_mid_name = models.TextField()
     birth_date = models.DateField()
     mobile = models.CharField(max_length=12, unique=True)
     male = models.BooleanField(null=True, blank=True)
@@ -94,7 +94,7 @@ class CustomUser(AbstractUser):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = [
         'first_name',
-        'last_n_mid_name',
+        'last_and_mid_name',
         'birth_date',
         'mobile',
         'male',

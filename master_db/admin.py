@@ -15,7 +15,7 @@ class CustomUserAdmin(UserAdmin):
             'fields': ('password',)
         }),
         ('Personal info', {
-         'fields': ('email', 'first_name', 'last_n_mid_name', 'birth_date',
+         'fields': ('email', 'first_name', 'last_and_mid_name', 'birth_date',
                     'mobile', 'male', 'address', 'avatar',)
          }),
         ('Permissions', {
@@ -29,16 +29,16 @@ class CustomUserAdmin(UserAdmin):
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('email', 'first_name', 'last_n_mid_name', 'birth_date',
+            'fields': ('email', 'first_name', 'last_and_mid_name', 'birth_date',
                        'mobile', 'male', 'address', 'avatar', 'password1', 'password2',),
         }),
     )
     form = CustomUserChangeForm
     add_form = CustomUserCreationForm
     list_display = ('email', 'first_name',
-                    'last_n_mid_name', 'is_staff', 'is_active')
+                    'last_and_mid_name', 'is_staff', 'is_active')
     list_filter = ('is_active', 'is_staff', 'is_superuser', 'groups')
-    search_fields = ('first_name', 'last_n_mid_name', 'email')
+    search_fields = ('first_name', 'last_and_mid_name', 'email')
     ordering = ('email',)
     filter_horizontal = ('groups', 'user_permissions',)
 

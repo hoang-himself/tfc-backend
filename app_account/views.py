@@ -242,7 +242,7 @@ def password_check(request) -> Response:
 # @csrf_protect
 def create_user(request) -> Response:
     """
-        Requires every param: first_name, last_n_mid_name, address, male, avatar, birth_date, role_id, email, mobile, username, password.
+        Requires every param: first_name, last_and_mid_name, address, male, avatar, birth_date, role_id, email, mobile, username, password.
 
         The role_id param takes in int type and represents the id of the group in database.
     """
@@ -257,7 +257,7 @@ def create_user(request) -> Response:
     #     return check
 
     first_name = request.POST.get('first_name')
-    last_n_mid_name = request.POST.get('last_n_mid_name')
+    last_and_mid_name = request.POST.get('last_and_mid_name')
     address = request.POST.get('address')
     male = request.POST.get('male')
     avatar = request.POST.get('avatar')
@@ -319,7 +319,7 @@ def create_user(request) -> Response:
     user = CustomUser(
         username=username,
         first_name=first_name,
-        last_n_mid_name=last_n_mid_name,
+        last_and_mid_name=last_and_mid_name,
         birth_date=birth_date,
         email=email,
         mobile=mobile,
@@ -375,7 +375,7 @@ def list_user(request):
             'uuid',
             'username',
             'first_name',
-            'last_n_mid_name',
+            'last_and_mid_name',
             'email',
             'birth_date',
             'mobile',
@@ -392,7 +392,7 @@ def list_user(request):
         'uuid': True,
         'username': True,
         'first_name': True,
-        'last_n_mid_name': True,
+        'last_and_mid_name': True,
         'email': True,
         'password': False,
         'birth_date': True,
