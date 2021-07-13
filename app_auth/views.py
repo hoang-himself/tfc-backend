@@ -143,7 +143,7 @@ def refresh(request):
         access_token), httponly=True)
     response.status_code = status.HTTP_200_OK
     response.data = {
-        'detail': 'ok'
+        'detail': 'Ok'
     }
     return response
 

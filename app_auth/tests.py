@@ -79,22 +79,14 @@ class LoginTests(TestCase):
 
 class RefreshTests(TestCase):
     url = reverse('refresh')
-    access_token = ''
 
     def setUp(self):
-        client = APIClient()
         CustomUser.objects.create_user(
             email='user1@tfc.com', password='iamuser1',
             first_name='First', last_and_mid_name='Last',
             birth_date='2001-07-31', mobile='0123456789',
             male=True, address='My lovely home'
         )
-        data = {
-            'email': 'user1@tfc.com',
-            'password': 'iamuser1'
-        }
-        response = client.post(reverse('login'), data=data)
-        self.access_token = response.cookies.get('accesstoken')
 
     def test_no_csrf(self):
         client = APIClient(enforce_csrf_checks=True)
@@ -114,7 +106,24 @@ class RefreshTests(TestCase):
 
     def test_success(self):
         client = APIClient()
-        pass
+        data = {
+            'email': 'user1@tfc.com',
+            'password': 'iamuser1'
+        }
+        response = client.post(reverse('login'), data=data)
+        refresh_token = response.data.get('detail').get('refresh_token')
+
+        data = {
+            'refresh_token': refresh_token
+        }
+        response = client.post(self.url, data=data)
+        serializer = {
+            'detail': 'Ok'
+        }
+        access_token = response.cookies.get('accesstoken')
+
+        self.assertIsNotNone(access_token)
+        self.assertEqual(response.data, serializer)
 
 
 class LogoutTests(TestCase):
