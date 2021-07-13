@@ -13,7 +13,7 @@ from master_db.serializers import CustomUserSerializer
 import datetime
 import re
 
-# Create your views here.
+CustomUser = get_user_model()
 
 
 def email_validate(email) -> bool:
@@ -36,7 +36,6 @@ def email_response(email) -> Response:
     """
         Return response when checking signed up email address in db
     """
-    CustomUser = get_user_model()
 
     # Validating email address
     if not email_validate(email):
@@ -97,7 +96,6 @@ def mobile_response(mobile) -> Response:
     """
         Return response when checking signed up mobile phone number in db
     """
-    CustomUser = get_user_model()
 
     # Validating mobile address
     if not mobile_validate(mobile):
@@ -142,7 +140,6 @@ def username_response(username) -> Response:
     """
         Return response when checking signed up username in db
     """
-    CustomUser = get_user_model()
 
     # Check nullity
     if username is None or username == '':
@@ -237,16 +234,77 @@ def password_check(request) -> Response:
     return Response(password)
 
 
+@api_view(['GET'])
+@permission_classes([AllowAny])
+@csrf_protect
+def list_user(request):
+    """
+        Return list of users with a specified view
+    """
+
+    # check = has_perm(request, ['account_cred'])
+    # if check.status_code >= 400:
+    #     return check
+
+    filter_query = request.GET.getlist('filter')
+
+    if not filter_query:
+        filter_query = [
+            'pk',
+            'uuid',
+            'username',
+            'first_name',
+            'last_and_mid_name',
+            'email',
+            'birth_date',
+            'mobile',
+            'male',
+            'address',
+            # 'role__name',
+            'is_active',
+            'created_at',
+            'updated_at'
+        ]
+
+    filter_dict = {
+        'pk': True,
+        'uuid': True,
+        'username': True,
+        'first_name': True,
+        'last_and_mid_name': True,
+        'email': True,
+        'password': False,
+        'birth_date': True,
+        'mobile': True,
+        'male': True,
+        'address': True,
+        'avatar': False,
+        # 'role__name': True,
+        'is_active': True,
+        'created_at': True,
+        'updated_at': True
+    }
+
+    listZ = []
+    for key in filter_query:  # Query filter for choosing views
+        if filter_dict[key]:
+            listZ.append(key)
+
+    # Asterisk expands list into separated args
+    # https://docs.python.org/2/tutorial/controlflow.html#unpacking-argument-lists
+    data = CustomUser.objects.all().values(*listZ)
+    return Response(data)
+
+
 @api_view(['POST'])
 @permission_classes([AllowAny])
-# @csrf_protect
+@csrf_protect
 def create_user(request) -> Response:
     """
         Requires every param: first_name, last_and_mid_name, address, male, avatar, birth_date, role_id, email, mobile, username, password.
 
         The role_id param takes in int type and represents the id of the group in database.
     """
-    CustomUser = get_user_model()
 
     # Insignificant factors:
     # - These factors are freely defined and do not affect
@@ -354,64 +412,65 @@ def create_user(request) -> Response:
     )
 
 
-@api_view(['GET'])
+@api_view(['POST'])
 @permission_classes([AllowAny])
-# @csrf_protect
-def list_user(request):
-    """
-        Return list of users with a specified view
-    """
-    CustomUser = get_user_model()
+@csrf_protect
+def get_user(request):
+    # TODO
+    pass
 
-    # check = has_perm(request, ['account_cred'])
-    # if check.status_code >= 400:
-    #     return check
 
-    filter_query = request.GET.getlist('filter')
+@api_view(['POST'])
+@permission_classes([AllowAny])
+@csrf_protect
+def edit_user(request):
+    # TODO
+    pass
 
-    if not filter_query:
-        filter_query = [
-            'pk',
-            'uuid',
-            'username',
-            'first_name',
-            'last_and_mid_name',
-            'email',
-            'birth_date',
-            'mobile',
-            'male',
-            'address',
-            # 'role__name',
-            'is_active',
-            'created_at',
-            'updated_at'
-        ]
 
-    filter_dict = {
-        'pk': True,
-        'uuid': True,
-        'username': True,
-        'first_name': True,
-        'last_and_mid_name': True,
-        'email': True,
-        'password': False,
-        'birth_date': True,
-        'mobile': True,
-        'male': True,
-        'address': True,
-        'avatar': False,
-        # 'role__name': True,
-        'is_active': True,
-        'created_at': True,
-        'updated_at': True
-    }
+@api_view(['POST'])
+@permission_classes([AllowAny])
+@csrf_protect
+def delete_user(request):
+    # TODO
+    pass
 
-    listZ = []
-    for key in filter_query:  # Query filter for choosing views
-        if filter_dict[key]:
-            listZ.append(key)
 
-    # Asterisk expands list into separated args
-    # https://docs.python.org/2/tutorial/controlflow.html#unpacking-argument-lists
-    data = CustomUser.objects.all().values(*listZ)
-    return Response(data)
+@api_view(['POST'])
+@permission_classes([AllowAny])
+@csrf_protect
+def list_staff(request):
+    # TODO
+    pass
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+@csrf_protect
+def create_staff(request):
+    # TODO
+    pass
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+@csrf_protect
+def get_staff(request):
+    # TODO
+    pass
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+@csrf_protect
+def edit_staff(request):
+    # TODO
+    pass
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+@csrf_protect
+def delete_staff(request):
+    # TODO
+    pass
