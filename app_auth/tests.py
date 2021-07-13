@@ -122,12 +122,50 @@ class RefreshTests(TestCase):
         }
         access_token = response.cookies.get('accesstoken')
 
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIsNotNone(access_token)
         self.assertEqual(response.data, serializer)
 
 
 class LogoutTests(TestCase):
     url = reverse('logout')
-    client = APIClient()
 
-    pass
+    def setUp(self):
+        CustomUser.objects.create_user(
+            email='user1@tfc.com', password='iamuser1',
+            first_name='First', last_and_mid_name='Last',
+            birth_date='2001-07-31', mobile='0123456789',
+            male=True, address='My lovely home'
+        )
+
+    def test_no_access(self):
+        client = APIClient()
+        response = client.delete(self.url)
+        serializer = {
+            'detail': 'User not logged in.'
+        }
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(response.data, serializer)
+
+    def test_success(self):
+        client = APIClient()
+        data = {
+            'email': 'user1@tfc.com',
+            'password': 'iamuser1'
+        }
+        response = client.post(reverse('login'), data=data)
+        refresh_token = response.data.get('detail').get('refresh_token')
+
+        data = {
+            'refresh_token': refresh_token
+        }
+        response = client.delete(self.url, data=data)
+        serializer = {
+            'detail': 'Ok'
+        }
+        access_token = response.cookies.get('accesstoken').value
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(access_token, '')
+        self.assertEqual(response.data, serializer)
