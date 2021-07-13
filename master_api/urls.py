@@ -4,7 +4,7 @@ from . import views
 urlpatterns = [
     path('ping', views.ping, name='ping'),
     path('account/', include('app_account.urls')),
-    path('attend/', include('app_attend.urls')),
+    path('session/', include('app_session.urls')),
     path('auth/', include('app_auth.urls')),
     path('calendar/', include('app_calendar.urls')),
     path('class/', include('app_class.urls')),

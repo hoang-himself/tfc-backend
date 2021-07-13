@@ -59,7 +59,7 @@ INSTALLED_APPS = [
     'master_api',
     'master_db',
     'app_account',
-    'app_attend',
+    'app_session',
     'app_auth',
     'app_calendar',
     'app_class',
