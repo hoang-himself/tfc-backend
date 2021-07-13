@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from master_db.models import (
     Metatable, Branch, Calendar, CustomUser, Setting, Course,
-    ClassMetadata, ClassStudent, Schedule, Attendance, Log
+    ClassMetadata, ClassStudent, Schedule, Session, Log
 )
 from taggit_serializer.serializers import TaggitSerializer, TagListSerializerField
 
@@ -137,12 +137,12 @@ class ScheduleRelatedField(serializers.RelatedField):
         return ScheduleSerializer(obj).exclude_created_updated().data
 
 
-class AttendanceSerializer(EnhancedModelSerializer):
+class SessionSerializer(EnhancedModelSerializer):
     student = UserRelatedField(read_only=True)
     session = ScheduleRelatedField(read_only=True)
 
     class Meta:
-        model = Attendance
+        model = Session
         exclude = ('id', )
 
 

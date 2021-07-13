@@ -15,7 +15,6 @@ class TemplateModel(models.Model):
     created_at = AutoCreatedField('created')
     updated_at = AutoLastModifiedField('updated')
     desc = models.TextField(null=True, blank=True)
-    short_desc = models.TextField(null=True, blank=True)
 
     class Meta:
         abstract = True
@@ -203,8 +202,8 @@ class ClassStudent(TemplateModel):
 
 
 #
-class Attendance(TemplateModel):
-    session = models.ForeignKey(
+class Session(TemplateModel):
+    schedule = models.ForeignKey(
         Schedule,
         on_delete=models.CASCADE
     )
@@ -212,19 +211,20 @@ class Attendance(TemplateModel):
         CustomUser,
         on_delete=models.CASCADE
     )
+    homework = models.SmallIntegerField(null=True, blank=True)
     status = models.BooleanField(null=True, blank=True)
 
     class Meta:
-        verbose_name = 'attendance'
-        verbose_name_plural = 'attendances'
+        verbose_name = 'session'
+        verbose_name_plural = 'sessions'
         indexes = [
             models.Index(fields=['student', 'status']),
-            models.Index(fields=['session', ])
+            models.Index(fields=['schedule', ])
         ]
         constraints = [
             models.UniqueConstraint(
-                fields=['student', 'session'],
-                name='unique_attendance'
+                fields=['student', 'schedule'],
+                name='unique_session'
             )
         ]
 

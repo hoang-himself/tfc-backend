@@ -23,8 +23,8 @@ cd tfc-backend
 ## (Recommended) Initialize a virtual environment
 
 ```bash
-python -m venv --upgrade-deps ./venv
-source ./venv/bin/activate
+python -m venv --upgrade-deps ./.venv
+source ./.venv/bin/activate
 ```
 
 ## Install tools and dependencies

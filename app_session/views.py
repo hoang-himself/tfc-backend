@@ -8,8 +8,8 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import NotFound, ParseError
 
 
-from master_db.models import CustomUser, ClassMetadata, Schedule, Attendance
-from master_db.serializers import AttendanceSerializer
+from master_db.models import CustomUser, ClassMetadata, Schedule, Session
+from master_db.serializers import SessionSerializer
 from master_api.utils import get_object_or_404, model_full_clean, formdata_bool, get_list_or_404
 
 import datetime
@@ -19,7 +19,7 @@ import datetime
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
-def add_attend(request):
+def add_session(request):
     """
         Take in sched_id, student_uuid, status.
     """
@@ -41,8 +41,8 @@ def add_attend(request):
 
     # Get model
     now = datetime.datetime.now().timestamp()
-    attend = Attendance(
-        session=sched,
+    session = Session(
+        schedule=sched,
         student=student,
         status=formdata_bool(request.POST.get('status')),
         created_at=now,
@@ -50,10 +50,10 @@ def add_attend(request):
     )
 
     # Validate model
-    model_full_clean(attend)
+    model_full_clean(session)
 
     # Save
-    attend.save()
+    session.save()
 
     return Response(
         data={'details': 'Ok'},
@@ -63,7 +63,7 @@ def add_attend(request):
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
-def edit_attend(request):
+def edit_session(request):
     """
         Take in student_uuid, sched_id, status.
 
@@ -71,65 +71,65 @@ def edit_attend(request):
     """
     # Get student
     try:
-        attend = get_object_or_404(Attendance, 'Attendance with the given student and schedule',
-                                   student__uuid=request.POST.get('student_uuid'), session__id=request.POST.get('sched_id'))
+        session = get_object_or_404(Session, 'Session with the given student and schedule',
+                                   student__uuid=request.POST.get('student_uuid'), schedule__id=request.POST.get('sched_id'))
     except ValidationError as message:
         raise ParseError({'detail': list(message)})
 
     stat = formdata_bool(request.POST.get('status'))
 
     # Handle no content changed
-    if attend.status == stat:
+    if session.status == stat:
         return Response(data={'detail': 'Same content'},
                         status=status.HTTP_204_NO_CONTENT
                         )
 
     # Change (formdata_bool ensures value return to be bool or None -> no need full clean)
-    attend.status = stat
+    session.status = stat
 
     # Save
-    attend.save()
+    session.save()
 
     return Response({'detail': 'Ok'})
 
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
-def list_attend(request):
+def list_session(request):
     """
         Take in class_name (optional), sched_id (optional), student_uuid (optional).
 
-        If class_name is provided return all attendances in the class.
+        If class_name is provided return all sessions in the class.
 
-        If sched_id is provided return all attendances in the schedule.
+        If sched_id is provided return all sessions in the schedule.
 
-        If student_uuid is provided return all attendances of the student.
+        If student_uuid is provided return all sessions of the student.
 
-        If none is provided return all attendances in the db.
+        If none is provided return all sessions in the db.
 
         Priority: class_name > sched_id > student_uuid
     """
     # class_name is provided
-    attend = request.GET.get('class_name')
-    if attend is not None:
-        attend = get_list_or_404(
-            Attendance, 'Class', session__classroom__name=attend)
-        return Response(AttendanceSerializer(attend, many=True).data)
+    session = request.GET.get('class_name')
+    if session is not None:
+        session = get_list_or_404(
+            Session, 'Class', session__classroom__name=session)
+        return Response(SessionSerializer(session, many=True).data)
 
     # sched_id is provided, no need to show session field
-    attend = request.GET.get('sched_id')
-    if attend is not None:
-        attend = get_list_or_404(Attendance, 'Schedule', session__id=attend)
-        return Response(AttendanceSerializer(attend, many=True).exclude_field('session').data)
+    session = request.GET.get('sched_id')
+    if session is not None:
+        session = get_list_or_404(Session, 'Schedule', session__id=session)
+        return Response(SessionSerializer(session, many=True).exclude_field('session').data)
 
     # student_uuid is provided, no need to show student field
-    attend = request.GET.get('student_uuid')
-    if attend is not None:
+    session = request.GET.get('student_uuid')
+    if session is not None:
         try:
-            attend = get_list_or_404(
-                Attendance, 'Student', student__uuid=attend)
+            session = get_list_or_404(
+                Session, 'Student', student__uuid=session)
         except ValidationError as message:
             raise ParseError({'detail': list(message)})
-        return Response(AttendanceSerializer(attend, many=True).exclude_field('student').data)
+        return Response(SessionSerializer(session, many=True).exclude_field('student').data)
 
-    return Response(AttendanceSerializer(Attendance.objects.all(), many=True).data)
+    return Response(SessionSerializer(Session.objects.all(), many=True).data)
