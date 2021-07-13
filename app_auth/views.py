@@ -153,13 +153,13 @@ def refresh(request):
 def logout(request) -> Response:
     response = Response()
 
-    refresh_token = request.POST.get('refresh')
+    refresh_token = request.POST.get('refresh_token')
     access_token = request.COOKIES.get('accesstoken')
 
     if not (access_token):
         return Response(
             data={
-                'detail': 'User already logged out.'
+                'detail': 'User not logged in.'
             },
             status=status.HTTP_204_NO_CONTENT
         )
@@ -176,6 +176,6 @@ def logout(request) -> Response:
     RefreshToken(refresh_token).blacklist()
     response.status_code = status.HTTP_204_NO_CONTENT
     response.data = {
-        'detail': 'Logged out successfully.'
+        'detail': 'Ok'
     }
     return response
