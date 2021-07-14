@@ -125,21 +125,14 @@ def delete_sched(request):
 @permission_classes([AllowAny])
 def list_sched(request):
     """
-<<<<<<< HEAD
-        Take in class_name (optional), student_uuid (optional). Must have at least one param.
-=======
         Take in class_name (optional), student_uuid (optional).
->>>>>>> develop
 
         If class_name is provided, result will be all schedules for that class.
 
         If student_uuid is provided, result will be all schedules for all the classes that have that student
 
-<<<<<<< HEAD
-=======
         If none, result will be all schedules in db.
 
->>>>>>> develop
         Param class_name takes higher priority
     """
     CustomUser = get_user_model()

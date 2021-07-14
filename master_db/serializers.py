@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from master_db.models import (
     Metatable, Branch, Calendar, CustomUser, Setting, Course,
-    ClassMetadata, ClassStudent, Schedule, Attendance, Log
+    ClassMetadata, ClassStudent, Schedule, Session, Log
 )
 from taggit_serializer.serializers import TaggitSerializer, TagListSerializerField
 
@@ -72,6 +72,12 @@ class SettingSerializer(EnhancedModelSerializer):
 class CustomUserSerializer(EnhancedModelSerializer):
     class Meta:
         model = CustomUser
+        exclude = ('password', 'avatar',)
+
+
+class InternalCustomUserSerializer(EnhancedModelSerializer):
+    class Meta:
+        model = CustomUser
         fields = '__all__'
 
 
@@ -86,7 +92,7 @@ class CourseSerializer(EnhancedModelSerializer):
 class UserRelatedField(serializers.RelatedField):
     def to_representation(self, obj):
         return {
-            'name': obj.first_name + obj.last_and_mid_name,
+            'name': obj.first_name + obj.last_name,
             'mobile': obj.mobile,
             'email': obj.email,
             'uuid': obj.uuid,
@@ -137,12 +143,12 @@ class ScheduleRelatedField(serializers.RelatedField):
         return ScheduleSerializer(obj).exclude_created_updated().data
 
 
-class AttendanceSerializer(EnhancedModelSerializer):
+class SessionSerializer(EnhancedModelSerializer):
     student = UserRelatedField(read_only=True)
     session = ScheduleRelatedField(read_only=True)
 
     class Meta:
-        model = Attendance
+        model = Session
         exclude = ('id', )
 
 

@@ -4,7 +4,7 @@ from django.contrib.auth.admin import UserAdmin
 from .forms import CustomUserCreationForm, CustomUserChangeForm
 from .models import (
     Metatable, Branch, Calendar, Setting, CustomUser, Course,
-    ClassMetadata, ClassStudent, Schedule, Attendance, Log
+    ClassMetadata, ClassStudent, Schedule, Session, Log
 )
 
 
@@ -15,7 +15,7 @@ class CustomUserAdmin(UserAdmin):
             'fields': ('password',)
         }),
         ('Personal info', {
-         'fields': ('email', 'first_name', 'last_and_mid_name', 'birth_date',
+         'fields': ('email', 'first_name', 'last_name', 'birth_date',
                     'mobile', 'male', 'address', 'avatar',)
          }),
         ('Permissions', {
@@ -29,16 +29,16 @@ class CustomUserAdmin(UserAdmin):
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('email', 'first_name', 'last_and_mid_name', 'birth_date',
+            'fields': ('email', 'first_name', 'last_name', 'birth_date',
                        'mobile', 'male', 'address', 'avatar', 'password1', 'password2',),
         }),
     )
     form = CustomUserChangeForm
     add_form = CustomUserCreationForm
     list_display = ('email', 'first_name',
-                    'last_and_mid_name', 'is_staff', 'is_active')
+                    'last_name', 'is_staff', 'is_active')
     list_filter = ('is_active', 'is_staff', 'is_superuser', 'groups')
-    search_fields = ('first_name', 'last_and_mid_name', 'email')
+    search_fields = ('first_name', 'last_name', 'email')
     ordering = ('email',)
     filter_horizontal = ('groups', 'user_permissions',)
 
@@ -52,5 +52,5 @@ admin.site.register(Course)
 admin.site.register(ClassMetadata)
 admin.site.register(ClassStudent)
 admin.site.register(Schedule)
-admin.site.register(Attendance)
+admin.site.register(Session)
 admin.site.register(Log)

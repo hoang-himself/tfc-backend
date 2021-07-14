@@ -11,11 +11,10 @@ import datetime
 
 
 class TemplateModel(models.Model):
-    uuid = models.UUIDField(default=uuid.uuid4, blank=True)
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, blank=True)
     created_at = AutoCreatedField('created')
     updated_at = AutoLastModifiedField('updated')
     desc = models.TextField(null=True, blank=True)
-    short_desc = models.TextField(null=True, blank=True)
 
     class Meta:
         abstract = True
@@ -77,8 +76,6 @@ class CustomUser(AbstractUser):
     uuid = models.UUIDField(default=uuid.uuid4, blank=True)
     email = models.EmailField(unique=True)
 
-    first_name = models.TextField()
-    last_and_mid_name = models.TextField()
     birth_date = models.DateField()
     mobile = models.CharField(max_length=12, unique=True)
     male = models.BooleanField(null=True, blank=True)
@@ -94,7 +91,7 @@ class CustomUser(AbstractUser):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = [
         'first_name',
-        'last_and_mid_name',
+        'last_name',
         'birth_date',
         'mobile',
         'male',
@@ -203,8 +200,8 @@ class ClassStudent(TemplateModel):
 
 
 #
-class Attendance(TemplateModel):
-    session = models.ForeignKey(
+class Session(TemplateModel):
+    schedule = models.ForeignKey(
         Schedule,
         on_delete=models.CASCADE
     )
@@ -212,19 +209,20 @@ class Attendance(TemplateModel):
         CustomUser,
         on_delete=models.CASCADE
     )
+    homework = models.SmallIntegerField(null=True, blank=True)
     status = models.BooleanField(null=True, blank=True)
 
     class Meta:
-        verbose_name = 'attendance'
-        verbose_name_plural = 'attendances'
+        verbose_name = 'session'
+        verbose_name_plural = 'sessions'
         indexes = [
             models.Index(fields=['student', 'status']),
-            models.Index(fields=['session', ])
+            models.Index(fields=['schedule', ])
         ]
         constraints = [
             models.UniqueConstraint(
-                fields=['student', 'session'],
-                name='unique_attendance'
+                fields=['student', 'schedule'],
+                name='unique_session'
             )
         ]
 
