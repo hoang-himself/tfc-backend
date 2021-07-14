@@ -30,7 +30,6 @@ setup(
     python_requires='>=3.8, <4',
     include_package_data=True,
     install_requires=[
-        'autopep8',
         'cryptography',
         'dj-database-url',
         'Django',
@@ -44,6 +43,7 @@ setup(
         'django-cron',
         'djangorestframework',
         'djangorestframework-simplejwt',
+        'freezegun',
         'Pillow',
         'psycopg2-binary',
         'PyJWT',

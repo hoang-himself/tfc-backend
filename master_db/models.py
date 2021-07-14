@@ -11,7 +11,7 @@ import datetime
 
 
 class TemplateModel(models.Model):
-    uuid = models.UUIDField(default=uuid.uuid4, blank=True)
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, blank=True)
     created_at = AutoCreatedField('created')
     updated_at = AutoLastModifiedField('updated')
     desc = models.TextField(null=True, blank=True)
@@ -76,8 +76,6 @@ class CustomUser(AbstractUser):
     uuid = models.UUIDField(default=uuid.uuid4, blank=True)
     email = models.EmailField(unique=True)
 
-    first_name = models.TextField()
-    last_and_mid_name = models.TextField()
     birth_date = models.DateField()
     mobile = models.CharField(max_length=12, unique=True)
     male = models.BooleanField(null=True, blank=True)
@@ -93,7 +91,7 @@ class CustomUser(AbstractUser):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = [
         'first_name',
-        'last_and_mid_name',
+        'last_name',
         'birth_date',
         'mobile',
         'male',

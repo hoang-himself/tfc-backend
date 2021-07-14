@@ -13,7 +13,7 @@ class LoginTests(TestCase):
     def setUp(self):
         CustomUser.objects.create_user(
             email='user1@tfc.com', password='iamuser1',
-            first_name='First', last_and_mid_name='Last',
+            first_name='First', last_name='Last',
             birth_date='2001-07-31', mobile='0123456789',
             male=True, address='My lovely home'
         )
@@ -83,7 +83,7 @@ class RefreshTests(TestCase):
     def setUp(self):
         CustomUser.objects.create_user(
             email='user1@tfc.com', password='iamuser1',
-            first_name='First', last_and_mid_name='Last',
+            first_name='First', last_name='Last',
             birth_date='2001-07-31', mobile='0123456789',
             male=True, address='My lovely home'
         )
@@ -133,7 +133,7 @@ class LogoutTests(TestCase):
     def setUp(self):
         CustomUser.objects.create_user(
             email='user1@tfc.com', password='iamuser1',
-            first_name='First', last_and_mid_name='Last',
+            first_name='First', last_name='Last',
             birth_date='2001-07-31', mobile='0123456789',
             male=True, address='My lovely home'
         )

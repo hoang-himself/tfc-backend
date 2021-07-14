@@ -9,14 +9,14 @@ class UsersManagersTests(TestCase):
     def test_create_user(self):
         user = CustomUser.objects.create_user(
             email='user1@tfc.com', password='iamuser1',
-            first_name='First', last_and_mid_name='Last',
+            first_name='First', last_name='Last',
             birth_date='2001-07-31', mobile='0123456789',
             male=True, address='My lovely home'
         )
 
         self.assertEqual(user.email, 'user1@tfc.com')
         self.assertEqual(user.first_name, 'First')
-        self.assertEqual(user.last_and_mid_name, 'Last')
+        self.assertEqual(user.last_name, 'Last')
         self.assertEqual(user.birth_date, '2001-07-31')
         self.assertEqual(user.mobile, '0123456789')
         self.assertTrue(user.male)
@@ -36,14 +36,14 @@ class UsersManagersTests(TestCase):
     def test_create_superuser(self):
         admin_user = CustomUser.objects.create_superuser(
             email='superuser1@tfc.com', password='iamsuperuser1',
-            first_name='First', last_and_mid_name='Last',
+            first_name='First', last_name='Last',
             birth_date='2001-08-31', mobile='0123456789',
             male=True, address='My lovely home'
         )
 
         self.assertEqual(admin_user.email, 'superuser1@tfc.com')
         self.assertEqual(admin_user.first_name, 'First')
-        self.assertEqual(admin_user.last_and_mid_name, 'Last')
+        self.assertEqual(admin_user.last_name, 'Last')
         self.assertEqual(admin_user.birth_date, '2001-08-31')
         self.assertEqual(admin_user.mobile, '0123456789')
         self.assertTrue(admin_user.male)
