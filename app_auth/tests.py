@@ -8,7 +8,7 @@ CustomUser = get_user_model()
 
 
 class LoginTests(TestCase):
-    url = reverse('login')
+    url = reverse('app_auth:login')
 
     def setUp(self):
         CustomUser.objects.create_user(
@@ -78,7 +78,7 @@ class LoginTests(TestCase):
 
 
 class RefreshTests(TestCase):
-    url = reverse('refresh')
+    url = reverse('app_auth:refresh')
 
     def setUp(self):
         CustomUser.objects.create_user(
@@ -110,7 +110,7 @@ class RefreshTests(TestCase):
             'email': 'user1@tfc.com',
             'password': 'iamuser1'
         }
-        response = client.post(reverse('login'), data=data)
+        response = client.post(reverse('app_auth:login'), data=data)
         refresh_token = response.data.get('detail').get('refresh_token')
 
         data = {
@@ -128,7 +128,7 @@ class RefreshTests(TestCase):
 
 
 class LogoutTests(TestCase):
-    url = reverse('logout')
+    url = reverse('app_auth:logout')
 
     def setUp(self):
         CustomUser.objects.create_user(
@@ -154,7 +154,7 @@ class LogoutTests(TestCase):
             'email': 'user1@tfc.com',
             'password': 'iamuser1'
         }
-        response = client.post(reverse('login'), data=data)
+        response = client.post(reverse('app_auth:login'), data=data)
         refresh_token = response.data.get('detail').get('refresh_token')
 
         data = {
