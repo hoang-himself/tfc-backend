@@ -23,7 +23,7 @@ class GetSelfTests(TestCase):
 
     @freeze_time("2016-12-21 16:00:00", tz_offset=+7)
     def test_no_filter(self):
-        url = reverse('app_account:get_self')
+        url = reverse('app_account:get-self')
         client = APIClient()
         data = {
             'email': 'user1@tfc.com',
@@ -42,7 +42,7 @@ class GetSelfTests(TestCase):
 
     @freeze_time("2016-12-21 16:00:00", tz_offset=+7)
     def test_fragmented_filter(self):
-        url = '{}?{}'.format(reverse('app_account:get_self'), '&'.join(
+        url = '{}?{}'.format(reverse('app_account:get-self'), '&'.join(
             [
                 'filter=email',
                 'filter=mobile',
@@ -67,48 +67,48 @@ class GetSelfTests(TestCase):
 
 
 class ListUserTests(TestCase):
-    url = reverse('app_account:list_user')
+    url = reverse('app_account:list-user')
 
     # TODO
 
 
 class CreateUserTests(TestCase):
-    url = reverse('app_account:create_user')
+    url = reverse('app_account:create-user')
 
     # TODO
 
 
 class EditUserTests(TestCase):
-    url = reverse('app_account:edit_user')
+    url = reverse('app_account:edit-user')
 
     # TODO
 
 
 class DeleteUserTests(TestCase):
-    url = reverse('app_account:delete_user')
+    url = reverse('app_account:delete-user')
 
     # TODO
 
 
 class ListStaffTests(TestCase):
-    url = reverse('app_account:list_staff')
+    url = reverse('app_account:list-staff')
 
     # TODO
 
 
 class CreateStaffTests(TestCase):
-    url = reverse('app_account:create_staff')
+    url = reverse('app_account:create-staff')
 
     # TODO
 
 
 class EditStaffTests(TestCase):
-    url = reverse('app_account:edit_staff')
+    url = reverse('app_account:edit-staff')
 
     # TODO
 
 
 class DeleteStaffTests(TestCase):
-    url = reverse('app_account:delete_staff')
+    url = reverse('app_account:delete-staff')
 
     # TODO
