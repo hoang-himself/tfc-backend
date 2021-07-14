@@ -40,7 +40,6 @@ class GetSelfTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(serializer.items() <= response.data.items())
 
-
     @freeze_time("2016-12-21 16:00:00", tz_offset=+7)
     def test_fragmented_filter(self):
         url = '{}?{}'.format(reverse('app_account:get_self'), '&'.join(
@@ -65,32 +64,6 @@ class GetSelfTests(TestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(serializer, response.data)
-
-
-"""
-    @freeze_time("2016-12-21 16:00:00", tz_offset=+7)
-    def test_list_filter(self):
-        # /api/v1/account/get?filter=[email,mobile,birth_date]
-        url = '{}?{}'.format(
-            reverse('app_account:get_self'),
-            'filter=[\'email\',\'mobile\',\'birth_date\']'
-        )
-        client = APIClient()
-        data = {
-            'email': 'user1@tfc.com',
-            'password': 'iamuser1'
-        }
-        response = client.post(reverse('app_auth:login'), data=data)
-        response = client.get(url)
-        serializer = {
-            'email': 'user1@tfc.com',
-            'mobile': '0123456789',
-            'birth_date': '2001-07-31',
-        }
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(serializer, response.data)
-"""
 
 
 class ListUserTests(TestCase):
