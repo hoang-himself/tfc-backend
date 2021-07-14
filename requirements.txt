@@ -4,15 +4,17 @@
 #
 #    pip-compile
 #
-asgiref==3.3.4
+asgiref==3.4.1
     # via django
-cffi==1.14.5
+autopep8==1.5.7
+    # via tfc-backend (setup.py)
+cffi==1.14.6
     # via cryptography
 cryptography==3.4.7
     # via tfc-backend (setup.py)
 dj-database-url==0.5.0
     # via tfc-backend (setup.py)
-django==3.2.4
+django==3.2.5
     # via
     #   django-annoying
     #   django-common-helpers
@@ -39,7 +41,7 @@ django-filter==2.4.0
     # via tfc-backend (setup.py)
 django-model-utils==4.1.1
     # via tfc-backend (setup.py)
-django-taggit==1.4.0
+django-taggit==1.5.1
     # via
     #   django-taggit-serializer
     #   tfc-backend (setup.py)
@@ -51,10 +53,12 @@ djangorestframework==3.12.4
     #   tfc-backend (setup.py)
 djangorestframework-simplejwt==4.7.2
     # via tfc-backend (setup.py)
-pillow==8.2.0
+pillow==8.3.1
     # via tfc-backend (setup.py)
-psycopg2-binary==2.8.6
+psycopg2-binary==2.9.1
     # via tfc-backend (setup.py)
+pycodestyle==2.7.0
+    # via autopep8
 pycparser==2.20
     # via cffi
 pyjwt==2.1.0
@@ -71,3 +75,5 @@ six==1.16.0
     #   django-taggit-serializer
 sqlparse==0.4.1
     # via django
+toml==0.10.2
+    # via autopep8
