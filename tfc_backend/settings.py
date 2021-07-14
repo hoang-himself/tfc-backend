@@ -113,9 +113,21 @@ AUTH_USER_MODEL = 'master_db.CustomUser'
 
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
-DATABASES = {
-    'default': dj_database_url.config(conn_max_age=600, ssl_require=True)
-}
+if 'DATABASE_URL' in os.environ:
+    DATABASES = {
+        'default': dj_database_url.config(conn_max_age=600, ssl_require=True)
+    }
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            'NAME': 'tfc',
+            'USER': 'tfc_admin',
+            'PASSWORD': 'i-am-admin',
+            'HOST': 'localhost',
+            'PORT': 5432,
+        }
+    }
 
 
 # Password validation
