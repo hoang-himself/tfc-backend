@@ -73,13 +73,13 @@ class Setting(TemplateModel):
 
 class CustomUser(AbstractUser):
     username = None
-    uuid = models.UUIDField(default=uuid.uuid4, blank=True)
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, blank=True)
     email = models.EmailField(unique=True)
 
-    birth_date = models.DateField()
-    mobile = models.CharField(max_length=12, unique=True)
+    birth_date = models.DateField(null=True, blank=True)
+    mobile = models.CharField(max_length=15, unique=True)
     male = models.BooleanField(null=True, blank=True)
-    address = models.TextField()
+    address = models.TextField(null=True, blank=True)
     avatar = models.ImageField(
         upload_to='images/profile/%Y/%m/%d/', null=True, blank=True)
 
@@ -90,12 +90,7 @@ class CustomUser(AbstractUser):
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = [
-        'first_name',
-        'last_name',
-        'birth_date',
         'mobile',
-        'male',
-        'address',
     ]
     objects = CustomUserManager()
 
@@ -104,7 +99,6 @@ class CustomUser(AbstractUser):
         verbose_name_plural = 'users'
         indexes = [
             models.Index(fields=['first_name', ]),
-            models.Index(fields=['birth_date', ]),
             models.Index(fields=['male', ]),
         ]
 
