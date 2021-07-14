@@ -11,7 +11,6 @@ CustomUser = get_user_model()
 
 
 class GetSelfTests(TestCase):
-    url = reverse('app_account:get_self')
 
     @freeze_time("2016-12-21 16:00:00", tz_offset=+7)
     def setUp(self):
@@ -24,26 +23,74 @@ class GetSelfTests(TestCase):
 
     @freeze_time("2016-12-21 16:00:00", tz_offset=+7)
     def test_no_filter(self):
+        url = reverse('app_account:get_self')
         client = APIClient()
         data = {
             'email': 'user1@tfc.com',
             'password': 'iamuser1'
         }
         response = client.post(reverse('app_auth:login'), data=data)
-        response = client.get(self.url)
+        response = client.get(url)
         serializer = {
-            'last_login': '2016-12-21T23:00:00+07:00',
-            'is_superuser': False, 'is_staff': False, 'is_active': True,
-            'email': 'user1@tfc.com', 'first_name': 'First', 'last_name': 'Last',
-            'birth_date': '2001-07-31',
+            'email': 'user1@tfc.com', 'first_name': 'First',
+            'last_name': 'Last', 'birth_date': '2001-07-31',
             'mobile': '0123456789', 'male': True, 'address': 'My lovely home',
-            'date_joined': '2016-12-21T23:00:00+07:00',
-            'date_updated': '2016-12-21T23:00:00+07:00',
-            'groups': [], 'user_permissions': []
         }
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(serializer.items() <= response.data.items())
+
+
+    @freeze_time("2016-12-21 16:00:00", tz_offset=+7)
+    def test_fragmented_filter(self):
+        url = '{}?{}'.format(reverse('app_account:get_self'), '&'.join(
+            [
+                'filter=email',
+                'filter=mobile',
+                'filter=birth_date',
+            ]  # /api/v1/account/get?filter=email&filter=mobile&filter=birth_date
+        ))
+        client = APIClient()
+        data = {
+            'email': 'user1@tfc.com',
+            'password': 'iamuser1'
+        }
+        response = client.post(reverse('app_auth:login'), data=data)
+        response = client.get(url)
+        serializer = {
+            'email': 'user1@tfc.com',
+            'mobile': '0123456789',
+            'birth_date': '2001-07-31',
+        }
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(serializer, response.data)
+
+
+"""
+    @freeze_time("2016-12-21 16:00:00", tz_offset=+7)
+    def test_list_filter(self):
+        # /api/v1/account/get?filter=[email,mobile,birth_date]
+        url = '{}?{}'.format(
+            reverse('app_account:get_self'),
+            'filter=[\'email\',\'mobile\',\'birth_date\']'
+        )
+        client = APIClient()
+        data = {
+            'email': 'user1@tfc.com',
+            'password': 'iamuser1'
+        }
+        response = client.post(reverse('app_auth:login'), data=data)
+        response = client.get(url)
+        serializer = {
+            'email': 'user1@tfc.com',
+            'mobile': '0123456789',
+            'birth_date': '2001-07-31',
+        }
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(serializer, response.data)
+"""
 
 
 class ListUserTests(TestCase):

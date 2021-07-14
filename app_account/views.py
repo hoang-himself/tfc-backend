@@ -46,6 +46,7 @@ def get_self(request):
     # https://docs.python.org/2/tutorial/controlflow.html#unpacking-argument-lists
     data = CustomUser.objects.get(uuid=user['uuid'].value)
     data = CustomUserSerializer(data).data
+    data = {key: data[key] for key in filter_query}
     return Response(data=data, status=status.HTTP_200_OK)
 
 
