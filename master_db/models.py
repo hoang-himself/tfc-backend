@@ -19,17 +19,17 @@ class TemplateModel(models.Model):
     class Meta:
         abstract = True
 
-    def save(self, *args, **kwargs):
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None):
         """
         Overriding the save method in order to make sure that
         modified field is updated even if it is not given as
         a parameter to the update field argument.
         """
-        update_fields = kwargs.get('update_fields', None)
         if update_fields:
-            kwargs['update_fields'] = set(update_fields).union({'updated_at'})
+            update_fields = set(update_fields).union({'updated_at'})
 
-        super().save(*args, **kwargs)
+        super().save(force_insert, force_update, using, update_fields)
 
 
 #

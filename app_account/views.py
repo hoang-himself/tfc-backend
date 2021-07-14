@@ -285,9 +285,9 @@ def create_user(request) -> Response:
         return check
 
     # Verify username
-    check = username_response(username)
-    if check.status_code == status.HTTP_400_BAD_REQUEST:
-        return check
+    # check = username_response(username)
+    # if check.status_code == status.HTTP_400_BAD_REQUEST:
+    #     return check
 
     # Verify password
     check = password_response(password)
@@ -317,7 +317,7 @@ def create_user(request) -> Response:
 
     #
     user = CustomUser(
-        username=username,
+        # username=username,
         first_name=first_name,
         last_and_mid_name=last_and_mid_name,
         birth_date=birth_date,
@@ -328,8 +328,8 @@ def create_user(request) -> Response:
         address=address,
         # group=group,
         avatar=avatar,
-        created_at=created_at,
-        updated_at=updated_at,
+        # created_at=created_at,
+        # updated_at=updated_at,
     )
 
     try:
@@ -373,7 +373,7 @@ def list_user(request):
         filter_query = [
             'pk',
             'uuid',
-            'username',
+            # 'username',
             'first_name',
             'last_and_mid_name',
             'email',
@@ -382,15 +382,16 @@ def list_user(request):
             'male',
             'address',
             # 'role__name',
-            'is_active',
-            'created_at',
-            'updated_at'
+            # 'is_active',
+            # 'created_at',
+            # 'updated_at'
+            'date_joined'
         ]
 
     filter_dict = {
         'pk': True,
         'uuid': True,
-        'username': True,
+        # 'username': True,
         'first_name': True,
         'last_and_mid_name': True,
         'email': True,
@@ -400,10 +401,11 @@ def list_user(request):
         'male': True,
         'address': True,
         'avatar': False,
+        'date_joined': True,
         # 'role__name': True,
-        'is_active': True,
-        'created_at': True,
-        'updated_at': True
+        # 'is_active': True,
+        # 'created_at': True,
+        # 'updated_at': True
     }
 
     listZ = []

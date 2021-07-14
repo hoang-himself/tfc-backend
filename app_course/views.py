@@ -26,14 +26,10 @@ def create_course(request):
     """
 
     # Get fields. Should not use **request.POST because it will cause everything to be string -> invalid type
-    now = datetime.datetime.now().timestamp()
     course = Course(
         name=request.POST.get('name'),
         desc=request.POST.get('desc'),
-        short_desc=request.POST.get('short_desc'),
         duration=request.POST.get('duration'),
-        created_at=now,
-        updated_at=now
     )
 
     # Validate model
@@ -47,7 +43,7 @@ def create_course(request):
         data={
             'detail': 'Ok',
         },
-        status=status.HTTP_200_OK
+        status=status.HTTP_201_CREATED
     )
 
 
@@ -77,6 +73,9 @@ def edit_course(request):
         modifiedDict['duration'] = int(modifiedDict['duration'])
 
     edit_object(course, modifiedDict, modifiedList, ['tags'])
+    
+    if not modifiedList:
+        return Response(data={'detail': 'modified nothing'}, status=status.HTTP_204_NO_CONTENT)
 
     # Validate model
     model_full_clean(course)
@@ -86,10 +85,6 @@ def edit_course(request):
         modifiedList.append('tags')
         course.tags.clear()
         course.tags.add(*modifiedDict['tags'].replace(' ', '').split(','))
-
-    if bool(modifiedList):
-        modifiedList.append('updated_at')
-        course.updated_at = datetime.datetime.now().timestamp()
 
     course.save()
 
