@@ -162,8 +162,8 @@ class Schedule(TemplateModel):
     time_end = models.IntegerField()
 
     class Meta:
-        verbose_name = 'session'
-        verbose_name_plural = 'sessions'
+        verbose_name = 'schedule'
+        verbose_name_plural = 'schedules'
         indexes = [
             models.Index(fields=['time_start', 'time_end'])
         ]
