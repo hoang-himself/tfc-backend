@@ -26,27 +26,12 @@ def get_self(request):
 
     filter_query = request.GET.getlist('filter')
 
-    if not filter_query:
-        filter_query = [
-            'uuid',
-            'email',
-            'first_name',
-            'last_name',
-            'birth_date',
-            'mobile',
-            'male',
-            'address',
-            'is_active',
-            'last_login',
-            'date_joined',
-            'date_updated',
-        ]
-
     # Asterisk expands list into separated args
     # https://docs.python.org/2/tutorial/controlflow.html#unpacking-argument-lists
     data = CustomUser.objects.get(uuid=user['uuid'].value)
     data = CustomUserSerializer(data).data
-    data = {key: data[key] for key in filter_query}
+    if filter_query:
+        data = {key: data[key] for key in filter_query}
     return Response(data=data, status=status.HTTP_200_OK)
 
 

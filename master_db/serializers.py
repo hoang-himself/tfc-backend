@@ -1,9 +1,12 @@
+from django.contrib.auth.models import Group
 from rest_framework import serializers
 from master_db.models import (
     Metatable, Branch, Calendar, CustomUser, Setting, Course,
     ClassMetadata, ClassStudent, Schedule, Session, Log
 )
-from taggit_serializer.serializers import TaggitSerializer, TagListSerializerField
+from taggit_serializer.serializers import (
+    TaggitSerializer, TagListSerializerField
+)
 
 # For enhanced models
 
@@ -69,10 +72,18 @@ class SettingSerializer(EnhancedModelSerializer):
         fields = '__all__'
 
 
+class GroupSerializer(EnhancedModelSerializer):
+    class Meta:
+        model = Group
+        fields = ['name', ]
+
+
 class CustomUserSerializer(EnhancedModelSerializer):
+    groups = GroupSerializer(many=True)
+
     class Meta:
         model = CustomUser
-        exclude = ('password', 'avatar',)
+        exclude = ('id', 'password', 'avatar',)
 
 
 class InternalCustomUserSerializer(EnhancedModelSerializer):
