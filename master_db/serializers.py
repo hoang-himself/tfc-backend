@@ -92,7 +92,7 @@ class CourseSerializer(EnhancedModelSerializer):
 class UserRelatedField(serializers.RelatedField):
     def to_representation(self, obj):
         return {
-            'name': obj.first_name + obj.last_and_mid_name,
+            'name': obj.first_name + obj.last_name,
             'mobile': obj.mobile,
             'email': obj.email,
             'uuid': obj.uuid,
