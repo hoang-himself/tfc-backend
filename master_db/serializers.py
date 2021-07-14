@@ -72,6 +72,12 @@ class SettingSerializer(EnhancedModelSerializer):
 class CustomUserSerializer(EnhancedModelSerializer):
     class Meta:
         model = CustomUser
+        exclude = ('password', 'avatar',)
+
+
+class InternalCustomUserSerializer(EnhancedModelSerializer):
+    class Meta:
+        model = CustomUser
         fields = '__all__'
 
 

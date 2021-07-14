@@ -1,9 +1,10 @@
+from annoying.functions import get_object_or_None
+
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import check_password
 from django.contrib.auth.models import update_last_login
 from django.views.decorators.csrf import (csrf_protect, ensure_csrf_cookie)
-from annoying.functions import get_object_or_None
 
 from rest_framework import status
 from rest_framework.decorators import (api_view, permission_classes)
@@ -11,7 +12,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from master_db.serializers import CustomUserSerializer
+from master_db.serializers import InternalCustomUserSerializer
 
 import jwt
 
@@ -51,7 +52,7 @@ def login(request) -> Response:
             status=status.HTTP_404_NOT_FOUND
         )
 
-    ser_user = CustomUserSerializer(user).data
+    ser_user = InternalCustomUserSerializer(user).data
     if not check_password(password, ser_user.get('password')):
         return Response(
             data={

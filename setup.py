@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 # https://github.com/pypa/sampleproject/blob/main/setup.py
 setup(
     name='tfc-backend',
-    version='0.0.2',
+    version='0.0.3',
     license='Proprietary',
     setup_requires=['setuptools_scm'],
     use_scm_version=True,
@@ -30,6 +30,7 @@ setup(
     python_requires='>=3.8, <4',
     include_package_data=True,
     install_requires=[
+        'autopep8',
         'cryptography',
         'dj-database-url',
         'Django',
