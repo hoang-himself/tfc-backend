@@ -1,7 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
-from model_utils.fields import (AutoCreatedField, AutoLastModifiedField)
+from model_utils.models import TimeStampedModel
 from taggit.managers import TaggableManager
 
 from .managers import CustomUserManager
@@ -10,26 +10,12 @@ import uuid
 import datetime
 
 
-class TemplateModel(models.Model):
+class TemplateModel(TimeStampedModel):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, blank=True)
-    created_at = AutoCreatedField('created')
-    updated_at = AutoLastModifiedField('updated')
     desc = models.TextField(null=True, blank=True)
 
     class Meta:
         abstract = True
-
-    def save(self, *args, **kwargs):
-        """
-        Overriding the save method in order to make sure that
-        modified field is updated even if it is not given as
-        a parameter to the update field argument.
-        """
-        update_fields = kwargs.get('update_fields', None)
-        if update_fields:
-            kwargs['update_fields'] = set(update_fields).union({'updated_at'})
-
-        super().save(*args, **kwargs)
 
 
 #
