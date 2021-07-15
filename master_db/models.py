@@ -125,19 +125,16 @@ class Course(TemplateModel):
 
 #
 class ClassMetadata(TemplateModel):
-    course = models.ForeignKey(Course, on_delete=models.CASCADE)
-    name = models.TextField(unique=True)
+    name = models.TextField()
+    course = models.OneToOneField(
+        Course,
+        on_delete=models.CASCADE
+    )
     teacher = models.ForeignKey(
         CustomUser,
         on_delete=models.DO_NOTHING,
-        related_name='teacher_classes',
+        null=True,
         blank=True,
-        null=True
-    )
-    students = models.ManyToManyField(
-        CustomUser,
-        related_name='student_classes',
-        blank=True
     )
     status = models.TextField()
 
@@ -145,7 +142,8 @@ class ClassMetadata(TemplateModel):
         verbose_name = 'class'
         verbose_name_plural = 'classes'
         indexes = [
-            models.Index(fields=['status', ])
+            models.Index(fields=['course', ]),
+            models.Index(fields=['status', ]),
         ]
 
     def __str__(self):
@@ -179,11 +177,12 @@ class ClassStudent(TemplateModel):
     classroom = models.ForeignKey(
         ClassMetadata,
         on_delete=models.CASCADE,
-        null=True
     )
     student = models.ForeignKey(
         CustomUser,
-        on_delete=models.CASCADE)
+        on_delete=models.CASCADE,
+        null=True,
+    )
 
     class Meta:
         verbose_name = 'class student'
