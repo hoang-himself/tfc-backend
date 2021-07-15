@@ -1,4 +1,4 @@
-from django.core.exceptions import ValidationError
+from django.contrib.auth import get_user_model
 from django.views.decorators.csrf import csrf_protect
 
 from rest_framework import status
@@ -9,8 +9,19 @@ from rest_framework.response import Response
 
 from master_db.models import Course
 from master_db.serializers import CourseSerializer
-from master_api.utils import get_object_or_404, model_full_clean, edit_object, get_by_uuid
-# Create your views here.
+from master_api.utils import get_object_or_404, model_full_clean, edit_object, formdata_bool
+
+import datetime
+
+CustomUser = get_user_model()
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+@csrf_protect
+def get_course(request):
+    # TODO
+    pass
 
 
 @api_view(['POST'])

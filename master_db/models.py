@@ -1,7 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
-from model_utils.fields import (AutoCreatedField, AutoLastModifiedField)
+from model_utils.models import TimeStampedModel
 from taggit.managers import TaggableManager
 
 from .managers import CustomUserManager
@@ -10,26 +10,12 @@ import uuid
 import datetime
 
 
-class TemplateModel(models.Model):
-    uuid = models.UUIDField(default=uuid.uuid4, blank=True)
-    created_at = AutoCreatedField('created')
-    updated_at = AutoLastModifiedField('updated')
+class TemplateModel(TimeStampedModel):
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, blank=True)
     desc = models.TextField(null=True, blank=True)
 
     class Meta:
         abstract = True
-
-    def save(self, force_insert=False, force_update=False, using=None,
-             update_fields=None):
-        """
-        Overriding the save method in order to make sure that
-        modified field is updated even if it is not given as
-        a parameter to the update field argument.
-        """
-        if update_fields:
-            update_fields = set(update_fields).union({'updated_at'})
-
-        super().save(force_insert, force_update, using, update_fields)
 
 
 #
@@ -73,15 +59,13 @@ class Setting(TemplateModel):
 
 class CustomUser(AbstractUser):
     username = None
-    uuid = models.UUIDField(default=uuid.uuid4, blank=True)
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, blank=True)
     email = models.EmailField(unique=True)
 
-    first_name = models.TextField()
-    last_and_mid_name = models.TextField()
-    birth_date = models.DateField()
-    mobile = models.CharField(max_length=12, unique=True)
+    birth_date = models.DateField(null=True, blank=True)
+    mobile = models.CharField(max_length=15, unique=True)
     male = models.BooleanField(null=True, blank=True)
-    address = models.TextField()
+    address = models.TextField(null=True, blank=True)
     avatar = models.ImageField(
         upload_to='images/profile/%Y/%m/%d/', null=True, blank=True)
 
@@ -92,12 +76,7 @@ class CustomUser(AbstractUser):
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = [
-        'first_name',
-        'last_and_mid_name',
-        'birth_date',
         'mobile',
-        'male',
-        'address',
     ]
     objects = CustomUserManager()
 
@@ -106,7 +85,6 @@ class CustomUser(AbstractUser):
         verbose_name_plural = 'users'
         indexes = [
             models.Index(fields=['first_name', ]),
-            models.Index(fields=['birth_date', ]),
             models.Index(fields=['male', ]),
         ]
 
@@ -131,21 +109,23 @@ class Course(TemplateModel):
         return f'{self.name}'
 
 
-#
+# TODO
 class ClassMetadata(TemplateModel):
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     name = models.TextField(unique=True)
-    teacher = models.ForeignKey(
+    teachers = models.ManyToManyField(
         CustomUser,
         on_delete=models.DO_NOTHING,
         related_name='teacher_classes',
+        null=True,
         blank=True,
-        null=True
     )
     students = models.ManyToManyField(
         CustomUser,
+        on_delete=models.DO_NOTHING,
         related_name='student_classes',
-        blank=True
+        null=True,
+        blank=True,
     )
     status = models.TextField()
 
@@ -153,7 +133,8 @@ class ClassMetadata(TemplateModel):
         verbose_name = 'class'
         verbose_name_plural = 'classes'
         indexes = [
-            models.Index(fields=['status', ])
+            models.Index(fields=['course', ]),
+            models.Index(fields=['status', ]),
         ]
 
     def __str__(self):
@@ -170,8 +151,8 @@ class Schedule(TemplateModel):
     time_end = models.IntegerField()
 
     class Meta:
-        verbose_name = 'session'
-        verbose_name_plural = 'sessions'
+        verbose_name = 'schedule'
+        verbose_name_plural = 'schedules'
         indexes = [
             models.Index(fields=['time_start', 'time_end'])
         ]
@@ -180,25 +161,6 @@ class Schedule(TemplateModel):
         time_start = datetime.datetime.fromtimestamp(self.time_start)
         time_end = datetime.datetime.fromtimestamp(self.time_end)
         return f'{self.classroom}, {time_start.hour}:{time_start.minute:02d} ~ {time_end.hour}:{time_end.minute:02d}'
-
-
-#
-class ClassStudent(TemplateModel):
-    classroom = models.ForeignKey(
-        ClassMetadata,
-        on_delete=models.CASCADE,
-        null=True
-    )
-    student = models.ForeignKey(
-        CustomUser,
-        on_delete=models.CASCADE)
-
-    class Meta:
-        verbose_name = 'class student'
-        verbose_name_plural = 'class students'
-
-    def __str__(self):
-        return f'{self.classroom} {self.student}'
 
 
 #

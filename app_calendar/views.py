@@ -5,7 +5,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from app_auth.utils import has_perm
+# from app_auth.utils import has_perm
 from master_db.models import Calendar
 
 # Create your views here.
@@ -18,9 +18,9 @@ def list_calendar(request):
     """
         Return list of users with a specified view
     """
-    check = has_perm(request, ['account_cred'])
-    if check.status_code >= 400:
-        return check
+    # check = has_perm(request, ['account_cred'])
+    # if check.status_code >= 400:
+        # return check
 
     filter_query = request.GET.getlist('filter')
 

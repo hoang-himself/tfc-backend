@@ -8,12 +8,31 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
+from app_auth.utils import request_to_userobj
 from master_db.serializers import CustomUserSerializer
 
 import datetime
 import re
 
-# Create your views here.
+CustomUser = get_user_model()
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+@csrf_protect
+def get_self(request):
+    user = request_to_userobj(request)
+    user = CustomUserSerializer(user)
+
+    filter_query = request.GET.getlist('filter')
+
+    # Asterisk expands list into separated args
+    # https://docs.python.org/2/tutorial/controlflow.html#unpacking-argument-lists
+    data = CustomUser.objects.get(uuid=user['uuid'].value)
+    data = CustomUserSerializer(data).data
+    if filter_query:
+        data = {key: data[key] for key in filter_query}
+    return Response(data=data, status=status.HTTP_200_OK)
 
 
 def email_validate(email) -> bool:
@@ -36,7 +55,6 @@ def email_response(email) -> Response:
     """
         Return response when checking signed up email address in db
     """
-    CustomUser = get_user_model()
 
     # Validating email address
     if not email_validate(email):
@@ -97,7 +115,6 @@ def mobile_response(mobile) -> Response:
     """
         Return response when checking signed up mobile phone number in db
     """
-    CustomUser = get_user_model()
 
     # Validating mobile address
     if not mobile_validate(mobile):
@@ -142,7 +159,6 @@ def username_response(username) -> Response:
     """
         Return response when checking signed up username in db
     """
-    CustomUser = get_user_model()
 
     # Check nullity
     if username is None or username == '':
@@ -237,17 +253,70 @@ def password_check(request) -> Response:
     return Response(password)
 
 
+@api_view(['GET'])
+@permission_classes([AllowAny])
+@csrf_protect
+def list_user(request):
+    """
+        Return list of users with a specified view
+    """
+    filter_query = request.GET.getlist('filter')
+
+    if not filter_query:
+        filter_query = [
+            'uuid',
+            'email',
+            'first_name',
+            'last_name',
+            'birth_date',
+            'mobile',
+            'male',
+            'address',
+            'is_active',
+            'last_login',
+            'date_joined',
+            'date_updated',
+        ]
+
+    filter_dict = {
+        'uuid': True,
+        'email': True,
+        'first_name': True,
+        'last_name': True,
+        'birth_date': True,
+        'mobile': True,
+        'male': True,
+        'address': True,
+        'avatar': False,
+        # 'role__name': True,
+        'is_active': True,
+        'last_login': True,
+        'date_joined': True,
+        'date_updated': True,
+    }
+
+    # TODO
+    listZ = []
+    for key in filter_query:  # Query filter for choosing views
+        if filter_dict[key]:
+            listZ.append(key)
+
+    # Asterisk expands list into separated args
+    # https://docs.python.org/2/tutorial/controlflow.html#unpacking-argument-lists
+    data = CustomUser.objects.all().values(*listZ)
+    return Response(data)
+
+
 @api_view(['POST'])
 @permission_classes([AllowAny])
-# @csrf_protect
+@csrf_protect
 def create_user(request) -> Response:
     """
-        Requires every param: first_name, last_and_mid_name, address, male, avatar, birth_date, role_id, email, mobile, username, password.
+        Requires every param: first_name, last_name, address, male, avatar, birth_date, role_id, email, mobile, username, password.
 
         The role_id param takes in int type and represents the id of the group in database.
     """
-    CustomUser = get_user_model()
-
+    # TODO
     # Insignificant factors:
     # - These factors are freely defined and do not affect
     # its corresponding account if input incorrectly.
@@ -257,7 +326,7 @@ def create_user(request) -> Response:
     #     return check
 
     first_name = request.POST.get('first_name')
-    last_and_mid_name = request.POST.get('last_and_mid_name')
+    last_name = request.POST.get('last_name')
     address = request.POST.get('address')
     male = request.POST.get('male')
     avatar = request.POST.get('avatar')
@@ -319,7 +388,7 @@ def create_user(request) -> Response:
     user = CustomUser(
         # username=username,
         first_name=first_name,
-        last_and_mid_name=last_and_mid_name,
+        last_name=last_name,
         birth_date=birth_date,
         email=email,
         mobile=mobile,
@@ -354,48 +423,61 @@ def create_user(request) -> Response:
     )
 
 
+@api_view(['PATCH'])
+@permission_classes([AllowAny])
+@csrf_protect
+def edit_user(request):
+    # TODO
+    pass
+
+
+@api_view(['DELEte'])
+@permission_classes([AllowAny])
+@csrf_protect
+def delete_user(request):
+    # TODO
+    pass
+
+
 @api_view(['GET'])
 @permission_classes([AllowAny])
-# @csrf_protect
-def list_user(request):
+@csrf_protect
+def list_staff(request):
+    # TODO
+    pass
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+@csrf_protect
+def create_staff(request):
     """
         Return list of users with a specified view
     """
-    CustomUser = get_user_model()
-
-    # check = has_perm(request, ['account_cred'])
-    # if check.status_code >= 400:
-    #     return check
-
+    # TODO
     filter_query = request.GET.getlist('filter')
 
     if not filter_query:
         filter_query = [
-            'pk',
             'uuid',
-            # 'username',
-            'first_name',
-            'last_and_mid_name',
             'email',
+            'first_name',
+            'last_name',
             'birth_date',
             'mobile',
             'male',
             'address',
-            # 'role__name',
-            # 'is_active',
-            # 'created_at',
-            # 'updated_at'
-            'date_joined'
+            'is_active',
+            'last_login',
+            'date_joined',
+            'date_updated',
         ]
 
     filter_dict = {
-        'pk': True,
         'uuid': True,
-        # 'username': True,
-        'first_name': True,
-        'last_and_mid_name': True,
         'email': True,
-        'password': False,
+        'first_name': True,
+        'last_name': True,
         'birth_date': True,
         'mobile': True,
         'male': True,
@@ -403,11 +485,13 @@ def list_user(request):
         'avatar': False,
         'date_joined': True,
         # 'role__name': True,
-        # 'is_active': True,
-        # 'created_at': True,
-        # 'updated_at': True
+        'is_active': True,
+        'last_login': True,
+        'date_joined': True,
+        'date_updated': True,
     }
 
+    # TODO
     listZ = []
     for key in filter_query:  # Query filter for choosing views
         if filter_dict[key]:
@@ -417,3 +501,19 @@ def list_user(request):
     # https://docs.python.org/2/tutorial/controlflow.html#unpacking-argument-lists
     data = CustomUser.objects.all().values(*listZ)
     return Response(data)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+@csrf_protect
+def edit_staff(request):
+    # TODO
+    pass
+
+
+@api_view(['DELETE'])
+@permission_classes([AllowAny])
+@csrf_protect
+def delete_staff(request):
+    # TODO
+    pass
