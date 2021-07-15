@@ -44,7 +44,7 @@ def verify_teacher(user):
 @permission_classes([AllowAny])
 def create_class(request):
     """
-        Take in course_name, name, teacher_uuid (Optional), status (Need revision), std_uuids (Optional)
+        Take in course_uuid, name, teacher_uuid (Optional), status (Need revision), std_uuids (Optional)
 
         Param std_uuids must be in form of: uuid1, uuid2, uuid3 (whitespace is optional)
     """
@@ -53,9 +53,9 @@ def create_class(request):
     std_uuids = request.POST.get('std_uuids')
     teacher = request.POST.get('teacher_uuid')
 
-    # Get course corresponding to course_name
+    # Get course corresponding to course_uuid
     course = get_object_or_404(
-        Course, 'Course', name=request.POST.get('course_name'))
+        Course, 'Course', uuid=request.POST.get('course_uuid'))
 
     # Get teacher if available
     if teacher is not None:
@@ -183,7 +183,7 @@ def delete_student(request):
 @permission_classes([AllowAny])
 def edit_class(request):
     """
-        Take in target_name, course_name (optional), teacher_uuid (optional), course (optional), name (optional), status (optional).
+        Take in target_name, course_uuid (optional), teacher_uuid (optional), course (optional), name (optional), status (optional).
 
         The optional params if not provided will not be updated. If the content provided is the same as the source, no change will be made.
 
@@ -204,9 +204,9 @@ def edit_class(request):
             modifiedDict['teacher_uuid'])
 
     # Get course if provided
-    if modifiedDict.get('course_name') is not None:
+    if modifiedDict.get('course_uuid') is not None:
         modifiedDict['course'] = get_object_or_404(
-            Course, 'Course', name=modifiedDict['course_name'])
+            Course, 'Course', name=modifiedDict['course_uuid'])
 
     # Update the provided fields if content changed
     modifiedList = []

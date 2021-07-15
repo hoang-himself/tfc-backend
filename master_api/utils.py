@@ -43,6 +43,17 @@ def get_object_or_404(klass, name_print, *args, **kwargs):
         raise NotFound(f'{name_print} does not exist')
 
 
+def get_by_uuid(klass, name_print, uuid):
+    """
+    Get object by uuid using get_object_or_404 with additional 
+    error handling (invalid uuid)
+    """
+    try:
+        return get_object_or_404(klass, name_print, uuid=uuid)
+    except ValidationError as message:
+        raise ParseError({'detail': list(message)})
+
+
 def model_full_clean(model):
     try:
         model.full_clean()
@@ -50,11 +61,14 @@ def model_full_clean(model):
         raise ParseError(dict(message))
 
 
-def edit_object(model, modifiedDict, modifiedList, avoid=[]):
+def edit_object(model, modifiedDict, avoid=[]):
+    modifiedList = []
     for key, value in modifiedDict.items():
         if hasattr(model, key) and value != getattr(model, key) and not key in avoid:
             setattr(model, key, value)
             modifiedList.append(key)
+
+    return modifiedList
 
 
 def get_list_or_404(klass, name_print, *args, **kwargs):
