@@ -79,7 +79,7 @@ class GroupSerializer(EnhancedModelSerializer):
 
 
 class CustomUserSerializer(EnhancedModelSerializer):
-    groups = GroupSerializer(many=True)
+    groups = GroupSerializer(many=True, read_only=True)
 
     class Meta:
         model = CustomUser
@@ -119,7 +119,6 @@ class CourseRelatedField(serializers.RelatedField):
 
 class ClassMetadataSerializer(EnhancedModelSerializer):
     course = CourseRelatedField(read_only=True)
-    students = UserRelatedField(many=True, read_only=True)
     teacher = UserRelatedField(read_only=True)
 
     class Meta:
@@ -128,6 +127,8 @@ class ClassMetadataSerializer(EnhancedModelSerializer):
 
 
 class ClassStudentSerializer(EnhancedModelSerializer):
+    student = UserRelatedField(read_only=True)
+
     class Meta:
         model = ClassStudent
         fields = '__all__'

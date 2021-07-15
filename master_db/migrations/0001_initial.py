@@ -72,7 +72,7 @@ class Migration(migrations.Migration):
                 ('modified', model_utils.fields.AutoLastModifiedField(default=django.utils.timezone.now, editable=False, verbose_name='modified')),
                 ('uuid', models.UUIDField(blank=True, default=uuid.uuid4, editable=False)),
                 ('desc', models.TextField(blank=True, null=True)),
-                ('name', models.TextField(unique=True)),
+                ('name', models.TextField()),
                 ('status', models.TextField()),
             ],
             options={
@@ -186,8 +186,8 @@ class Migration(migrations.Migration):
                 ('modified', model_utils.fields.AutoLastModifiedField(default=django.utils.timezone.now, editable=False, verbose_name='modified')),
                 ('uuid', models.UUIDField(blank=True, default=uuid.uuid4, editable=False)),
                 ('desc', models.TextField(blank=True, null=True)),
-                ('classroom', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='master_db.classmetadata')),
-                ('student', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                ('classroom', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='master_db.classmetadata')),
+                ('student', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
             ],
             options={
                 'verbose_name': 'class student',
@@ -197,17 +197,12 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='classmetadata',
             name='course',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='master_db.course'),
-        ),
-        migrations.AddField(
-            model_name='classmetadata',
-            name='students',
-            field=models.ManyToManyField(blank=True, related_name='student_classes', to=settings.AUTH_USER_MODEL),
+            field=models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, to='master_db.course'),
         ),
         migrations.AddField(
             model_name='classmetadata',
             name='teacher',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.DO_NOTHING, related_name='teacher_classes', to=settings.AUTH_USER_MODEL),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.DO_NOTHING, to=settings.AUTH_USER_MODEL),
         ),
         migrations.CreateModel(
             name='Calendar',
@@ -242,6 +237,10 @@ class Migration(migrations.Migration):
         migrations.AddIndex(
             model_name='course',
             index=models.Index(fields=['duration'], name='master_db_c_duratio_7c3de7_idx'),
+        ),
+        migrations.AddIndex(
+            model_name='classmetadata',
+            index=models.Index(fields=['course'], name='master_db_c_course__cd1b38_idx'),
         ),
         migrations.AddIndex(
             model_name='classmetadata',
