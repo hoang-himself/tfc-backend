@@ -109,16 +109,21 @@ class Course(TemplateModel):
         return f'{self.name}'
 
 
-#
+# TODO
 class ClassMetadata(TemplateModel):
-    name = models.TextField()
-    course = models.OneToOneField(
-        Course,
-        on_delete=models.CASCADE
-    )
-    teacher = models.ForeignKey(
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    name = models.TextField(unique=True)
+    teachers = models.ManyToManyField(
         CustomUser,
         on_delete=models.DO_NOTHING,
+        related_name='teacher_classes',
+        null=True,
+        blank=True,
+    )
+    students = models.ManyToManyField(
+        CustomUser,
+        on_delete=models.DO_NOTHING,
+        related_name='student_classes',
         null=True,
         blank=True,
     )
@@ -156,26 +161,6 @@ class Schedule(TemplateModel):
         time_start = datetime.datetime.fromtimestamp(self.time_start)
         time_end = datetime.datetime.fromtimestamp(self.time_end)
         return f'{self.classroom}, {time_start.hour}:{time_start.minute:02d} ~ {time_end.hour}:{time_end.minute:02d}'
-
-
-#
-class ClassStudent(TemplateModel):
-    classroom = models.ForeignKey(
-        ClassMetadata,
-        on_delete=models.CASCADE,
-    )
-    student = models.ForeignKey(
-        CustomUser,
-        on_delete=models.CASCADE,
-        null=True,
-    )
-
-    class Meta:
-        verbose_name = 'class student'
-        verbose_name_plural = 'class students'
-
-    def __str__(self):
-        return f'{self.classroom} {self.student}'
 
 
 #
