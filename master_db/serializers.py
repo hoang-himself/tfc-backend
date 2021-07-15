@@ -2,7 +2,7 @@ from django.contrib.auth.models import Group
 from rest_framework import serializers
 from master_db.models import (
     Metatable, Branch, Calendar, CustomUser, Setting, Course,
-    ClassMetadata, ClassStudent, Schedule, Session, Log
+    ClassMetadata, Schedule, Session, Log
 )
 from taggit_serializer.serializers import (
     TaggitSerializer, TagListSerializerField
@@ -103,7 +103,7 @@ class CourseSerializer(EnhancedModelSerializer):
 class UserRelatedField(serializers.RelatedField):
     def to_representation(self, obj):
         return {
-            'name': obj.first_name + obj.last_name,
+            'name': obj.first_name + ' ' + obj.last_name,
             'mobile': obj.mobile,
             'email': obj.email,
             'uuid': obj.uuid,
@@ -119,19 +119,12 @@ class CourseRelatedField(serializers.RelatedField):
 
 class ClassMetadataSerializer(EnhancedModelSerializer):
     course = CourseRelatedField(read_only=True)
+    students = UserRelatedField(many=True, read_only=True)
     teacher = UserRelatedField(read_only=True)
 
     class Meta:
         model = ClassMetadata
         exclude = ('id', )
-
-
-class ClassStudentSerializer(EnhancedModelSerializer):
-    student = UserRelatedField(read_only=True)
-
-    class Meta:
-        model = ClassStudent
-        fields = '__all__'
 
 
 class ClassRelatedField(serializers.RelatedField):

@@ -155,50 +155,6 @@ def mobile_check(request) -> Response:
     return mobile_response(mobile)
 
 
-def username_response(username) -> Response:
-    """
-        Return response when checking signed up username in db
-    """
-
-    # Check nullity
-    if username is None or username == '':
-        return Response(
-            data={
-                "details": "Error",
-                "message": "Username cannot be empty"
-            },
-            status=status.HTTP_400_BAD_REQUEST
-        )
-
-    # Check for existence
-    if CustomUser.objects.filter(username=username).exists():
-        return Response(
-            data={
-                "details": "Error",
-                "message": "Username has already existed"
-            },
-            status=status.HTTP_400_BAD_REQUEST
-        )
-    else:
-        return Response(
-            data={
-                "details": "Ok",
-                "message": "Username is suitable for creating user"
-            },
-            status=status.HTTP_200_OK
-        )
-
-
-@api_view(['POST'])
-@permission_classes([AllowAny])
-def username_check(request) -> Response:
-    """
-        API for checking username for creating user
-    """
-    username = request.POST.get('username')
-    return username_response(username)
-
-
 def password_validate(password):
     """
         Validate password format
@@ -309,7 +265,7 @@ def list_user(request):
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
-@csrf_protect
+# @csrf_protect
 def create_user(request) -> Response:
     """
         Requires every param: first_name, last_name, address, male, avatar, birth_date, role_id, email, mobile, username, password.
@@ -340,7 +296,6 @@ def create_user(request) -> Response:
     # Verify email address
     email = request.POST.get('email')
     mobile = request.POST.get('mobile')
-    username = request.POST.get('username')
     password = request.POST.get('password')
 
     # Verify email address
@@ -353,11 +308,6 @@ def create_user(request) -> Response:
     if check.status_code == status.HTTP_400_BAD_REQUEST:
         return check
 
-    # Verify username
-    # check = username_response(username)
-    # if check.status_code == status.HTTP_400_BAD_REQUEST:
-    #     return check
-
     # Verify password
     check = password_response(password)
     if check.status_code == status.HTTP_400_BAD_REQUEST:
@@ -367,8 +317,6 @@ def create_user(request) -> Response:
     # - These are generated automatically and seperated from
     # user input
 
-    created_at = datetime.datetime.now().timestamp()
-    updated_at = created_at
     # group = request.POST.get('group')
 
     # Get group from group_id
@@ -397,8 +345,6 @@ def create_user(request) -> Response:
         address=address,
         # group=group,
         avatar=avatar,
-        # created_at=created_at,
-        # updated_at=updated_at,
     )
 
     try:

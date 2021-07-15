@@ -4,7 +4,7 @@ from django.contrib.auth.admin import UserAdmin
 from .forms import CustomUserCreationForm, CustomUserChangeForm
 from .models import (
     Metatable, Branch, Calendar, Setting, CustomUser, Course,
-    ClassMetadata, ClassStudent, Schedule, Session, Log
+    ClassMetadata, Schedule, Session, Log
 )
 
 
@@ -50,7 +50,6 @@ admin.site.register(Setting)
 admin.site.register(CustomUser, CustomUserAdmin)
 admin.site.register(Course)
 admin.site.register(ClassMetadata)
-admin.site.register(ClassStudent)
 admin.site.register(Schedule)
 admin.site.register(Session)
 admin.site.register(Log)

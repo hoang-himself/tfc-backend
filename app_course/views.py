@@ -9,7 +9,7 @@ from rest_framework.response import Response
 
 from master_db.models import Course
 from master_db.serializers import CourseSerializer
-from master_api.utils import get_object_or_404, model_full_clean, edit_object, formdata_bool
+from master_api.utils import get_by_uuid, model_full_clean, edit_object, formdata_bool
 
 import datetime
 
@@ -81,9 +81,9 @@ def edit_course(request):
     modifiedList = edit_object(course, modifiedDict, ['tags'])
 
     if not modifiedList:
-        return Response(data={'detail': 'modified nothing'}, status=status.HTTP_204_NO_CONTENT)
+        return Response(data={'detail': 'modified nothing'}, status=status.HTTP_304_NOT_MODIFIED)
     else:
-        modifiedList.append('updated_at')
+        modifiedList.append('modified')
 
     # Validate model
     model_full_clean(course)

@@ -61,8 +61,9 @@ def model_full_clean(model):
         raise ParseError(dict(message))
 
 
-def edit_object(model, modifiedDict, avoid=[]):
+def edit_object(model, modifiedDict, avoid=None):
     modifiedList = []
+    avoid = avoid if avoid is not None else []
     for key, value in modifiedDict.items():
         if hasattr(model, key) and value != getattr(model, key) and not key in avoid:
             setattr(model, key, value)

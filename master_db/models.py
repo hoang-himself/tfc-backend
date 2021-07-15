@@ -113,18 +113,15 @@ class Course(TemplateModel):
 class ClassMetadata(TemplateModel):
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     name = models.TextField(unique=True)
-    teachers = models.ManyToManyField(
+    teacher = models.ForeignKey(
         CustomUser,
-        on_delete=models.DO_NOTHING,
         related_name='teacher_classes',
+        on_delete=models.DO_NOTHING,
         null=True,
-        blank=True,
     )
     students = models.ManyToManyField(
         CustomUser,
-        on_delete=models.DO_NOTHING,
         related_name='student_classes',
-        null=True,
         blank=True,
     )
     status = models.TextField()
@@ -147,8 +144,8 @@ class Schedule(TemplateModel):
         ClassMetadata,
         on_delete=models.CASCADE,
     )
-    time_start = models.IntegerField()
-    time_end = models.IntegerField()
+    time_start = models.DateTimeField()
+    time_end = models.DateTimeField()
 
     class Meta:
         verbose_name = 'schedule'
