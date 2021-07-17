@@ -97,7 +97,7 @@ class CourseSerializer(EnhancedModelSerializer):
 
     class Meta:
         model = Course
-        fields = '__all__'
+        exclude = ('id',)
 
 
 class UserRelatedField(serializers.RelatedField):

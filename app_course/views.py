@@ -20,8 +20,10 @@ CustomUser = get_user_model()
 @permission_classes([AllowAny])
 @csrf_protect
 def get_course(request):
-    # TODO
-    pass
+    return Response(
+        CourseSerializer(get_by_uuid(
+            Course, 'Course', request.GET.get('uuid'))).data
+    )
 
 
 @api_view(['POST'])
@@ -96,12 +98,7 @@ def edit_course(request):
 
     course.save()
 
-    return Response(
-        data={
-            'modified': modifiedList,
-        },
-        status=status.HTTP_202_ACCEPTED
-    )
+    return Response({'modified': modifiedList})
 
 
 @api_view(['POST'])
