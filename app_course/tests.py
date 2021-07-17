@@ -21,6 +21,11 @@ def printQuerySet(data):
     print(json_formatted_str)
 
 
+def printDict(data):
+    json_formatted_str = json.dumps(dict(data), indent=2)
+    print(json_formatted_str)
+
+
 class CourseTest(TestCase):
     url = '/api/v1/course/'
 
@@ -37,6 +42,14 @@ class CourseTest(TestCase):
                 *[('even ' if x % 2 == 0 else 'odd ') + str(x) for x in range(i + 1)])
             self.courses.append(course)
 
+    def compare_dict(self, dict1, dict2):
+        for key, value in dict1.items():
+            if isinstance(value, list):
+                value = set(value)
+                dict2[key] = set(dict2[key])
+            self.assertTrue(
+                value == dict2[key], msg=f"{key}: {value} <-> {dict2[key]} => {value == dict2[key]}")
+
     def test_successful_created(self):
         client = APIClient()
 
@@ -44,11 +57,31 @@ class CourseTest(TestCase):
             'name': 'some name',
             'tags': '1, 2, 3, 4, 5, 6, 7',
             'duration': 69,
+            'desc': 'some description'
         }
         response = client.post(self.url + 'create', data=data)
 
         self.assertEqual(response.data, {'detail': 'Ok'})
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # Check in db through list
+        response = self.test_list(False, len(self.courses) + 1)
+
+        # Check for matched in db
+        found = False
+        for res in response.data:
+            if res['name'] == data['name']:
+                found = True
+                res = dict(res)
+                res.pop('uuid')
+                data['tags'] = data['tags'].replace(' ', '').split(',')
+
+                printDict(res)
+                printDict(data)
+
+                self.compare_dict(data, res)
+                break
+        self.assertTrue(found, msg="Not found in db")
 
     def test_successful_editted(self):
         client = APIClient()
@@ -76,16 +109,11 @@ class CourseTest(TestCase):
                 # Indicate found, change formdata to python objects
                 found = True
                 data.pop('uuid')
-                data['tags'] = set(data['tags'].replace(' ', '').split(','))
+                data['tags'] = data['tags'].replace(' ', '').split(',')
                 # Check every element
-                for key, value in data.items():
-                    if isinstance(res[key], list):
-                        res[key] = set(res[key])
-                    self.assertTrue(
-                        value == res[key], msg=f"{key}: {value} <-> {res[key]} => {value == res[key]}")
+                self.compare_dict(data, res)
         # Check if found the editted
-        self.assertTrue(
-            found, msg="UUID given not found when calling .../list")
+        self.assertTrue(found, msg="Not found in db")
 
     def test_successful_deleted(self):
         client = APIClient()
