@@ -114,6 +114,21 @@ def delete_sched(request):
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
+def get_sched(request):
+    """
+        Take in uuid. 
+
+        Return explicit info of that schedule.
+    """
+    return Response(
+        ScheduleSerializer(
+            get_by_uuid(Schedule, 'Schedule', request.GET.get('uuid'))
+        ).data
+    )
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
 def list_sched(request):
     """
         Take in class_uuid (optional), student_uuid (optional).
