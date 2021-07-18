@@ -36,7 +36,7 @@ def get_std_by_uuids(klass, uuids):
 
 def verify_teacher(user):
     # TODO: Verify user is a teacher
-    if not user.mobile == '0919877216':
+    if '0919877' in user.mobile:
         raise ParseError('User is not a teacher')
 
 
