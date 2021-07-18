@@ -1,6 +1,10 @@
+from django.db.models.query_utils import subclasses
 from rest_framework.exceptions import NotFound, ParseError
 from django.core.exceptions import ValidationError
 from django.shortcuts import _get_queryset
+
+import json
+import pprint
 
 
 def formdata_bool(var: str):
@@ -92,3 +96,62 @@ def get_list_or_404(klass, name_print, *args, **kwargs):
     if not obj_list:
         raise NotFound(f'{name_print} does not exist')
     return obj_list
+
+
+# For django test
+def prettyPrint(text):
+    def convert_every_elem(elem):
+        """
+            Django response often be OrderedDict or QuerySet so we
+            should convert every element to python dict and list.
+            
+            If an element is neither a dict nor list it will be 
+            converted to string.
+        """
+        if issubclass(elem.__class__, list):
+            elem = list(elem)
+            for i in range(len(elem)):
+                elem[i] = convert_every_elem(elem[i])
+        elif issubclass(elem.__class__, dict):
+            elem = dict(elem)
+            for key in elem.keys():
+                elem[key] = convert_every_elem(elem[key])
+        else:
+            elem = str(elem)
+        return elem
+    
+    text = str(convert_every_elem(text))
+    
+    subtext = text
+    indent = 0
+    bracket = []
+    char = 0
+    for i in range(len(text)):
+        if text[i] == '{' or text[i] == '[':
+            bracket.append(text[i])
+            indent += 2
+            offset = i + char
+            subtext = subtext[:offset+1] + \
+                f"\n{' '*indent}" + subtext[offset+1:]
+            char += indent + 1
+
+        if text[i] == '}' or text[i] == ']':
+            if (text[i] == '}' and bracket[-1] == '{') or (text[i] == ']' and bracket[-1] == '['):
+                bracket.pop()
+                indent -= 2
+                offset = i + char
+                subtext = subtext[:offset] + \
+                    f"\n{' '*indent}" + subtext[offset:]
+                char += indent + 1
+
+        if text[i] == ',':
+            offset = i + char
+
+            if text[i + 1] == ' ':
+                subtext = subtext[:offset+1] + subtext[offset+2:]
+                char -= 1
+            subtext = subtext[:offset+1] + \
+                f"\n{' '*indent}" + subtext[offset+1:]
+            char += indent + 1
+
+    print(subtext)

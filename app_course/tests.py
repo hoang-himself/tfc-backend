@@ -1,37 +1,21 @@
 from django.http import response
 from django.test import TestCase
-from django.urls import reverse, get_urlconf
 from rest_framework import status
 from rest_framework.test import APIClient
 
 from master_db.models import Course
-from master_db.serializers import CourseSerializer
+from master_api.utils import prettyPrint
 
-import random
-import string
-
-import json
 
 # Create your tests here.
-numCourse = 10
-
-
-def printQuerySet(data):
-    json_formatted_str = json.dumps(list(data), indent=2)
-    print(json_formatted_str)
-
-
-def printDict(data):
-    json_formatted_str = json.dumps(dict(data), indent=2)
-    print(json_formatted_str)
-
+NUM_COURSE = 10
 
 class CourseTest(TestCase):
     url = '/api/v1/course/'
 
     def setUp(self):
         self.courses = []
-        for i in range(numCourse):
+        for i in range(NUM_COURSE):
             course = Course(
                 name=f'Anonymous {i}',
                 duration=i,
@@ -65,7 +49,7 @@ class CourseTest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         # Check in db through list
-        response = self.test_list(False, len(self.courses) + 1)
+        response = self.test_list(False, NUM_COURSE + 1)
 
         # Check for matched in db
         found = False
@@ -75,10 +59,6 @@ class CourseTest(TestCase):
                 res = dict(res)
                 res.pop('uuid')
                 data['tags'] = data['tags'].replace(' ', '').split(',')
-
-                printDict(res)
-                printDict(data)
-
                 self.compare_dict(data, res)
                 break
         self.assertTrue(found, msg="Not found in db")
@@ -112,6 +92,7 @@ class CourseTest(TestCase):
                 data['tags'] = data['tags'].replace(' ', '').split(',')
                 # Check every element
                 self.compare_dict(data, res)
+                break
         # Check if found the editted
         self.assertTrue(found, msg="Not found in db")
 
@@ -125,7 +106,7 @@ class CourseTest(TestCase):
         self.assertEqual(response.data, {'detail': 'Deleted'})
 
         # Check in db through list
-        response = self.test_list(False, len(self.courses) - 1)
+        response = self.test_list(False, NUM_COURSE - 1)
 
         # Check if uuid still exists in db
         for res in response.data:
@@ -143,7 +124,7 @@ class CourseTest(TestCase):
 
     def test_list(self, printOut=True, length=None):
         client = APIClient()
-        length = length if length is not None else len(self.courses)
+        length = length if length is not None else NUM_COURSE
 
         response = client.get(self.url + 'list')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -151,7 +132,7 @@ class CourseTest(TestCase):
 
         if printOut:
             print("\n ------------List Visualizing------------")
-            printQuerySet(response.data)
+            prettyPrint(response.data)
             print("\n ------------List Visualizing------------")
 
         return response
@@ -171,7 +152,7 @@ class CourseTest(TestCase):
                 i += 1
 
         response = client.get(url)
-        self.assertEqual(len(response.data), len(self.courses))
+        self.assertEqual(len(response.data), NUM_COURSE)
         check_tags(response.data)
 
         response = client.get(url, data={'limit': limit})
@@ -184,7 +165,7 @@ class CourseTest(TestCase):
 
         def check_even_odd(data, even):
             prefix = 'even' if even else 'odd'
-            l = len(self.courses)
+            l = NUM_COURSE
             # Number of evens = total / 2 + total % 2, number of odds = total / 2
             self.assertEqual(len(data), int(l / 2) + (l % 2 if even else 0))
             i = int(not even)

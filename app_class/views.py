@@ -231,26 +231,30 @@ def delete_class(request):
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
+def get_class(request):
+    """
+        Take in uuid. 
+
+        Return explicit info of that class (User info will be provided with name, mobile, email and uuid).
+    """
+    return Response(
+        ClassMetadataSerializer(
+            get_by_uuid(ClassMetadata, 'Class', request.GET.get('uuid'))
+        ).data
+    )
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
 def list_class(request):
     """
-        Take in uuid (optional), student_uuid (optional). Param student_uuid represents uuid of a student, uuid represents uuid of a class. 
-
-        If uuid is provided return explicit info of that class (User info will be provided with name, mobile, email and uuid).
+        Take in student_uuid (optional). Param student_uuid represents uuid of a student. 
 
         If student_uuid is provided return all classes of the given student (No explicit info of students, just number of students).
 
         If none is provided return all classes in db with similar format of student_uuid.
-
-        Param name has higher priority.
     """
     classMeta = ClassMetadata.objects.all()
-
-    # uuid is provided
-    uuid = request.GET.get('uuid')
-    if uuid is not None:
-        # Get class
-        classMeta = get_by_uuid(ClassMetadata, 'Class', uuid)
-        return Response(ClassMetadataSerializer(classMeta).data)
 
     # student_uuid is provided
     student_uuid = request.GET.get('student_uuid')

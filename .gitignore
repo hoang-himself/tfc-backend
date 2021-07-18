@@ -130,3 +130,6 @@ dmypy.json
 
 # vscode
 .vscode/
+
+# Python file for testing python features
+debug.py

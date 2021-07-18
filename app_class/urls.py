@@ -3,6 +3,7 @@ from . import views
 
 urlpatterns = [
     # TODO
+    path('get', views.get_class, name='get'),
     path('list', views.list_class, name='list_classes'),
     path('create', views.create_class, name='create'),
     path('edit', views.edit_class, name='edit'),
