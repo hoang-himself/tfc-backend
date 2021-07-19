@@ -67,7 +67,7 @@ def add_student(request):
 
     # Get class
     classMeta = get_by_uuid(
-        ClassMetadata, 'Class', request.POST.get('uuid'))
+        ClassMetadata, request.POST.get('uuid'))
 
     # Get all students with uuids
     std_uuids = request.POST.get('student_uuids')
@@ -107,7 +107,7 @@ def delete_student(request):
 
     # Get class
     classMeta = get_by_uuid(
-        ClassMetadata, 'Class', request.POST.get('uuid'))
+        ClassMetadata, request.POST.get('uuid'))
 
     # Get students uuids
     try:
@@ -152,12 +152,11 @@ def list_class(request):
     student_uuid = request.GET.get('student_uuid')
     if student_uuid is not None:
         # Get student by uuid
-        student = get_by_uuid(
-            CustomUser, student_uuid)
+        student = get_by_uuid(CustomUser, student_uuid)
 
         classMeta = student.student_classes.all()
 
     data = ClassMetadataSerializer(
-        classMeta, many=True).exclude_field('students').data
+        classMeta, many=True).data
 
     return Response(data)

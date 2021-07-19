@@ -1,6 +1,5 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-from django.db.models.fields import Field
 
 from model_utils.models import TimeStampedModel
 from taggit.managers import TaggableManager
@@ -9,18 +8,6 @@ from .managers import CustomUserManager
 
 import uuid
 import datetime
-
-
-class BlankMetaclass(models.base.ModelBase):
-    pass
-    # """
-    #     Set every field blank=True
-    # """
-    # def __new__(cls, name, bases, attrs, **kwargs):
-    #     for field in attrs.values():
-    #         if isinstance(field, Field):
-    #             field.blank = True
-    #     return super().__new__(cls, name, bases, attrs, **kwargs)
 
 
 class TemplateModel(TimeStampedModel):
@@ -106,7 +93,7 @@ class CustomUser(AbstractUser):
 
 
 #
-class Course(TemplateModel, metaclass=BlankMetaclass):
+class Course(TemplateModel):
     name = models.TextField(unique=True)
     tags = TaggableManager()
     duration = models.SmallIntegerField()

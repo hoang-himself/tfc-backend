@@ -5,6 +5,17 @@ from rest_framework.exceptions import NotFound, ParseError
 
 import uuid
 import datetime
+import json
+
+
+PHONE_REGEX = r'^(0?)(3[2-9]|5[6|8|9]|7[0|6-9]|8[0-6|8|9]|9[0-4|6-9])[0-9]{7}$'
+
+
+def convert_json_list(target):
+    try:
+        return json.loads(target)
+    except ValueError:
+        raise ParseError({'invalid_list': 'List must be in json format'})
 
 
 def convert_time(s, format_time='%Y-%m-%d %H:%M'):
@@ -124,6 +135,9 @@ def compare_dict(obj, dict1, dict2):
         if isinstance(value, list):
             value = set(value)
             dict2[key] = set(dict2[key])
+        if isinstance(dict2[key], dict):
+            dict2[key] = str(dict2[key]['uuid'])
+
         obj.assertTrue(
             value == dict2[key], msg=f"{key}: {value} <-> {dict2[key]} => {value == dict2[key]}")
 

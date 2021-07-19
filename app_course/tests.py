@@ -93,7 +93,6 @@ class CourseTest(TestCase):
         found = False
         for res in response.data:
             if res['uuid'] == edit_uuid:
-                prettyPrint(res)
                 # Indicate found, change formdata to python objects
                 found = True
                 data['tags'] = json.loads(data['tags'])

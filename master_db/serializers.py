@@ -23,9 +23,16 @@ import json
 # Enhanced models: Add excluding fields feature
 
 
-class EnhancedMetaclass(serializers.SerializerMetaclass):
-    def __new__(cls, name, bases, attrs):
-        return super().__new__(cls, name, bases, attrs)
+def convertUUID(instance):
+    dic = instance.__dict__
+    retDict = dic.copy()
+    for key in dic.keys():
+        if len(key) > 3 and key[-3:] == '_id':
+            newKey = key[:-3]
+            value = getattr(instance, newKey)
+            retDict[newKey] = str(value.uuid)
+            retDict.pop(key)
+    return OrderedDict(retDict)
 
 
 class EnhancedListSerializer(serializers.ListSerializer):
@@ -40,7 +47,7 @@ class EnhancedListSerializer(serializers.ListSerializer):
         return self
 
 
-class EnhancedModelSerializer(serializers.ModelSerializer, metaclass=EnhancedMetaclass):
+class EnhancedModelSerializer(serializers.ModelSerializer):
     def __new__(cls, *args, **kwargs):
         meta = getattr(cls, 'Meta', None)
         if not hasattr(meta, 'list_serializer_class'):
@@ -64,7 +71,7 @@ class EnhancedModelSerializer(serializers.ModelSerializer, metaclass=EnhancedMet
         if self.instance is None:
             return super().is_valid(raise_exception)
         temp = self.initial_data
-        self.initial_data = OrderedDict(self.instance.__dict__)
+        self.initial_data = convertUUID(self.instance)
         self.initial_data.update(temp)
         ret = super().is_valid(raise_exception)
         self.initial_data = temp
@@ -131,8 +138,8 @@ class UUIDManyRelatedField(serializers.ManyRelatedField):
     default_error_messages = {
         'not_a_list': _(
             'Expected a list of items but got type "{input_type}".'),
-        'invalid_json': _('Invalid json list. A tag list submitted in string'
-                          ' form must be valid json.'),
+        'invalid_json': _("Invalid json list. A {name} list submitted in string"
+                          " form must be valid json."),
         'not_a_str': _('All list items must be of string type.'),
         'invalid': _('“%(value)s” is not a valid UUID.'),
     }
@@ -143,15 +150,17 @@ class UUIDManyRelatedField(serializers.ManyRelatedField):
         else:
             # When passing data=request.data param comes in
             # list with a single string(data sent)
-            value = value[0].replace("'", '"')
+            value = value[0] if isinstance(value, list) else value
         try:
             value = json.loads(value)
         except ValueError:
-            self.fail('invalid_json')
+            self.fail('invalid_json',
+                      name=self.child_relation.__class__.__name__)
 
         if not isinstance(value, list):
             self.fail('not_a_list', input_type=type(value).__name__)
 
+        ret = []
         for s in value:
             if not validate_uuid4(s):
                 raise ValidationError(
@@ -160,7 +169,9 @@ class UUIDManyRelatedField(serializers.ManyRelatedField):
                     params={'value': value},
                 )
 
-            yield self.child_relation.to_internal_value(s)
+            ret.append(self.child_relation.to_internal_value(s))
+
+        return ret
 
 
 class MetatableSerializer(EnhancedModelSerializer):

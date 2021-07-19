@@ -5,7 +5,7 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from master_db.models import Course, ClassMetadata
-from master_api.utils import prettyPrint, compare_dict
+from master_api.utils import prettyPrint, compare_dict, PHONE_REGEX
 from master_api.views import (
     CREATE_RESPONSE, EDIT_RESPONSE, DELETE_RESPONSE,
     GET_RESPONSE, LIST_RESPONSE)
@@ -13,6 +13,7 @@ from master_api.views import (
 from app_course.tests import create_course
 
 import json
+import rstr
 
 
 CustomUser = get_user_model()
@@ -41,7 +42,7 @@ def create_teacher_students(desc=0, num_students=NUM_STUDENT_EACH):
     teacher = CustomUser(
         email=f'teacher{desc}@tfc.com', password='teacherpassword',
         first_name=f'Class-{desc}', last_name='Teacher',
-        birth_date='1969-06-09', mobile=f'0919877{desc:03d}',
+        birth_date='1969-06-09', mobile=rstr.xeger(PHONE_REGEX),
         male=True, address='Meaningless'
     )
     teacher.save()
@@ -52,13 +53,22 @@ def create_teacher_students(desc=0, num_students=NUM_STUDENT_EACH):
         std = CustomUser(
             email=f'class{desc}_std_{x}@tfc.com', password='studentpassword',
             first_name=f'Class-{desc}', last_name=f'Student-{x}',
-            birth_date='2001-06-09', mobile=f'0969{desc:03d}{x:03d}',
+            birth_date='2001-06-09', mobile=rstr.xeger(PHONE_REGEX),
             male=x % 2, address='Homeless'
         )
         std.save()
         students.append(std)
 
     return (teacher, students)
+
+
+def create_special_student():
+    return CustomUser.objects.create(
+        email=f'{rstr.xeger(PHONE_REGEX)}@tfc.com', password='specialpassword',
+        first_name=f'Special', last_name='Student',
+        birth_date='1969-06-09', mobile=rstr.xeger(PHONE_REGEX),
+        male=None, address='Definitely not gay'
+    )
 
 
 class ClassTest(TestCase):
@@ -83,7 +93,7 @@ class ClassTest(TestCase):
             'course': self.course.uuid,
             'name': 'name',
             'teacher': teacher.uuid,
-            'students': str([str(std.uuid) for std in students]),
+            'students': str([str(std.uuid) for std in students]).replace("'", '"'),
             'status': 'published',
             'desc': 'description',
         }
@@ -117,12 +127,14 @@ class ClassTest(TestCase):
         teacher, students = create_teacher_students(69)
 
         edit_uuid = str(self.classes[0].uuid)
+        std_uuids = str([str(std.uuid) for std in students]).replace("'", '"')
+        print(std_uuids)
         data = {
             'uuid': edit_uuid,
             'name': 'Name modified',
             'desc': 'This description has been changed',
             'teacher': str(teacher.uuid),
-            'students': str([str(std.uuid) for std in students]),
+            'students': std_uuids,
         }
 
         response = client.post(self.url + 'edit', data=data)
@@ -140,6 +152,8 @@ class ClassTest(TestCase):
                 # Indicate found, change formdata to python objects
                 found = True
                 data['students'] = json.loads(data['students'])
+                res['students'] = json.loads(
+                    str([str(r['uuid']) for r in res['students']]).replace("'", '"'))
                 # Check every element
                 compare_dict(self, data, res)
                 self.assertTrue(res['created'] != res['modified'],
@@ -156,6 +170,19 @@ class ClassTest(TestCase):
         response = client.get(url, data={'uuid': get_uuid})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['uuid'], get_uuid)
+
+    def test_successful_addStd(self):
+        client = APIClient()
+        url = self.url + 'add-student'
+        class_uuid = str(self.classes[0].uuid)
+        std_uuid = str([str(create_special_student().uuid)
+                        for _ in range(3)]).replace("'", '"')
+
+        response = client.post(
+            url, data={'uuid': class_uuid, 'student_uuid': std_uuid})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK,
+                         msg=f"{response.data}")
 
     def test_list(self, printOut=True, length=None):
         client = APIClient()
@@ -174,12 +201,7 @@ class ClassTest(TestCase):
             return response
 
         # Special case for listing student participates in many classes
-        std = CustomUser(
-            email='special-std@tfc.com', password='specialpassword',
-            first_name=f'Special', last_name='Student',
-            birth_date='1969-06-09', mobile=f'0987654321',
-            male=None, address='Definitely not gay'
-        )
+        std = create_special_student()
         std.save()
 
         for c in self.classes:
