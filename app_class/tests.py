@@ -12,6 +12,8 @@ from master_api.views import (
 
 from app_course.tests import create_course
 
+import json
+
 
 CustomUser = get_user_model()
 NUM_STUDENT_EACH = 10
@@ -20,16 +22,16 @@ NUM_CLASS = 10
 
 def create_class(desc=0, course=None):
     course = course if course is not None else create_course()
-    tch_stds = create_teacher_students(desc)
+    teacher, students = create_teacher_students(desc)
 
     klass = ClassMetadata(
         course=course,
         name=f'Class-{desc}',
         status=f'Iteration {desc}',
-        teacher=tch_stds['teacher'],
+        teacher=teacher,
     )
     klass.save()
-    klass.students.add(*tch_stds['students'])
+    klass.students.add(*students)
 
     return klass
 
@@ -56,10 +58,7 @@ def create_teacher_students(desc=0, num_students=NUM_STUDENT_EACH):
         std.save()
         students.append(std)
 
-    return {
-        'teacher': teacher,
-        'students': students,
-    }
+    return (teacher, students)
 
 
 class ClassTest(TestCase):
@@ -75,15 +74,16 @@ class ClassTest(TestCase):
             # Create class
             self.classes.append(create_class(i, self.course))
 
-    def test_create(self):
+    def test_successful_create(self):
         client = APIClient()
         url = self.url + 'create'
+        teacher, students = create_teacher_students(69)
 
         data = {
             'course': self.course.uuid,
             'name': 'name',
-            'teacher': self.humans['teacher'].uuid,
-            'students': str([str(std.uuid) for std in self.humans['students']]),
+            'teacher': teacher.uuid,
+            'students': str([str(std.uuid) for std in students]),
             'status': 'published',
             'desc': 'description',
         }
@@ -92,7 +92,61 @@ class ClassTest(TestCase):
         self.assertEqual(response.status_code, CREATE_RESPONSE['status'])
         self.assertEqual(response.data, CREATE_RESPONSE['data'])
 
-        response = self.test_list(False, NUM_CLASS + 1)
+        self.test_list(False, NUM_CLASS + 1)
+
+    def test_successful_deleted(self):
+        client = APIClient()
+        url = self.url + 'delete'
+
+        # Check response
+        delete_uuid = self.classes[0].uuid
+        response = client.post(url, data={'uuid': delete_uuid})
+        self.assertEqual(response.status_code,
+                         DELETE_RESPONSE['status'], msg=f"{response.data}")
+        self.assertEqual(response.data, 'Deleted')
+
+        # Check in db through list
+        response = self.test_list(False, NUM_CLASS - 1)
+
+        # Check if uuid still exists in db
+        self.assertFalse(
+            any([res['uuid'] == delete_uuid for res in response.data]))
+
+    def test_successful_editted(self):
+        client = APIClient()
+        teacher, students = create_teacher_students(69)
+
+        edit_uuid = str(self.classes[0].uuid)
+        data = {
+            'uuid': edit_uuid,
+            'name': 'Name modified',
+            'desc': 'This description has been changed',
+            'teacher': str(teacher.uuid),
+            'students': str([str(std.uuid) for std in students]),
+        }
+
+        response = client.post(self.url + 'edit', data=data)
+
+        self.assertEqual(response.status_code,
+                         EDIT_RESPONSE['status'], msg=str(response.data))
+
+        # Check in db through list
+        response = self.test_list(False)
+
+        # Check if course in db has been changed
+        found = False
+        for res in response.data:
+            if res['uuid'] == edit_uuid:
+                # Indicate found, change formdata to python objects
+                found = True
+                data['students'] = json.loads(data['students'])
+                # Check every element
+                compare_dict(self, data, res)
+                self.assertTrue(res['created'] != res['modified'],
+                                msg=f"\n ----created must not equal modified----\n - created: {res['created']} \n - modified: {res['modified']}")
+                break
+        # Check if found the editted
+        self.assertTrue(found, msg="Not found in db")
 
     def test_successful_get(self):
         client = APIClient()

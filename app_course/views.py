@@ -61,10 +61,7 @@ def get_tags(request):
         tags = Course.tags.most_common()[:int(
             limit)].values('name', 'num_times')
 
-    return Response(
-        data=tags,
-        status=status.HTTP_200_OK
-    )
+    return Response(tags)
 
 
 @api_view(['GET'])
@@ -78,18 +75,12 @@ def recommend_tags(request):
     """
     txt = request.GET.get('txt')
     if txt is None or txt == '':
-        return Response(
-            data=None,
-            status=status.HTTP_200_OK
-        )
+        return Response()
 
     tag_names = Course.tags.filter(
         name__contains=txt).values_list('name', flat=True)
 
-    return Response(
-        data=tag_names,
-        status=status.HTTP_200_OK
-    )
+    return Response(tag_names)
 
 
 @api_view(['GET'])
@@ -109,7 +100,4 @@ def list_course(request):
         course = Course.objects.filter(
             tags__name=tags.replace(' ', '').split(','))
 
-    return Response(
-        data=CourseSerializer(course, many=True).data,
-        status=status.HTTP_200_OK
-    )
+    return Response(CourseSerializer(course, many=True).data)

@@ -48,7 +48,7 @@ class CourseTest(TestCase):
             'name': 'some name',
             'tags': '["1", "2", "3", "4", "5", "6", "7"]',
             'duration': 69,
-            'desc': 'some description'
+            'desc': 'some description',
         }
         response = client.post(self.url + 'create', data=data)
 
@@ -76,7 +76,6 @@ class CourseTest(TestCase):
         edit_uuid = str(self.courses[0].uuid)
         data = {
             'uuid': edit_uuid,
-            'name': 'Name modified',
             'tags': '["this", "has", "been", "changed"]',
             'desc': 'This description has been changed',
             'duration': 69,
@@ -94,6 +93,7 @@ class CourseTest(TestCase):
         found = False
         for res in response.data:
             if res['uuid'] == edit_uuid:
+                prettyPrint(res)
                 # Indicate found, change formdata to python objects
                 found = True
                 data['tags'] = json.loads(data['tags'])
@@ -120,8 +120,8 @@ class CourseTest(TestCase):
         response = self.test_list(False, NUM_COURSE - 1)
 
         # Check if uuid still exists in db
-        for res in response.data:
-            self.assertFalse(res.get('uuid') == delete_uuid)
+        self.assertFalse(
+            any([res['uuid'] == delete_uuid for res in response.data]))
 
     def test_successful_get(self):
         client = APIClient()

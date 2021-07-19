@@ -6,10 +6,11 @@ from master_db.models import (
     Metatable, Branch, Calendar, CustomUser, Setting, Course,
     ClassMetadata, Schedule, Session, Log
 )
-from master_api.utils import validate_uuid4
+from master_api.utils import validate_uuid4, prettyPrint
 
 
 # For enhanced models
+from collections import OrderedDict
 from taggit_serializer.serializers import (
     TaggitSerializer, TagListSerializerField
 )
@@ -18,10 +19,15 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.shortcuts import _get_queryset
 
 import json
-import six
-
 
 # Enhanced models: Add excluding fields feature
+
+
+class EnhancedMetaclass(serializers.SerializerMetaclass):
+    def __new__(cls, name, bases, attrs):
+        return super().__new__(cls, name, bases, attrs)
+
+
 class EnhancedListSerializer(serializers.ListSerializer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -34,7 +40,7 @@ class EnhancedListSerializer(serializers.ListSerializer):
         return self
 
 
-class EnhancedModelSerializer(serializers.ModelSerializer):
+class EnhancedModelSerializer(serializers.ModelSerializer, metaclass=EnhancedMetaclass):
     def __new__(cls, *args, **kwargs):
         meta = getattr(cls, 'Meta', None)
         if not hasattr(meta, 'list_serializer_class'):
@@ -44,6 +50,25 @@ class EnhancedModelSerializer(serializers.ModelSerializer):
                 f"In {cls.__name__}, list_serializer_class must be a class inherit from EnhancedListSerializer")
 
         return super().__new__(cls, *args, **kwargs)
+
+    def is_valid(self, raise_exception=False):
+        """
+            Django's ModelSerializer does not support update without required
+            fields. When super().is_valid is called it run_validation() its
+            self.initial_data, so we just need to update and then return it
+            to the original state. 
+
+            Note: OrderedDict is a must for compatibility.
+        """
+        # Creation of an object is still fine
+        if self.instance is None:
+            return super().is_valid(raise_exception)
+        temp = self.initial_data
+        self.initial_data = OrderedDict(self.instance.__dict__)
+        self.initial_data.update(temp)
+        ret = super().is_valid(raise_exception)
+        self.initial_data = temp
+        return ret
 
     def exclude_field(self, field):
         try:

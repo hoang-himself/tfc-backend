@@ -8,7 +8,8 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from master_api.utils import get_object_or_404, model_full_clean, edit_object, get_by_uuid
+from master_api.utils import get_by_uuid
+from master_api.views import get_object, create_object, delete_object, edit_object
 from master_db.models import CustomUser, ClassMetadata, Course
 from master_db.serializers import ClassMetadataSerializer
 
@@ -18,15 +19,6 @@ import datetime
 CustomUser = get_user_model()
 
 
-def get_teacher_by_uuid(uuid):
-    CustomUser = get_user_model()
-
-    teacher = get_by_uuid(CustomUser, 'Teacher user', uuid)
-
-    verify_teacher(teacher)
-    return teacher
-
-
 def get_std_by_uuids(klass, uuids):
     try:
         return klass.objects.filter(uuid__in=uuids)
@@ -34,41 +26,30 @@ def get_std_by_uuids(klass, uuids):
         raise ParseError({'details': list(message)})
 
 
-def verify_teacher(user):
-    # TODO: Verify user is a teacher
-    if '0919877' in user.mobile:
-        raise ParseError('User is not a teacher')
-
-
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def create_class(request):
-    serializer = ClassMetadataSerializer(data=request.data)
-    if serializer.is_valid():
-        serializer.save()
-        return Response(data='Ok', status=status.HTTP_201_CREATED)
-    else:
-        raise ParseError(serializer.errors)
+    return create_object(ClassMetadata, data=request.data)
 
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
 @csrf_protect
 def edit_class(request):
-    """
-        Take every field in model.
+    return edit_object(ClassMetadata, data=request.data)
 
-        Param tags must be in the form of a json list: "[tag1, tag2, tag3]"
-    """
-    data = request.data.copy()
-    klass = get_by_uuid(ClassMetadata, 'Class', data.pop('uuid', [None])[0])
 
-    serializer = ClassMetadataSerializer(instance=klass, data=data)
-    if serializer.is_valid():
-        serializer.save()
-        return Response(data='Ok')
-    else:
-        raise ParseError(serializer.errors)
+@api_view(['POST'])
+@permission_classes([AllowAny])
+@csrf_protect
+def delete_class(request):
+    return delete_object(ClassMetadata, data=request.data)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_class(request):
+    return get_object(ClassMetadata, data=request.GET)
 
 
 @api_view(['POST'])
@@ -152,34 +133,6 @@ def delete_student(request):
     return Response({'details': 'Ok'})
 
 
-@api_view(['POST'])
-@permission_classes([AllowAny])
-def delete_class(request):
-    """
-        Take in uuid. Delete exactly one class with the given uuid.
-    """
-    # Get class
-    get_by_uuid(ClassMetadata, 'Class', request.POST.get('uuid')).delete()
-
-    return Response({'details': 'Deleted'})
-
-
-@api_view(['GET'])
-@permission_classes([AllowAny])
-def get_class(request):
-    """
-        Take in uuid. 
-
-        Return explicit info of that class (User info will be provided 
-        with name, mobile, email and uuid).
-    """
-    return Response(
-        ClassMetadataSerializer(
-            get_by_uuid(ClassMetadata, 'Class', request.GET.get('uuid'))
-        ).data
-    )
-
-
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def list_class(request):
@@ -200,7 +153,7 @@ def list_class(request):
     if student_uuid is not None:
         # Get student by uuid
         student = get_by_uuid(
-            CustomUser, 'Student', student_uuid)
+            CustomUser, student_uuid)
 
         classMeta = student.student_classes.all()
 
