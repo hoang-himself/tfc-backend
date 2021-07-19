@@ -142,28 +142,33 @@ def compare_dict(obj, dict1, dict2):
             value == dict2[key], msg=f"{key}: {value} <-> {dict2[key]} => {value == dict2[key]}")
 
 
-def prettyPrint(text, indentOffset=2):
-    def convert_every_elem(elem):
-        """
-            Django response often be OrderedDict or QuerySet so we
-            should convert every element to python dict and list.
+def convert_primitive(elem):
+    """
+        Django response often be OrderedDict or QuerySet so we
+        should convert every element to python dict and list.
 
-            If an element is neither a dict nor list it will be 
-            converted to string.
-        """
-        if issubclass(elem.__class__, list):
-            elem = list(elem)
-            for i in range(len(elem)):
-                elem[i] = convert_every_elem(elem[i])
-        elif issubclass(elem.__class__, dict):
-            elem = dict(elem)
-            for key in elem.keys():
-                elem[key] = convert_every_elem(elem[key])
-        else:
-            elem = str(elem)
-        return elem
+        If an element is neither a dict nor list it will be 
+        converted to string.
+    """
+    klass = elem.__class__
+    if issubclass(klass, list) or \
+        issubclass(klass, tuple) or \
+            issubclass(klass, set):
+        elem = list(elem)
+        for i in range(len(elem)):
+            elem[i] = convert_primitive(elem[i])
+    elif issubclass(klass, dict):
+        elem = dict(elem)
+        for key in elem.keys():
+            elem[key] = convert_primitive(elem[key])
+    else:
+        elem = str(elem)
+    return elem
 
-    text = str(convert_every_elem(text))
+
+def prettyStr(text, indentOffset=2):
+
+    text = str(convert_primitive(text))
 
     def reverse_bracket(bracket):
         if bracket == '{':
@@ -214,4 +219,8 @@ def prettyPrint(text, indentOffset=2):
                 f"\n{' '*indent}" + subtext[offset+1:]
             char += indent + 1
 
-    print(subtext)
+    return "\n" + subtext
+
+
+def prettyPrint(text):
+    print(prettyStr(text))

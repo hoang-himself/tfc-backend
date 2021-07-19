@@ -5,7 +5,8 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from master_db.models import Course, ClassMetadata
-from master_api.utils import prettyPrint, compare_dict, PHONE_REGEX
+from master_api.utils import (prettyPrint, prettyStr,
+                              compare_dict, PHONE_REGEX)
 from master_api.views import (
     CREATE_RESPONSE, EDIT_RESPONSE, DELETE_RESPONSE,
     GET_RESPONSE, LIST_RESPONSE)
@@ -22,7 +23,7 @@ NUM_CLASS = 10
 
 
 def create_class(desc=0, course=None):
-    course = course if course is not None else create_course()
+    course = course if course is not None else create_course(desc)
     teacher, students = create_teacher_students(desc)
 
     klass = ClassMetadata(
@@ -112,7 +113,7 @@ class ClassTest(TestCase):
         delete_uuid = self.classes[0].uuid
         response = client.post(url, data={'uuid': delete_uuid})
         self.assertEqual(response.status_code,
-                         DELETE_RESPONSE['status'], msg=f"{response.data}")
+                         DELETE_RESPONSE['status'], msg=prettyStr(response.data))
         self.assertEqual(response.data, 'Deleted')
 
         # Check in db through list
@@ -128,7 +129,6 @@ class ClassTest(TestCase):
 
         edit_uuid = str(self.classes[0].uuid)
         std_uuids = str([str(std.uuid) for std in students]).replace("'", '"')
-        print(std_uuids)
         data = {
             'uuid': edit_uuid,
             'name': 'Name modified',
@@ -140,7 +140,7 @@ class ClassTest(TestCase):
         response = client.post(self.url + 'edit', data=data)
 
         self.assertEqual(response.status_code,
-                         EDIT_RESPONSE['status'], msg=str(response.data))
+                         EDIT_RESPONSE['status'], msg=prettyStr(response.data))
 
         # Check in db through list
         response = self.test_list(False)
@@ -179,10 +179,26 @@ class ClassTest(TestCase):
                         for _ in range(3)]).replace("'", '"')
 
         response = client.post(
-            url, data={'uuid': class_uuid, 'student_uuid': std_uuid})
+            url, data={'uuid': class_uuid, 'student_uuids': std_uuid})
 
         self.assertEqual(response.status_code, status.HTTP_200_OK,
-                         msg=f"{response.data}")
+                         msg=prettyStr(response.data))
+
+    def test_successful_delStd(self):
+        client = APIClient()
+        url = self.url + 'delete-student'
+        klass = create_class(69)
+
+        data = {
+            'uuid': str(klass.uuid),
+            'student_uuids': str([str(std.uuid)
+                                  for std in klass.students.all()]).replace("'", '"')
+        }
+
+        response = client.post(
+            url, data=data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK,
+                         msg=prettyStr(response.data))
 
     def test_list(self, printOut=True, length=None):
         client = APIClient()

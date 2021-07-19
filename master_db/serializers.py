@@ -160,7 +160,6 @@ class UUIDManyRelatedField(serializers.ManyRelatedField):
         if not isinstance(value, list):
             self.fail('not_a_list', input_type=type(value).__name__)
 
-        ret = []
         for s in value:
             if not validate_uuid4(s):
                 raise ValidationError(
@@ -168,10 +167,7 @@ class UUIDManyRelatedField(serializers.ManyRelatedField):
                     code='invalid',
                     params={'value': value},
                 )
-
-            ret.append(self.child_relation.to_internal_value(s))
-
-        return ret
+            yield self.child_relation.to_internal_value(s)
 
 
 class MetatableSerializer(EnhancedModelSerializer):

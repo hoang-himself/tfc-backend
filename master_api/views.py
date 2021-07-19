@@ -6,7 +6,7 @@ from rest_framework import exceptions
 
 from master_db import serializers
 from master_db import models
-from master_api.utils import get_by_uuid
+from master_api.utils import get_by_uuid, convert_primitive
 
 
 # ? Should we use models.ModelName or 'ModelName'
@@ -50,7 +50,8 @@ def create_object(model, **kwargs):
         serializer.save()
         return Response(**CREATE_RESPONSE)
     else:
-        raise exceptions.ParseError(serializer.errors)
+        raise exceptions.ParseError(
+            convert_primitive(serializer.errors))
 
 
 def edit_object(model, **kwargs):
@@ -67,7 +68,8 @@ def edit_object(model, **kwargs):
         serializer.save()
         return Response(**EDIT_RESPONSE)
     else:
-        raise exceptions.ParseError(serializer.errors)
+        raise exceptions.ParseError(
+            convert_primitive(serializer.errors))
 
 
 def get_object(model, **kwargs):

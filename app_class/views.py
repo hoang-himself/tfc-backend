@@ -13,17 +13,10 @@ from master_api.views import get_object, create_object, delete_object, edit_obje
 from master_db.models import CustomUser, ClassMetadata, Course
 from master_db.serializers import ClassMetadataSerializer
 
-import datetime
+import json
 
 
 CustomUser = get_user_model()
-
-
-def get_std_by_uuids(klass, uuids):
-    try:
-        return klass.objects.filter(uuid__in=uuids)
-    except ValidationError as message:
-        raise ParseError({'details': list(message)})
 
 
 @api_view(['POST'])
@@ -70,13 +63,15 @@ def add_student(request):
         ClassMetadata, request.POST.get('uuid'))
 
     # Get all students with uuids
-    std_uuids = request.POST.get('student_uuids')
-    if std_uuids is None:
+    if (std_uuids := request.POST.get('student_uuids')) is None:
         raise ParseError({'student_uuids': ['This field is required.']})
 
-    std_uuids = std_uuids.replace(' ', '').split(',')
+    std_uuids = json.loads(std_uuids)
     # Handling UUID validation
-    db = get_std_by_uuids(CustomUser, std_uuids)
+    try:
+        db = CustomUser.objects.filter(uuid__in=std_uuids)
+    except ValidationError as message:
+        raise ParseError({'details': list(message)})
 
     # Store students id for adding
     students = db.values_list('pk', flat=True)
@@ -110,14 +105,14 @@ def delete_student(request):
         ClassMetadata, request.POST.get('uuid'))
 
     # Get students uuids
-    try:
-        std_uuids = request.POST.get(
-            'student_uuids').replace(' ', '').split(',')
-    except:
+    if (std_uuids := request.POST.get('student_uuids')) is None:
         raise ParseError({'student_uuids': ['This field is required.']})
-
+    std_uuids = json.loads(std_uuids)
     # Get students
-    students = get_std_by_uuids(classMeta.students, std_uuids)
+    try:
+        students = classMeta.students.filter(uuid__in=std_uuids)
+    except ValidationError as message:
+        raise ParseError({'details': list(message)})
 
     # Store uuids for visualizing added students, if one does not show up it is not found
     if len(students) != len(std_uuids):
