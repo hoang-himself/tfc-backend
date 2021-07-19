@@ -194,21 +194,7 @@ class SettingSerializer(EnhancedModelSerializer):
         fields = '__all__'
 
 
-class GroupSerializer(EnhancedModelSerializer):
-    class Meta:
-        model = Group
-        fields = ['name', ]
-
-
 class CustomUserSerializer(EnhancedModelSerializer):
-    groups = GroupSerializer(many=True, read_only=True)
-
-    class Meta:
-        model = CustomUser
-        exclude = ('id', 'password', 'avatar',)
-
-
-class InternalCustomUserSerializer(EnhancedModelSerializer):
     class Meta:
         model = CustomUser
         fields = '__all__'
@@ -242,6 +228,7 @@ class CourseRelatedField(UUIDRelatedField):
     def to_representation(self, obj):
         return {
             'name': obj.name,
+            'uuid': obj.uuid,
         }
 
 
@@ -255,30 +242,37 @@ class ClassMetadataSerializer(EnhancedModelSerializer):
         exclude = ('id', )
 
 
-class ClassRelatedField(serializers.RelatedField):
+class ClassRelatedField(UUIDRelatedField):
+    def __init__(self, *args, **kwargs):
+        super().__init__(ClassMetadata, *args, **kwargs)
+
     def to_representation(self, obj):
         return {
             'name': obj.name,
-            'course': obj.course.name
+            'course': obj.course.name,
+            'uuid': obj.uuid,
         }
 
 
 class ScheduleSerializer(EnhancedModelSerializer):
-    classroom = ClassRelatedField(read_only=True)
+    classroom = ClassRelatedField()
 
     class Meta:
         model = Schedule
         fields = '__all__'
 
 
-class ScheduleRelatedField(serializers.RelatedField):
+class ScheduleRelatedField(UUIDRelatedField):
+    def __init__(self, *args, **kwargs):
+        super().__init__(Schedule, *args, **kwargs)
+
     def to_representation(self, obj):
         return ScheduleSerializer(obj).exclude_created_updated().data
 
 
 class SessionSerializer(EnhancedModelSerializer):
     student = UserRelatedField()
-    session = ScheduleRelatedField(read_only=True)
+    session = ScheduleRelatedField()
 
     class Meta:
         model = Session

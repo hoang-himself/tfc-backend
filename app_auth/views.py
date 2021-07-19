@@ -12,7 +12,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from master_db.serializers import InternalCustomUserSerializer
+from master_db.serializers import CustomUserSerializer
 
 import jwt
 
@@ -52,7 +52,7 @@ def login(request) -> Response:
             status=status.HTTP_404_NOT_FOUND
         )
 
-    ser_user = InternalCustomUserSerializer(user).data
+    ser_user = CustomUserSerializer(user).data
     if not check_password(password, ser_user.get('password')):
         return Response(
             data={

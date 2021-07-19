@@ -13,6 +13,7 @@ from master_api.utils import get_by_uuid, convert_primitive
 SERIALIZERS = {
     models.Course: serializers.CourseSerializer,
     models.ClassMetadata: serializers.ClassMetadataSerializer,
+    models.Schedule: serializers.ScheduleSerializer,
 }
 
 CREATE_RESPONSE = {
