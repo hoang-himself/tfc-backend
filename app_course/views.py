@@ -9,7 +9,8 @@ from rest_framework.response import Response
 
 from master_db.models import Course
 from master_db.serializers import CourseSerializer
-from master_api.utils import get_by_uuid, model_full_clean, edit_object, formdata_bool
+from master_api.utils import get_by_uuid, model_full_clean, formdata_bool
+from master_api.views import create_object, edit_object, get_object, delete_object
 
 import datetime
 
@@ -20,104 +21,33 @@ CustomUser = get_user_model()
 @permission_classes([AllowAny])
 @csrf_protect
 def get_course(request):
-    return Response(
-        CourseSerializer(get_by_uuid(
-            Course, 'Course', request.GET.get('uuid'))).data
-    )
+    return get_object(Course, data=request.GET)
 
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
+@csrf_protect
 def create_course(request):
-    """
-        Take in name, desc, tags and duration
-
-        Param tags must be in the form of: tag1, tag2, tag3 (whitespace is optional)
-    """
-
-    # Get fields. Should not use **request.POST because it will cause everything to be string -> invalid type
-    course = Course(
-        name=request.POST.get('name'),
-        desc=request.POST.get('desc'),
-        duration=request.POST.get('duration'),
-    )
-
-    # Validate model
-    model_full_clean(course)
-
-    # Save and update tags (Tags must be done this way to be saved in the database)
-    course.save()
-    course.tags.add(*request.POST.get('tags').replace(' ', '').split(','))
-
-    return Response(
-        data={
-            'detail': 'Ok',
-        },
-        status=status.HTTP_201_CREATED
-    )
+    return create_object(Course, data=request.data)
 
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
+@csrf_protect
 def edit_course(request):
-    """
-        Take in uuid, name (optional), desc (optional), short_desc (optional), tags (optional) and duration (optional). Param uuid is the uuid of the course that needs editing, the other params are the fields that needs changing
-
-        The optional params if not provided will not be updated. If the content provided is the same as the source, no change will be made.
-
-        Param tags must be in the form of: tag1, tag2, tag3 (whitespace is optional)
-    """
-
-    modifiedDict = request.POST.copy()
-    modifiedDict.pop('updated_at', None)
-    modifiedDict.pop('created_at', None)
-
-    # Get course
-    course = get_by_uuid(
-        Course, 'Course', modifiedDict.get('uuid'))
-
-    # Update model: Set attributes and update updated_at
-    if modifiedDict.get('duration') is not None:
-        modifiedDict['duration'] = int(modifiedDict['duration'])
-
-    modifiedList = edit_object(course, modifiedDict, ['tags'])
-
-    if not modifiedList:
-        return Response(data={'detail': 'modified nothing'}, status=status.HTTP_304_NOT_MODIFIED)
-    else:
-        modifiedList.append('modified')
-
-    # Validate model
-    model_full_clean(course)
-
-    # Save and update tags (Tags must be done this way to be saved in the database)
-    if not modifiedDict.get('tags') is None:
-        modifiedList.append('tags')
-        course.tags.clear()
-        course.tags.add(*modifiedDict['tags'].replace(' ', '').split(','))
-
-    course.save()
-
-    return Response({'modified': modifiedList})
+    return edit_object(Course, data=request.data)
 
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
+@csrf_protect
 def delete_course(request):
-    """
-        Take in uuid. Delete the course with the given uuid.
-    """
-    # Get course
-    course = get_by_uuid(Course, 'Course', request.POST.get('uuid'))
-
-    # Delete
-    course.delete()
-
-    return Response(data={'detail': 'Deleted'}, status=status.HTTP_200_OK)
+    return delete_object(Course, data=request.data)
 
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
+@csrf_protect
 def get_tags(request):
     """
         Take in limit (optional)
@@ -139,6 +69,7 @@ def get_tags(request):
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
+@csrf_protect
 def recommend_tags(request):
     """
         Take in txt.
@@ -163,6 +94,7 @@ def recommend_tags(request):
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
+@csrf_protect
 def list_course(request):
     """
         Take in tags (optional). 

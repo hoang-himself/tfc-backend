@@ -1,14 +1,24 @@
 from django.contrib.auth.models import Group
+
 from rest_framework import serializers
+
 from master_db.models import (
     Metatable, Branch, Calendar, CustomUser, Setting, Course,
     ClassMetadata, Schedule, Session, Log
 )
+from master_api.utils import validate_uuid4
+
+
+# For enhanced models
 from taggit_serializer.serializers import (
     TaggitSerializer, TagListSerializerField
 )
+from django.utils.translation import gettext_lazy as _
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.shortcuts import _get_queryset
 
-# For enhanced models
+import json
+import six
 
 
 # Enhanced models: Add excluding fields feature
@@ -46,6 +56,86 @@ class EnhancedModelSerializer(serializers.ModelSerializer):
 
     def exclude_created_updated(self):
         return self.exclude_field('created_at').exclude_field('updated_at')
+
+
+MANY_RELATION_KWARGS = (
+    'read_only', 'write_only', 'required', 'default', 'initial', 'source',
+    'label', 'help_text', 'style', 'error_messages', 'allow_empty',
+    'html_cutoff', 'html_cutoff_text'
+)
+
+
+class UUIDRelatedField(serializers.RelatedField):
+    default_error_messages = {
+        'required': _('This field is required.'),
+        'does_not_exist': _('Invalid uuid "{uuid_value}" - object does not exist.'),
+        'incorrect_type': _('Incorrect type. Expected uuid value, received {data_type}.'),
+        'invalid_uuid': _('{message}')
+    }
+
+    def __init__(self, model, *args, **kwargs):
+        kwargs['queryset'] = _get_queryset(model)
+        super().__init__(*args, **kwargs)
+
+    @classmethod
+    def many_init(cls, *args, **kwargs):
+        list_kwargs = {'child_relation': cls(*args, **kwargs)}
+        for key in kwargs:
+            if key in MANY_RELATION_KWARGS:
+                list_kwargs[key] = kwargs[key]
+        return UUIDManyRelatedField(**list_kwargs)
+
+    def to_internal_value(self, data):
+        queryset = self.get_queryset()
+        try:
+            if isinstance(data, bool):
+                raise TypeError
+            return queryset.get(uuid=data)
+        except ObjectDoesNotExist:
+            self.fail('does_not_exist', uuid_value=data)
+        except (TypeError, ValueError):
+            self.fail('incorrect_type', data_type=type(data).__name__)
+        except ValidationError as message:
+            self.fail('invalid_uuid', message=message)
+
+    def to_representation(self, value):
+        return value.uuid
+
+
+class UUIDManyRelatedField(serializers.ManyRelatedField):
+    default_error_messages = {
+        'not_a_list': _(
+            'Expected a list of items but got type "{input_type}".'),
+        'invalid_json': _('Invalid json list. A tag list submitted in string'
+                          ' form must be valid json.'),
+        'not_a_str': _('All list items must be of string type.'),
+        'invalid': _('“%(value)s” is not a valid UUID.'),
+    }
+
+    def to_internal_value(self, value):
+        if not value:
+            value = "[]"
+        else:
+            # When passing data=request.data param comes in
+            # list with a single string(data sent)
+            value = value[0].replace("'", '"')
+        try:
+            value = json.loads(value)
+        except ValueError:
+            self.fail('invalid_json')
+
+        if not isinstance(value, list):
+            self.fail('not_a_list', input_type=type(value).__name__)
+
+        for s in value:
+            if not validate_uuid4(s):
+                raise ValidationError(
+                    self.error_messages['invalid'],
+                    code='invalid',
+                    params={'value': value},
+                )
+
+            yield self.child_relation.to_internal_value(s)
 
 
 class MetatableSerializer(EnhancedModelSerializer):
@@ -92,7 +182,7 @@ class InternalCustomUserSerializer(EnhancedModelSerializer):
         fields = '__all__'
 
 
-class CourseSerializer(EnhancedModelSerializer):
+class CourseSerializer(TaggitSerializer, EnhancedModelSerializer):
     tags = TagListSerializerField()
 
     class Meta:
@@ -100,7 +190,10 @@ class CourseSerializer(EnhancedModelSerializer):
         exclude = ('id',)
 
 
-class UserRelatedField(serializers.RelatedField):
+class UserRelatedField(UUIDRelatedField):
+    def __init__(self, *args, **kwargs):
+        super().__init__(CustomUser, *args, **kwargs)
+
     def to_representation(self, obj):
         return {
             'name': obj.first_name + ' ' + obj.last_name,
@@ -110,7 +203,10 @@ class UserRelatedField(serializers.RelatedField):
         }
 
 
-class CourseRelatedField(serializers.RelatedField):
+class CourseRelatedField(UUIDRelatedField):
+    def __init__(self, *args, **kwargs):
+        super().__init__(Course, *args, **kwargs)
+
     def to_representation(self, obj):
         return {
             'name': obj.name,
@@ -118,9 +214,9 @@ class CourseRelatedField(serializers.RelatedField):
 
 
 class ClassMetadataSerializer(EnhancedModelSerializer):
-    course = CourseRelatedField(read_only=True)
-    students = UserRelatedField(many=True, read_only=True)
-    teacher = UserRelatedField(read_only=True)
+    course = CourseRelatedField()
+    students = UserRelatedField(many=True)
+    teacher = UserRelatedField()
 
     class Meta:
         model = ClassMetadata
@@ -149,7 +245,7 @@ class ScheduleRelatedField(serializers.RelatedField):
 
 
 class SessionSerializer(EnhancedModelSerializer):
-    student = UserRelatedField(read_only=True)
+    student = UserRelatedField()
     session = ScheduleRelatedField(read_only=True)
 
     class Meta:

@@ -72,7 +72,10 @@ def edit_session(request):
     # Get student
     try:
         session = get_object_or_404(Session, 'Session with the given student and schedule',
-                                   student__uuid=request.POST.get('student_uuid'), schedule__id=request.POST.get('sched_id'))
+                                    student__uuid=request.POST.get(
+                                        'student_uuid'),
+                                    schedule__id=request.POST.get('sched_id')
+                                    )
     except ValidationError as message:
         raise ParseError({'detail': list(message)})
 

@@ -1,10 +1,25 @@
-from django.db.models.query_utils import subclasses
-from rest_framework.exceptions import NotFound, ParseError
 from django.core.exceptions import ValidationError
 from django.shortcuts import _get_queryset
 
-import json
-import pprint
+from rest_framework.exceptions import NotFound, ParseError
+
+import uuid
+import datetime
+
+
+def convert_time(s, format_time='%Y-%m-%d %H:%M'):
+    return datetime.datetime.strptime(
+        s, format_time).astimezone()
+
+
+def validate_uuid4(value):
+    if value is not None and not isinstance(value, uuid.UUID):
+        input_form = 'int' if isinstance(value, int) else 'hex'
+        try:
+            uuid.UUID(**{input_form: value})
+        except (AttributeError, ValueError):
+            return False
+    return True
 
 
 def formdata_bool(var: str):
@@ -22,7 +37,7 @@ def formdata_bool(var: str):
         'Boolean value must be `true` or `false` after being lowered')
 
 
-def get_object_or_404(klass, name_print, *args, **kwargs):
+def get_object_or_404(klass, name_print=None, *args, **kwargs):
     """
     Use get() to return an object, or raise a Http404 exception if the object
     does not exist.
@@ -34,6 +49,7 @@ def get_object_or_404(klass, name_print, *args, **kwargs):
     one object is found.
     """
     queryset = _get_queryset(klass)
+    name_print = name_print if name_print is not None else klass.__name__
     if not hasattr(queryset, 'get'):
         klass__name = klass.__name__ if isinstance(
             klass, type) else klass.__class__.__name__
@@ -47,13 +63,13 @@ def get_object_or_404(klass, name_print, *args, **kwargs):
         raise NotFound(f'{name_print} does not exist')
 
 
-def get_by_uuid(klass, name_print, uuid):
+def get_by_uuid(klass, uuid):
     """
     Get object by uuid using get_object_or_404 with additional 
     error handling (invalid uuid)
     """
     try:
-        return get_object_or_404(klass, name_print, uuid=uuid)
+        return get_object_or_404(klass, uuid=uuid)
     except ValidationError as message:
         raise ParseError({'detail': list(message)})
 
@@ -99,12 +115,25 @@ def get_list_or_404(klass, name_print, *args, **kwargs):
 
 
 # For django test
-def prettyPrint(text):
+def compare_dict(obj, dict1, dict2):
+    """
+        Compare every key in dict1 to that of dict2. This means if 
+        dict2 has keys that are not in dict1, it will not be checked.
+    """
+    for key, value in dict1.items():
+        if isinstance(value, list):
+            value = set(value)
+            dict2[key] = set(dict2[key])
+        obj.assertTrue(
+            value == dict2[key], msg=f"{key}: {value} <-> {dict2[key]} => {value == dict2[key]}")
+
+
+def prettyPrint(text, indentOffset=2):
     def convert_every_elem(elem):
         """
             Django response often be OrderedDict or QuerySet so we
             should convert every element to python dict and list.
-            
+
             If an element is neither a dict nor list it will be 
             converted to string.
         """
@@ -119,26 +148,43 @@ def prettyPrint(text):
         else:
             elem = str(elem)
         return elem
-    
+
     text = str(convert_every_elem(text))
-    
+
+    def reverse_bracket(bracket):
+        if bracket == '{':
+            return '}'
+        elif bracket == '}':
+            return '{'
+        elif bracket == '[':
+            return ']'
+        elif bracket == ']':
+            return '['
+
     subtext = text
     indent = 0
     bracket = []
     char = 0
+    ignore = False
     for i in range(len(text)):
+        if ignore:
+            ignore = False
+            continue
         if text[i] == '{' or text[i] == '[':
+            if text[i+1] == reverse_bracket(text[i]):
+                ignore = True
+                continue
             bracket.append(text[i])
-            indent += 2
+            indent += indentOffset
             offset = i + char
             subtext = subtext[:offset+1] + \
                 f"\n{' '*indent}" + subtext[offset+1:]
             char += indent + 1
 
         if text[i] == '}' or text[i] == ']':
-            if (text[i] == '}' and bracket[-1] == '{') or (text[i] == ']' and bracket[-1] == '['):
+            if bracket[-1] == reverse_bracket(text[i]):
                 bracket.pop()
-                indent -= 2
+                indent -= indentOffset
                 offset = i + char
                 subtext = subtext[:offset] + \
                     f"\n{' '*indent}" + subtext[offset:]

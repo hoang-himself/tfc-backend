@@ -8,14 +8,13 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from master_api.utils import get_object_or_404, model_full_clean, edit_object, get_by_uuid
+from master_api.utils import get_object_or_404, model_full_clean, edit_object, get_by_uuid, convert_time
 from master_db.models import ClassMetadata, Schedule
 from master_db.serializers import ScheduleSerializer
 
-import datetime
-
 
 CustomUser = get_user_model()
+
 
 def validate_sched(sched):
     model_full_clean(sched)
@@ -31,22 +30,20 @@ def validate_sched(sched):
 @permission_classes([AllowAny])
 def create_sched(request):
     """
-        Take in class_name, time_start, time_end, time_end must be greater than time_start and both are int
+        Take in class_uuid, time_start, time_end, desc (optional). time_end must be greater than time_start and both are int
     """
     # Get class
-    classroom = get_object_or_404(
-        ClassMetadata, 'Class', name=request.POST.get('class_name'))
+    classroom = get_by_uuid(
+        ClassMetadata, 'Class', request.POST.get('class_uuid'))
 
     # Get model
-    time_start = request.POST.get('time_start')
-    time_end = request.POST.get('time_end')
-    now = datetime.datetime.now().timestamp()
+    time_start = convert_time(request.POST.get('time_start'))
+    time_end = convert_time(request.POST.get('time_end'))
     sched = Schedule(
         classroom=classroom,
         time_start=time_start,
         time_end=time_end,
-        created_at=now,
-        updated_at=now
+        desc=request.POST.get('desc'),
     )
 
     # Validate model
@@ -76,7 +73,7 @@ def edit_sched(request):
 
     # Get schedule
     sched = get_by_uuid(Schedule, 'Schedule',
-                              modifiedDict.get('uuid'))
+                        modifiedDict.get('uuid'))
 
     # Get classroom if necessary
     if not modifiedDict.get('classroom') is None:
