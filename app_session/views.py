@@ -10,9 +10,8 @@ from rest_framework.exceptions import NotFound, ParseError
 
 from master_db.models import CustomUser, ClassMetadata, Schedule, Session
 from master_db.serializers import SessionSerializer
-from master_api.utils import get_object_or_404, model_full_clean, formdata_bool, get_list_or_404
-
-import datetime
+from master_api.utils import get_list_or_404
+from master_api.views import create_object, edit_object, delete_object, get_object
 
 # Create your views here.
 
@@ -20,80 +19,25 @@ import datetime
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def add_session(request):
-    """
-        Take in sched_id, student_uuid, status.
-    """
-    # Get sched
-    sched = get_object_or_404(Schedule, 'Schedule',
-                              pk=request.POST.get('sched_id'))
+    return create_object(Session, data=request.data)
 
-    # Get student
-    try:
-        student = get_object_or_404(
-            CustomUser, 'Student', uuid=request.POST.get('student_uuid'))
-    except ValidationError as message:
-        raise ParseError({'detail': list(message)})
 
-    # Handle student not in sched's class
-    if not sched.classroom in student.student_classes.all():
-        raise ParseError(
-            'Student does not belong to the class of this session')
-
-    # Get model
-    now = datetime.datetime.now().timestamp()
-    session = Session(
-        schedule=sched,
-        student=student,
-        status=formdata_bool(request.POST.get('status')),
-        created_at=now,
-        updated_at=now
-    )
-
-    # Validate model
-    model_full_clean(session)
-
-    # Save
-    session.save()
-
-    return Response(
-        data={'details': 'Ok'},
-        status=status.HTTP_201_CREATED
-    )
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def delete_session(request):
+    return delete_object(Session, data=request.data)
 
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def edit_session(request):
-    """
-        Take in student_uuid, sched_id, status.
+    return edit_object(Session, data=request.data)
 
-        Change the student status to requested status.
-    """
-    # Get student
-    try:
-        session = get_object_or_404(Session, 'Session with the given student and schedule',
-                                    student__uuid=request.POST.get(
-                                        'student_uuid'),
-                                    schedule__id=request.POST.get('sched_id')
-                                    )
-    except ValidationError as message:
-        raise ParseError({'detail': list(message)})
 
-    stat = formdata_bool(request.POST.get('status'))
-
-    # Handle no content changed
-    if session.status == stat:
-        return Response(data={'detail': 'Same content'},
-                        status=status.HTTP_204_NO_CONTENT
-                        )
-
-    # Change (formdata_bool ensures value return to be bool or None -> no need full clean)
-    session.status = stat
-
-    # Save
-    session.save()
-
-    return Response({'detail': 'Ok'})
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_session(request):
+    return get_session(Session, data=request.GET)
 
 
 @api_view(['GET'])
@@ -123,7 +67,7 @@ def list_session(request):
     session = request.GET.get('sched_id')
     if session is not None:
         session = get_list_or_404(Session, 'Schedule', session__id=session)
-        return Response(SessionSerializer(session, many=True).exclude_field('session').data)
+        return Response(SessionSerializer(session, many=True).data)
 
     # student_uuid is provided, no need to show student field
     session = request.GET.get('student_uuid')
@@ -133,6 +77,6 @@ def list_session(request):
                 Session, 'Student', student__uuid=session)
         except ValidationError as message:
             raise ParseError({'detail': list(message)})
-        return Response(SessionSerializer(session, many=True).exclude_field('student').data)
+        return Response(SessionSerializer(session, many=True).data)
 
     return Response(SessionSerializer(Session.objects.all(), many=True).data)
