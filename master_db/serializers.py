@@ -90,7 +90,7 @@ class EnhancedModelSerializer(serializers.ModelSerializer):
     @property
     def _readable_fields(self):
         for name, field in self.fields.items():
-            if not field.write_only and not name in self.ignore.keys():
+            if not field.write_only and not self.ignore.get(name, False):
                 yield field
 
     def ignore_field(self, field):
