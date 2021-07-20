@@ -18,21 +18,11 @@ from django.utils.translation import gettext_lazy as _
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.shortcuts import _get_queryset
 
+from rest_framework.fields import empty
+
 import json
 
-# Enhanced models: Add excluding fields feature
-
-
-def convertUUID(instance):
-    dic = instance.__dict__
-    retDict = dic.copy()
-    for key in dic.keys():
-        if len(key) > 3 and key[-3:] == '_id':
-            newKey = key[:-3]
-            value = getattr(instance, newKey)
-            retDict[newKey] = str(value.uuid)
-            retDict.pop(key)
-    return OrderedDict(retDict)
+# Enhanced models:
 
 
 class EnhancedListSerializer(serializers.ListSerializer):
@@ -42,9 +32,12 @@ class EnhancedListSerializer(serializers.ListSerializer):
             raise TypeError(
                 f"To use EnhancedListSerializer, {self.child.__class__.__name__} must inherit from EnhancedModelSerializer")
 
-    def exclude_field(self, field):
-        self.child.exclude_field(field)
+    def ignore_field(self, field):
+        self.child.ignore_field(field)
         return self
+
+    def clear_ignore(self):
+        self.child.clear_ignore()
 
 
 class EnhancedModelSerializer(serializers.ModelSerializer):
@@ -54,9 +47,14 @@ class EnhancedModelSerializer(serializers.ModelSerializer):
             setattr(meta, 'list_serializer_class', EnhancedListSerializer)
         elif not issubclass(meta.list_serializer_class, EnhancedListSerializer):
             raise TypeError(
-                f"In {cls.__name__}, list_serializer_class must be a class inherit from EnhancedListSerializer")
+                f"In {cls.__name__}, list_serializer_class must be a class"
+                "inherit from EnhancedListSerializer")
 
         return super().__new__(cls, *args, **kwargs)
+
+    def __init__(self, instance=None, data=empty, **kwargs):
+        super().__init__(instance, data, **kwargs)
+        self.ignore = {}
 
     def is_valid(self, raise_exception=False):
         """
@@ -70,6 +68,18 @@ class EnhancedModelSerializer(serializers.ModelSerializer):
         # Creation of an object is still fine
         if self.instance is None:
             return super().is_valid(raise_exception)
+
+        def convertUUID(instance):
+            dic = instance.__dict__
+            retDict = dic.copy()
+            for key in dic.keys():
+                if len(key) > 3 and key[-3:] == '_id':
+                    newKey = key[:-3]
+                    value = getattr(instance, newKey)
+                    retDict[newKey] = str(value.uuid)
+                    retDict.pop(key)
+            return OrderedDict(retDict)
+
         temp = self.initial_data
         self.initial_data = convertUUID(self.instance)
         self.initial_data.update(temp)
@@ -77,17 +87,37 @@ class EnhancedModelSerializer(serializers.ModelSerializer):
         self.initial_data = temp
         return ret
 
-    def exclude_field(self, field):
-        try:
-            self.fields.pop(field)
-        except:
+    @property
+    def _readable_fields(self):
+        for name, field in self.fields.items():
+            if not field.write_only and not name in self.ignore.keys():
+                yield field
+
+    def ignore_field(self, field):
+        """
+            Ignore field when calling .data
+        """
+        if not field in self.fields:
             raise KeyError(
-                f"There is no `{field}` field in {self.__class__.__name__} to call exclude_field()")
+                f"There is no `{field}` field in {self.__class__.__name__} "
+                "to call exclude_field()")
+        if field in self.ignore.keys():
+            return self
+        else:
+            self.ignore[field] = True
+        # Reset .data calling when ignore is modified
+        if hasattr(self, '_data'):
+            delattr(self, '_data')
 
         return self
 
-    def exclude_created_updated(self):
-        return self.exclude_field('created_at').exclude_field('updated_at')
+    def clear_ignore(self):
+        """
+            Clear self.ignore
+        """
+        if hasattr(self, '_data'):
+            delattr(self, '_data')
+        self.ignore.clear()
 
 
 MANY_RELATION_KWARGS = (
@@ -102,7 +132,7 @@ class UUIDRelatedField(serializers.RelatedField):
         'required': _('This field is required.'),
         'does_not_exist': _('Invalid uuid "{uuid_value}" - object does not exist.'),
         'incorrect_type': _('Incorrect type. Expected uuid value, received {data_type}.'),
-        'invalid_uuid': _('{message}')
+        'invalid_uuid': _('“{value}” is not a valid UUID.'),
     }
 
     def __init__(self, model, *args, **kwargs):
@@ -127,8 +157,8 @@ class UUIDRelatedField(serializers.RelatedField):
             self.fail('does_not_exist', uuid_value=data)
         except (TypeError, ValueError):
             self.fail('incorrect_type', data_type=type(data).__name__)
-        except ValidationError as message:
-            self.fail('invalid_uuid', message=message)
+        except ValidationError:
+            self.fail('invalid_uuid', value=data)
 
     def to_representation(self, value):
         return value.uuid
@@ -141,16 +171,18 @@ class UUIDManyRelatedField(serializers.ManyRelatedField):
         'invalid_json': _("Invalid json list. A {name} list submitted in string"
                           " form must be valid json."),
         'not_a_str': _('All list items must be of string type.'),
-        'invalid': _('“%(value)s” is not a valid UUID.'),
+        'invalid_uuid': _('“{value}” is not a valid UUID.'),
     }
 
     def to_internal_value(self, value):
         if not value:
             value = "[]"
-        else:
+        elif isinstance(value, list) and len(value) == 1:
+            # ! Naive resolve
             # When passing data=request.data param comes in
-            # list with a single string(data sent)
-            value = value[0] if isinstance(value, list) else value
+            # list with a single string(data sent).
+            # May be due to OrderedDict
+            value = value[0]
         try:
             value = json.loads(value)
         except ValueError:
@@ -162,11 +194,7 @@ class UUIDManyRelatedField(serializers.ManyRelatedField):
 
         for s in value:
             if not validate_uuid4(s):
-                raise ValidationError(
-                    self.error_messages['invalid'],
-                    code='invalid',
-                    params={'value': value},
-                )
+                self.fail('invalid_uuid', value=value)
             yield self.child_relation.to_internal_value(s)
 
 
@@ -205,7 +233,7 @@ class CourseSerializer(TaggitSerializer, EnhancedModelSerializer):
 
     class Meta:
         model = Course
-        exclude = ('id',)
+        fields = '__all__'
 
 
 class UserRelatedField(UUIDRelatedField):
