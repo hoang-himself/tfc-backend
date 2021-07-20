@@ -88,9 +88,21 @@ class EnhancedModelSerializer(serializers.ModelSerializer):
         return ret
 
     @property
+    def _writable_fields(self):
+        for name, field in self.fields.items():
+            if self.instance:
+                model_editable = self.Meta.model.editable_fields.get(
+                    name, True)
+            else:
+                model_editable = True
+            if not field.read_only and model_editable:
+                yield field
+
+    @property
     def _readable_fields(self):
         for name, field in self.fields.items():
-            if not field.write_only and not self.ignore.get(name, False):
+            ignore = not self.ignore.get(name, False)
+            if not field.write_only and ignore:
                 yield field
 
     def ignore_field(self, field):

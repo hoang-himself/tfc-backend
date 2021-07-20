@@ -10,7 +10,18 @@ import uuid
 import datetime
 
 
-class TemplateModel(TimeStampedModel):
+class TemplateBase(models.base.ModelBase):
+    def __new__(cls, name, bases, attrs, **kwargs):
+        editableDict = {}
+        for field_name, field in attrs.items():
+            if isinstance(field, models.Field):
+                editableDict[field_name] = field.editable
+        ret = super().__new__(cls, name, bases, attrs, **kwargs)
+        ret.editable_fields = editableDict
+        return ret
+
+
+class TemplateModel(TimeStampedModel, metaclass=TemplateBase):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, blank=True)
     desc = models.TextField(null=True, blank=True)
 
@@ -57,7 +68,7 @@ class Setting(TemplateModel):
         return self.name
 
 
-class CustomUser(AbstractUser):
+class CustomUser(AbstractUser, metaclass=TemplateBase):
     username = None
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, blank=True)
     email = models.EmailField(unique=True)
