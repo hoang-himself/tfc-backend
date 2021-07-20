@@ -8,7 +8,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import NotFound, ParseError
 
 
-from master_db.models import CustomUser, ClassMetadata, Schedule, Session
+from master_db.models import Session
 from master_db.serializers import SessionSerializer
 from master_api.utils import get_list_or_404
 from master_api.views import create_object, edit_object, delete_object, get_object
@@ -18,7 +18,7 @@ from master_api.views import create_object, edit_object, delete_object, get_obje
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
-def add_session(request):
+def create_session(request):
     return create_object(Session, data=request.data)
 
 
@@ -37,7 +37,7 @@ def edit_session(request):
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def get_session(request):
-    return get_session(Session, data=request.GET)
+    return get_object(Session, data=request.GET)
 
 
 @api_view(['GET'])
