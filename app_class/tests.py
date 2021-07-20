@@ -93,14 +93,15 @@ class ClassTest(TestCase):
         data = {
             'course': self.course.uuid,
             'name': 'name',
-            'teacher': teacher.uuid,
+            'teacher': str(teacher.uuid),
             'students': str([str(std.uuid) for std in students]).replace("'", '"'),
             'status': 'published',
             'desc': 'description',
         }
 
         response = client.post(url, data)
-        self.assertEqual(response.status_code, CREATE_RESPONSE['status'])
+        self.assertEqual(response.status_code, CREATE_RESPONSE['status'],
+                         msg=prettyStr(response.data))
         self.assertEqual(response.data, CREATE_RESPONSE['data'])
 
         self.test_list(False, NUM_CLASS + 1)
@@ -112,8 +113,8 @@ class ClassTest(TestCase):
         # Check response
         delete_uuid = self.classes[0].uuid
         response = client.post(url, data={'uuid': delete_uuid})
-        self.assertEqual(response.status_code,
-                         DELETE_RESPONSE['status'], msg=prettyStr(response.data))
+        self.assertEqual(response.status_code, DELETE_RESPONSE['status'],
+                         msg=prettyStr(response.data))
         self.assertEqual(response.data, 'Deleted')
 
         # Check in db through list
@@ -146,30 +147,26 @@ class ClassTest(TestCase):
         response = self.test_list(False)
 
         # Check if course in db has been changed
-        found = False
-        for res in response.data:
-            if res['uuid'] == edit_uuid:
-                # Indicate found, change formdata to python objects
-                found = True
-                data['students'] = json.loads(data['students'])
-                res['students'] = json.loads(
-                    str([str(r['uuid']) for r in res['students']]).replace("'", '"'))
-                # Check every element
-                compare_dict(self, data, res)
-                self.assertTrue(res['created'] != res['modified'],
-                                msg=f"\n ----created must not equal modified----\n - created: {res['created']} \n - modified: {res['modified']}")
-                break
-        # Check if found the editted
-        self.assertTrue(found, msg="Not found in db")
+        res = self.test_successful_get(edit_uuid).data
+        data['students'] = json.loads(data['students'])
+        res['students'] = json.loads(
+            str([str(r['uuid']) for r in res['students']]).replace("'", '"'))
+        # Check every element
+        compare_dict(self, data, res)
+        self.assertTrue(res['created'] != res['modified'],
+                        msg=f"\n ----created must not equal modified----\n - "
+                        f"created: {res['created']} \n - modified: {res['modified']}")
 
-    def test_successful_get(self):
+    def test_successful_get(self, get_uuid=None):
         client = APIClient()
         url = self.url + 'get'
-        get_uuid = str(self.classes[0].uuid)
+        get_uuid = str(self.classes[0].uuid) if get_uuid is None else get_uuid
 
         response = client.get(url, data={'uuid': get_uuid})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['uuid'], get_uuid)
+
+        return response
 
     def test_successful_addStd(self):
         client = APIClient()
@@ -210,15 +207,14 @@ class ClassTest(TestCase):
         self.assertEqual(len(response.data), length)
 
         if printOut:
-            print("\n ------------List All DB Visualizing------------")
+            print("\n ============List All DB Visualizing============")
             prettyPrint(response.data)
-            print("\n ------------List All DB Visualizing------------")
+            print("\n ============List All DB Visualizing============")
         else:
             return response
 
         # Special case for listing student participates in many classes
         std = create_special_student()
-        std.save()
 
         for c in self.classes:
             if int(c.name[-1]) % 3 == 0:
@@ -228,16 +224,13 @@ class ClassTest(TestCase):
         response = client.get(url, data={'student_uuid': student_uuid})
 
         # Check for student presence in every class
-        for d in response.data:
-            for c in self.classes:
-                if c.uuid == d['uuid']:
-                    self.assertTrue(any([student_uuid == std.uuid for std in c.students.all()]),
-                                    msg=f"Student with uuid {student_uuid} does not exist in class with uuid {c.uuid}")
-                    break
+        std_classes = [str(c.uuid) for c in std.student_classes.all()]
+        res_classes = [str(d['uuid']) for d in response.data]
+        compare_dict(self, {'class': std_classes}, {'class': res_classes})
 
         if printOut:
-            print("\n ------------List Student's Visualizing------------")
+            print("\n ============List Student's Visualizing============")
             prettyPrint(response.data)
-            print("\n ------------List Student's Visualizing------------")
+            print("\n ============List Student's Visualizing============")
             print(
-                f"Note: NO. of class's name should be divisible by 3 in range from 0 to {NUM_CLASS - 1}")
+                f"Note: All class's name NO. should be divisible by 3 in range from 0 to {NUM_CLASS - 1}")

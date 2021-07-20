@@ -59,14 +59,14 @@ def list_sched(request):
     # class_uuid is provided
     classMeta = request.GET.get('class_uuid')
     if classMeta is not None:
-        classMeta = get_by_uuid(ClassMetadata, 'Class', classMeta)
+        classMeta = get_by_uuid(ClassMetadata, classMeta)
         return Response(ScheduleSerializer(classMeta.schedule_set, many=True).data)
 
     # student_uuid is provided
     student = request.GET.get('student_uuid')
     if not student is None:
         # Get student
-        student = get_by_uuid(CustomUser, 'Student', student)
+        student = get_by_uuid(CustomUser, student)
 
         # Get classes of student
         classes = student.student_classes.all()

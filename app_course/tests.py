@@ -143,9 +143,9 @@ class CourseTest(TestCase):
         self.assertEqual(len(response.data), length)
 
         if printOut:
-            print("\n ------------List Visualizing------------")
+            print("\n ============List Visualizing============")
             prettyPrint(response.data)
-            print("\n ------------List Visualizing------------")
+            print("\n ============List Visualizing============")
 
         return response
 
