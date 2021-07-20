@@ -213,31 +213,31 @@ class UUIDManyRelatedField(serializers.ManyRelatedField):
 class MetatableSerializer(EnhancedModelSerializer):
     class Meta:
         model = Metatable
-        fields = '__all__'
+        exclude = ('id', )
 
 
 class BranchSerializer(EnhancedModelSerializer):
     class Meta:
         model = Branch
-        fields = '__all__'
+        exclude = ('id', )
 
 
 class CalendarSerializer(EnhancedModelSerializer):
     class Meta:
         model = Calendar
-        fields = '__all__'
+        exclude = ('id', )
 
 
 class SettingSerializer(EnhancedModelSerializer):
     class Meta:
         model = Setting
-        fields = '__all__'
+        exclude = ('id', )
 
 
 class CustomUserSerializer(EnhancedModelSerializer):
     class Meta:
         model = CustomUser
-        fields = '__all__'
+        exclude = ('id', )
 
 
 class CourseSerializer(TaggitSerializer, EnhancedModelSerializer):
@@ -245,7 +245,7 @@ class CourseSerializer(TaggitSerializer, EnhancedModelSerializer):
 
     class Meta:
         model = Course
-        fields = '__all__'
+        exclude = ('id', )
 
 
 class UserRelatedField(UUIDRelatedField):
@@ -279,7 +279,7 @@ class ClassMetadataSerializer(EnhancedModelSerializer):
 
     class Meta:
         model = ClassMetadata
-        fields = '__all__'
+        exclude = ('id', )
 
 
 class ClassRelatedField(UUIDRelatedField):
@@ -299,7 +299,7 @@ class ScheduleSerializer(EnhancedModelSerializer):
 
     class Meta:
         model = Schedule
-        fields = '__all__'
+        exclude = ('id', )
 
 
 class ScheduleRelatedField(UUIDRelatedField):
@@ -320,10 +320,10 @@ class SessionSerializer(EnhancedModelSerializer):
 
     class Meta:
         model = Session
-        fields = '__all__'
+        exclude = ('id', )
 
 
 class LogSerializer(EnhancedModelSerializer):
     class Meta:
         model = Log
-        fields = '__all__'
+        exclude = ('id', )
