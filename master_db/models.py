@@ -164,11 +164,13 @@ class Schedule(TemplateModel):
 class Session(TemplateModel):
     schedule = models.ForeignKey(
         Schedule,
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        editable=False
     )
     student = models.ForeignKey(
         CustomUser,
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        editable=False
     )
     homework = models.SmallIntegerField(null=True, blank=True)
     status = models.BooleanField(null=True, blank=True)
