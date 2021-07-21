@@ -1,3 +1,5 @@
+from django.contrib.auth import get_user_model
+
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
@@ -9,12 +11,14 @@ from master_db import models
 from master_api.utils import get_by_uuid, convert_primitive
 
 
+CustomUser = get_user_model()
 # ? Should we use models.ModelName or 'ModelName'
 SERIALIZERS = {
     models.Course: serializers.CourseSerializer,
     models.ClassMetadata: serializers.ClassMetadataSerializer,
     models.Schedule: serializers.ScheduleSerializer,
     models.Session: serializers.SessionSerializer,
+    CustomUser: serializers.CustomUserSerializer,
 }
 
 CREATE_RESPONSE = {

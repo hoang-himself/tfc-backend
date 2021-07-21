@@ -8,9 +8,6 @@ import datetime
 import json
 
 
-PHONE_REGEX = r'^(0?)(3[2-9]|5[6|8|9]|7[0|6-9]|8[0-6|8|9]|9[0-4|6-9])[0-9]{7}$'
-
-
 def convert_json_list(target):
     try:
         return json.loads(target)
@@ -149,6 +146,9 @@ def convert_primitive(elem):
 
         If an element is neither a dict nor list it will be 
         converted to string.
+
+        Single quote (') in a string will be converted to back 
+        quote (`) for better visualization
     """
     klass = elem.__class__
     if issubclass(klass, list) or \
@@ -162,11 +162,15 @@ def convert_primitive(elem):
         for key in elem.keys():
             elem[key] = convert_primitive(elem[key])
     else:
-        elem = str(elem)
+        elem = str(elem).replace('\'', '`')
     return elem
 
 
 def prettyStr(text, indentOffset=2):
+    """
+        Convert an object after convert_primitive() to a string
+        with better visualization
+    """
 
     text = str(convert_primitive(text))
 
@@ -186,12 +190,13 @@ def prettyStr(text, indentOffset=2):
     char = 0
     ignore = False
     for i in range(len(text)):
+        if text[i] == '\'':
+            ignore = not ignore
         if ignore:
-            ignore = False
             continue
         if text[i] == '{' or text[i] == '[':
             if text[i+1] == reverse_bracket(text[i]):
-                ignore = True
+                i = i + 2
                 continue
             bracket.append(text[i])
             indent += indentOffset

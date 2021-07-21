@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.core.validators import RegexValidator
 
 from model_utils.models import TimeStampedModel
 from taggit.managers import TaggableManager
@@ -8,6 +9,11 @@ from .managers import CustomUserManager
 
 import uuid
 import datetime
+import os
+
+
+PHONE_REGEX = r'^(0)(3[2-9]|5[689]|7[06-9]|8[0-689]|9[0-46-9])[0-9]{7}$'
+USER_IMAGE_PATH ='images/users/'
 
 
 class TemplateBase(models.base.ModelBase):
@@ -71,17 +77,27 @@ class Setting(TemplateModel):
         return self.name
 
 
+def upload_avatar(instance, filename):
+    file_ext = os.path.splitext(filename)[1]
+    return '%s/%s/%s' % (USER_IMAGE_PATH, instance.uuid, 'profile' + file_ext)
+
+
 class CustomUser(AbstractUser, metaclass=TemplateBase):
     username = None
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, blank=True)
     email = models.EmailField(unique=True)
 
     birth_date = models.DateField(null=True, blank=True)
-    mobile = models.CharField(max_length=15, unique=True)
+    mobile = models.CharField(
+        validators=[RegexValidator(
+            regex=PHONE_REGEX, message="Invalid phone number")],
+        max_length=15,
+        unique=True
+    )
     male = models.BooleanField(null=True, blank=True)
     address = models.TextField(null=True, blank=True)
     avatar = models.ImageField(
-        upload_to='images/profile/%Y/%m/%d/', null=True, blank=True)
+        upload_to=upload_avatar, null=True, blank=True)
 
     date_joined = models.DateTimeField(
         'date joined', auto_now_add=True, editable=False)

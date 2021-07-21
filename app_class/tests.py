@@ -4,9 +4,9 @@ from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from master_db.models import Course, ClassMetadata
+from master_db.models import Course, ClassMetadata, PHONE_REGEX
 from master_api.utils import (prettyPrint, prettyStr,
-                              compare_dict, PHONE_REGEX)
+                              compare_dict)
 from master_api.views import (
     CREATE_RESPONSE, EDIT_RESPONSE, DELETE_RESPONSE,
     GET_RESPONSE, LIST_RESPONSE)
