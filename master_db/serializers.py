@@ -4,12 +4,12 @@ from rest_framework import serializers
 
 from master_db.models import (
     Metatable, Branch, Calendar, CustomUser, Setting, Course,
-    ClassMetadata, Schedule, Session, Log
+    ClassMetadata, Schedule, Session, Log, TemplateBase
 )
 from master_api.utils import validate_uuid4, prettyPrint
 
 
-# For enhanced models
+# For custom classes
 from collections import OrderedDict
 from taggit_serializer.serializers import (
     TaggitSerializer, TagListSerializerField
@@ -22,7 +22,24 @@ from rest_framework.fields import empty
 
 import json
 
-# Enhanced models:
+
+"""
+    * Enhanced serializer: Include new and improve already existing 
+    * features
+        + ignore in class Meta: ignore fields when calling .data
+        + ignore_field: dynamically add fields to ignore
+        + clear_ignore: reset ignore to its original state
+        + list_serializer_class: Automatically set to
+        EnhancedListSerializer for further customization
+        + Update ignore required fields: Updating models now does
+        not need required fields, ie. name is required in Course
+        but when update we don't specify name so an error will be
+        raised, Enhanced serializer resolves this.
+        + editable=False in model will not be modified: resolve
+        https://github.com/encode/django-rest-framework/issues/1604
+        + TemplateBase: to use this serializer the model's metaclass
+        must be TemplateBase or its subclass.
+"""
 
 
 class EnhancedListSerializer(serializers.ListSerializer):
@@ -30,7 +47,8 @@ class EnhancedListSerializer(serializers.ListSerializer):
         super().__init__(*args, **kwargs)
         if not isinstance(self.child, EnhancedModelSerializer):
             raise TypeError(
-                f"To use EnhancedListSerializer, {self.child.__class__.__name__} must inherit from EnhancedModelSerializer")
+                f"To use EnhancedListSerializer, {self.child.__class__.__name__}"
+                " must inherit from EnhancedModelSerializer")
 
     def ignore_field(self, field):
         self.child.ignore_field(field)
@@ -43,6 +61,10 @@ class EnhancedListSerializer(serializers.ListSerializer):
 class EnhancedModelSerializer(serializers.ModelSerializer):
     def __new__(cls, *args, **kwargs):
         meta = getattr(cls, 'Meta', None)
+        if not issubclass(meta.model.__class__, TemplateBase):
+            raise TypeError(
+                f"In {cls.__name__}, metaclass {meta.model.__name__} must be a class"
+                "inherit from TemplateBase")
         if not hasattr(meta, 'list_serializer_class'):
             setattr(meta, 'list_serializer_class', EnhancedListSerializer)
         elif not issubclass(meta.list_serializer_class, EnhancedListSerializer):
@@ -54,7 +76,11 @@ class EnhancedModelSerializer(serializers.ModelSerializer):
 
     def __init__(self, instance=None, data=empty, **kwargs):
         super().__init__(instance, data, **kwargs)
+        self._ignore = self.Meta.ignore if hasattr(
+            self.Meta, 'ignore') else tuple()
         self.ignore = {}
+        for field in self._ignore:
+            self.ignore_field(field)
 
     def is_valid(self, raise_exception=False):
         """
@@ -101,8 +127,8 @@ class EnhancedModelSerializer(serializers.ModelSerializer):
     @property
     def _readable_fields(self):
         for name, field in self.fields.items():
-            ignore = not self.ignore.get(name, False)
-            if not field.write_only and ignore:
+            ignore = self.ignore.get(name, False)
+            if not field.write_only and not ignore:
                 yield field
 
     def ignore_field(self, field):
@@ -112,7 +138,7 @@ class EnhancedModelSerializer(serializers.ModelSerializer):
         if not field in self.fields:
             raise KeyError(
                 f"There is no `{field}` field in {self.__class__.__name__} "
-                "to call exclude_field()")
+                "to ignore")
         if field in self.ignore.keys():
             return self
         else:
@@ -125,11 +151,11 @@ class EnhancedModelSerializer(serializers.ModelSerializer):
 
     def clear_ignore(self):
         """
-            Clear self.ignore
+            Reset ignore to the first ignored in class Meta
         """
         if hasattr(self, '_data'):
             delattr(self, '_data')
-        self.ignore.clear()
+        self.ignore = dict.fromkeys(self._ignore, True)
 
 
 MANY_RELATION_KWARGS = (
@@ -137,6 +163,14 @@ MANY_RELATION_KWARGS = (
     'label', 'help_text', 'style', 'error_messages', 'allow_empty',
     'html_cutoff', 'html_cutoff_text'
 )
+
+"""
+    * UUID Related Field: An alternative to PrimaryKeyRelatedField,
+    * but instead of pk we use uuid with model's UUIDField
+        + Writting relation fields now requires uuid instead of id
+        + Many-to-many now take in a list of uuids in form of json
+        format: list = '["elem1", "elem2", "elem3"]'
+"""
 
 
 class UUIDRelatedField(serializers.RelatedField):
@@ -238,6 +272,7 @@ class CustomUserSerializer(EnhancedModelSerializer):
     class Meta:
         model = CustomUser
         exclude = ('id', )
+        ignore = ('password',)
 
 
 class CourseSerializer(TaggitSerializer, EnhancedModelSerializer):

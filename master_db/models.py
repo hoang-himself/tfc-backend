@@ -11,6 +11,9 @@ import datetime
 
 
 class TemplateBase(models.base.ModelBase):
+    """
+        Metaclass for saving editable of every field
+    """
     def __new__(cls, name, bases, attrs, **kwargs):
         editableDict = {}
         for field_name, field in attrs.items():
