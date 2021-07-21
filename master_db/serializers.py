@@ -48,7 +48,7 @@ class EnhancedListSerializer(serializers.ListSerializer):
         if not isinstance(self.child, EnhancedModelSerializer):
             raise TypeError(
                 f"To use EnhancedListSerializer, {self.child.__class__.__name__}"
-                " must inherit from EnhancedModelSerializer")
+                " must be EnhancedModelSerializer or its subclass")
 
     def ignore_field(self, field):
         self.child.ignore_field(field)
@@ -63,14 +63,14 @@ class EnhancedModelSerializer(serializers.ModelSerializer):
         meta = getattr(cls, 'Meta', None)
         if not issubclass(meta.model.__class__, TemplateBase):
             raise TypeError(
-                f"In {cls.__name__}, metaclass {meta.model.__name__} must be a class"
-                "inherit from TemplateBase")
+                f"In {cls.__name__}, metaclass {meta.model.__name__} must be"
+                " TemplateBase or its subclass")
         if not hasattr(meta, 'list_serializer_class'):
             setattr(meta, 'list_serializer_class', EnhancedListSerializer)
         elif not issubclass(meta.list_serializer_class, EnhancedListSerializer):
             raise TypeError(
-                f"In {cls.__name__}, list_serializer_class must be a class"
-                "inherit from EnhancedListSerializer")
+                f"In {cls.__name__}, list_serializer_class must be "
+                "EnhancedListSerializer or its subclass")
 
         return super().__new__(cls, *args, **kwargs)
 
