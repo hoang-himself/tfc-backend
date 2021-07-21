@@ -171,9 +171,6 @@ def prettyStr(text, indentOffset=2):
         Convert an object after convert_primitive() to a string
         with better visualization
     """
-
-    text = str(convert_primitive(text))
-
     def reverse_bracket(bracket):
         if bracket == '{':
             return '}'
@@ -184,10 +181,9 @@ def prettyStr(text, indentOffset=2):
         elif bracket == ']':
             return '['
 
-    subtext = text
-    indent = 0
+    subtext = text = str(convert_primitive(text))
+    indent = char = 0
     bracket = []
-    char = 0
     ignore = False
     for i in range(len(text)):
         if text[i] == '\'':
@@ -204,8 +200,7 @@ def prettyStr(text, indentOffset=2):
             subtext = subtext[:offset+1] + \
                 f"\n{' '*indent}" + subtext[offset+1:]
             char += indent + 1
-
-        if text[i] == '}' or text[i] == ']':
+        elif text[i] == '}' or text[i] == ']':
             if bracket[-1] == reverse_bracket(text[i]):
                 bracket.pop()
                 indent -= indentOffset
@@ -213,10 +208,8 @@ def prettyStr(text, indentOffset=2):
                 subtext = subtext[:offset] + \
                     f"\n{' '*indent}" + subtext[offset:]
                 char += indent + 1
-
-        if text[i] == ',':
+        elif text[i] == ',':
             offset = i + char
-
             if text[i + 1] == ' ':
                 subtext = subtext[:offset+1] + subtext[offset+2:]
                 char -= 1
