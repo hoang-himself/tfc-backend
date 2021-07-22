@@ -6,6 +6,7 @@ from master_db.models import (
     Metatable, Branch, Calendar, CustomUser, Setting, Course,
     ClassMetadata, Schedule, Session, Log, TemplateBase
 )
+from master_db import models
 from master_api.utils import validate_uuid4, prettyPrint
 
 
@@ -170,20 +171,28 @@ MANY_RELATION_KWARGS = (
         + Writting relation fields now requires uuid instead of id
         + Many-to-many now take in a list of uuids in form of json
         format: list = '["elem1", "elem2", "elem3"]'
+        + ModelRelatedField naming: When naming a custom related
+        field, it is recommend to name the field with the name of
+        the corresponding model in master_db.model, or else
+        queryset will not be set. 
 """
 
 
-class UUIDRelatedField(serializers.RelatedField):
+class FieldMetaclass(type):
+    def __new__(cls, name, bases, attrs):
+        model = getattr(models, name.replace('RelatedField', ''), None)
+        if model is not None:
+            attrs['queryset'] = _get_queryset(model)
+        return super().__new__(cls, name, bases, attrs)
+
+
+class UUIDRelatedField(serializers.RelatedField, metaclass=FieldMetaclass):
     default_error_messages = {
         'required': _('This field is required.'),
         'does_not_exist': _('Invalid uuid "{uuid_value}" - object does not exist.'),
         'incorrect_type': _('Incorrect type. Expected uuid value, received {data_type}.'),
         'invalid_uuid': _('“{value}” is not a valid UUID.'),
     }
-
-    def __init__(self, model, *args, **kwargs):
-        kwargs['queryset'] = _get_queryset(model)
-        super().__init__(*args, **kwargs)
 
     @classmethod
     def many_init(cls, *args, **kwargs):
@@ -283,9 +292,9 @@ class CourseSerializer(TaggitSerializer, EnhancedModelSerializer):
         exclude = ('id', )
 
 
-class UserRelatedField(UUIDRelatedField):
-    def __init__(self, *args, **kwargs):
-        super().__init__(CustomUser, *args, **kwargs)
+class CustomUserRelatedField(UUIDRelatedField):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
     def to_representation(self, obj):
         return {
@@ -297,8 +306,8 @@ class UserRelatedField(UUIDRelatedField):
 
 
 class CourseRelatedField(UUIDRelatedField):
-    def __init__(self, *args, **kwargs):
-        super().__init__(Course, *args, **kwargs)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
     def to_representation(self, obj):
         return {
@@ -309,17 +318,17 @@ class CourseRelatedField(UUIDRelatedField):
 
 class ClassMetadataSerializer(EnhancedModelSerializer):
     course = CourseRelatedField()
-    students = UserRelatedField(many=True)
-    teacher = UserRelatedField()
+    students = CustomUserRelatedField(many=True)
+    teacher = CustomUserRelatedField()
 
     class Meta:
         model = ClassMetadata
         exclude = ('id', )
 
 
-class ClassRelatedField(UUIDRelatedField):
-    def __init__(self, *args, **kwargs):
-        super().__init__(ClassMetadata, *args, **kwargs)
+class ClassMetadataRelatedField(UUIDRelatedField):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
     def to_representation(self, obj):
         return {
@@ -330,7 +339,7 @@ class ClassRelatedField(UUIDRelatedField):
 
 
 class ScheduleSerializer(EnhancedModelSerializer):
-    classroom = ClassRelatedField()
+    classroom = ClassMetadataRelatedField()
 
     class Meta:
         model = Schedule
@@ -338,8 +347,8 @@ class ScheduleSerializer(EnhancedModelSerializer):
 
 
 class ScheduleRelatedField(UUIDRelatedField):
-    def __init__(self, *args, **kwargs):
-        super().__init__(Schedule, *args, **kwargs)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
     def to_representation(self, obj):
         return {
@@ -351,7 +360,7 @@ class ScheduleRelatedField(UUIDRelatedField):
 
 class SessionSerializer(EnhancedModelSerializer):
     schedule = ScheduleRelatedField()
-    student = UserRelatedField()
+    student = CustomUserRelatedField()
 
     class Meta:
         model = Session
