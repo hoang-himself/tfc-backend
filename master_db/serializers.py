@@ -301,6 +301,10 @@ class CustomUserSerializer(EnhancedModelSerializer):
         exclude = ('id', )
 
     def validate_old_password(self, value):
+        """
+            When updating password, old_password must be included to
+            be checked through format.
+        """
         value = value[0] if isinstance(value, list) else value
         if self.instance and not self.instance.check_password(value):
             raise DRFValidationError(
@@ -308,10 +312,6 @@ class CustomUserSerializer(EnhancedModelSerializer):
                 else "This field is required.")
 
     def validate_password(self, value):
-        """
-            When updating password, old_password must be included to
-            be checked through format.
-        """
         return make_password(value)
 
     def to_internal_value(self, data):
