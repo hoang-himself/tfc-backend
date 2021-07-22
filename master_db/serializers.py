@@ -352,18 +352,6 @@ class ScheduleSerializer(EnhancedModelSerializer):
         exclude = ('id', )
 
 
-class ScheduleRelatedField(UUIDRelatedField):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-    def to_representation(self, obj):
-        return {
-            'uuid': obj.uuid,
-            'time_start': obj.time_start,
-            'time_end': obj.time_end,
-        }
-
-
 class SessionSerializer(EnhancedModelSerializer):
 
     class Meta:
