@@ -1,3 +1,6 @@
+from django.contrib.auth.hashers import (
+    check_password, make_password,
+)
 from django.contrib.auth.models import Group
 
 from rest_framework import serializers
@@ -12,6 +15,7 @@ from master_api.utils import validate_uuid4, prettyPrint
 
 # For custom classes
 from collections import OrderedDict
+from collections.abc import Mapping
 from taggit_serializer.serializers import (
     TaggitSerializer, TagListSerializerField
 )
@@ -19,9 +23,100 @@ from django.utils.translation import gettext_lazy as _
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.shortcuts import _get_queryset
 
-from rest_framework.fields import empty
+from rest_framework.fields import empty, get_error_detail, set_value
+from rest_framework.settings import api_settings
+from rest_framework.exceptions import ValidationError as DRFValidationError
+
 
 import json
+
+
+MANY_RELATION_KWARGS = (
+    'read_only', 'write_only', 'required', 'default', 'initial', 'source',
+    'label', 'help_text', 'style', 'error_messages', 'allow_empty',
+    'html_cutoff', 'html_cutoff_text'
+)
+
+"""
+    * UUID Related Field: An alternative to PrimaryKeyRelatedField,
+    * but instead of pk we use uuid with model's UUIDField
+        + Writting relation fields now requires uuid instead of id
+        + Many-to-many now take in a list of uuids in form of json
+        format: list = '["elem1", "elem2", "elem3"]'
+        + ModelRelatedField naming: When naming a custom related
+        field, it is recommend to name the field with the name of
+        the corresponding model in master_db.model, or else
+        queryset will not be set. 
+"""
+
+
+class UUIDRelatedField(serializers.RelatedField):
+    default_error_messages = {
+        'required': _('This field is required.'),
+        'does_not_exist': _('Invalid uuid "{uuid_value}" - object does not exist.'),
+        'incorrect_type': _('Incorrect type. Expected uuid value, received {data_type}.'),
+        'invalid_uuid': _('“{value}” is not a valid UUID.'),
+    }
+
+    @classmethod
+    def many_init(cls, *args, **kwargs):
+        list_kwargs = {'child_relation': cls(*args, **kwargs)}
+        for key in kwargs:
+            if key in MANY_RELATION_KWARGS:
+                list_kwargs[key] = kwargs[key]
+        return UUIDManyRelatedField(**list_kwargs)
+
+    def to_internal_value(self, data):
+        queryset = self.get_queryset()
+        try:
+            if isinstance(data, bool):
+                raise TypeError
+            return queryset.get(uuid=data)
+        except ObjectDoesNotExist:
+            self.fail('does_not_exist', uuid_value=data)
+        except (TypeError, ValueError):
+            self.fail('incorrect_type', data_type=type(data).__name__)
+        except ValidationError:
+            self.fail('invalid_uuid', value=data)
+
+    def to_representation(self, value):
+        return {
+            'uuid': value.uuid
+        }
+
+
+class UUIDManyRelatedField(serializers.ManyRelatedField):
+    default_error_messages = {
+        'not_a_list': _(
+            'Expected a list of items but got type "{input_type}".'),
+        'invalid_json': _("Invalid json list. A {name} list submitted in string"
+                          " form must be valid json."),
+        'not_a_str': _('All list items must be of string type.'),
+        'invalid_uuid': _('“{value}” is not a valid UUID.'),
+    }
+
+    def to_internal_value(self, value):
+        if not value:
+            value = "[]"
+        elif isinstance(value, list) and len(value) == 1:
+            # ! Naive resolve
+            # When passing data=request.data param comes in
+            # list with a single string(data sent).
+            # May be due to OrderedDict
+            value = value[0]
+        try:
+            value = json.loads(value)
+        except ValueError:
+            self.fail('invalid_json',
+                      name=self.child_relation.__class__.__name__)
+
+        if not isinstance(value, list):
+            self.fail('not_a_list', input_type=type(value).__name__)
+
+        for s in value:
+            if not validate_uuid4(s):
+                self.fail('invalid_uuid', value=value)
+            yield self.child_relation.to_internal_value(s)
 
 
 """
@@ -60,6 +155,8 @@ class EnhancedListSerializer(serializers.ListSerializer):
 
 
 class EnhancedModelSerializer(serializers.ModelSerializer):
+    serializer_related_field = UUIDRelatedField
+
     def __new__(cls, *args, **kwargs):
         meta = getattr(cls, 'Meta', None)
         if not issubclass(meta.model.__class__, TemplateBase):
@@ -83,35 +180,49 @@ class EnhancedModelSerializer(serializers.ModelSerializer):
         for field in self._ignore:
             self.ignore_field(field)
 
-    def is_valid(self, raise_exception=False):
+    def to_internal_value(self, data):
         """
-            Django's ModelSerializer does not support update without required
-            fields. When super().is_valid is called it run_validation() its
-            self.initial_data, so we just need to update and then return it
-            to the original state. 
-
-            Note: OrderedDict is a must for compatibility.
+        Override to check if instance
         """
-        # Creation of an object is still fine
-        if self.instance is None:
-            return super().is_valid(raise_exception)
+        if not isinstance(data, Mapping):
+            message = self.error_messages['invalid'].format(
+                datatype=type(data).__name__
+            )
+            raise ValidationError({
+                api_settings.NON_FIELD_ERRORS_KEY: [message]
+            }, code='invalid')
 
-        def convertUUID(instance):
-            dic = instance.__dict__
-            retDict = dic.copy()
-            for key in dic.keys():
-                if len(key) > 3 and key[-3:] == '_id':
-                    newKey = key[:-3]
-                    value = getattr(instance, newKey)
-                    retDict[newKey] = str(value.uuid)
-                    retDict.pop(key)
-            return OrderedDict(retDict)
+        ret = OrderedDict()
+        errors = OrderedDict()
+        fields = self._writable_fields
 
-        temp = self.initial_data
-        self.initial_data = convertUUID(self.instance)
-        self.initial_data.update(temp)
-        ret = super().is_valid(raise_exception)
-        self.initial_data = temp
+        for field in fields:
+            validate_method = getattr(
+                self, 'validate_' + field.field_name, None)
+            primitive_value = field.get_value(data)
+            try:
+                validated_value = field.run_validation(primitive_value)
+                if validate_method is not None:
+                    validated_value = validate_method(validated_value)
+            except DRFValidationError as exc:
+                detail = exc.detail.copy()
+                for i in range(len(detail)):
+                    if detail[i] == 'This field is required.':
+                        if getattr(self.instance, field.field_name, False) is not None:
+                            detail.pop(i)
+                            break
+                if bool(detail):
+                    errors[field.field_name] = detail
+            except ValidationError as exc:
+                errors[field.field_name] = get_error_detail(exc)
+            except serializers.SkipField:
+                pass
+            else:
+                set_value(ret, field.source_attrs, validated_value)
+
+        if errors:
+            raise DRFValidationError(errors)
+
         return ret
 
     @property
@@ -159,100 +270,6 @@ class EnhancedModelSerializer(serializers.ModelSerializer):
         self.ignore = dict.fromkeys(self._ignore, True)
 
 
-MANY_RELATION_KWARGS = (
-    'read_only', 'write_only', 'required', 'default', 'initial', 'source',
-    'label', 'help_text', 'style', 'error_messages', 'allow_empty',
-    'html_cutoff', 'html_cutoff_text'
-)
-
-"""
-    * UUID Related Field: An alternative to PrimaryKeyRelatedField,
-    * but instead of pk we use uuid with model's UUIDField
-        + Writting relation fields now requires uuid instead of id
-        + Many-to-many now take in a list of uuids in form of json
-        format: list = '["elem1", "elem2", "elem3"]'
-        + ModelRelatedField naming: When naming a custom related
-        field, it is recommend to name the field with the name of
-        the corresponding model in master_db.model, or else
-        queryset will not be set. 
-"""
-
-
-class FieldMetaclass(type):
-    def __new__(cls, name, bases, attrs):
-        model = getattr(models, name.replace('RelatedField', ''), None)
-        if model is not None:
-            attrs['queryset'] = _get_queryset(model)
-        return super().__new__(cls, name, bases, attrs)
-
-
-class UUIDRelatedField(serializers.RelatedField, metaclass=FieldMetaclass):
-    default_error_messages = {
-        'required': _('This field is required.'),
-        'does_not_exist': _('Invalid uuid "{uuid_value}" - object does not exist.'),
-        'incorrect_type': _('Incorrect type. Expected uuid value, received {data_type}.'),
-        'invalid_uuid': _('“{value}” is not a valid UUID.'),
-    }
-
-    @classmethod
-    def many_init(cls, *args, **kwargs):
-        list_kwargs = {'child_relation': cls(*args, **kwargs)}
-        for key in kwargs:
-            if key in MANY_RELATION_KWARGS:
-                list_kwargs[key] = kwargs[key]
-        return UUIDManyRelatedField(**list_kwargs)
-
-    def to_internal_value(self, data):
-        queryset = self.get_queryset()
-        try:
-            if isinstance(data, bool):
-                raise TypeError
-            return queryset.get(uuid=data)
-        except ObjectDoesNotExist:
-            self.fail('does_not_exist', uuid_value=data)
-        except (TypeError, ValueError):
-            self.fail('incorrect_type', data_type=type(data).__name__)
-        except ValidationError:
-            self.fail('invalid_uuid', value=data)
-
-    def to_representation(self, value):
-        return value.uuid
-
-
-class UUIDManyRelatedField(serializers.ManyRelatedField):
-    default_error_messages = {
-        'not_a_list': _(
-            'Expected a list of items but got type "{input_type}".'),
-        'invalid_json': _("Invalid json list. A {name} list submitted in string"
-                          " form must be valid json."),
-        'not_a_str': _('All list items must be of string type.'),
-        'invalid_uuid': _('“{value}” is not a valid UUID.'),
-    }
-
-    def to_internal_value(self, value):
-        if not value:
-            value = "[]"
-        elif isinstance(value, list) and len(value) == 1:
-            # ! Naive resolve
-            # When passing data=request.data param comes in
-            # list with a single string(data sent).
-            # May be due to OrderedDict
-            value = value[0]
-        try:
-            value = json.loads(value)
-        except ValueError:
-            self.fail('invalid_json',
-                      name=self.child_relation.__class__.__name__)
-
-        if not isinstance(value, list):
-            self.fail('not_a_list', input_type=type(value).__name__)
-
-        for s in value:
-            if not validate_uuid4(s):
-                self.fail('invalid_uuid', value=value)
-            yield self.child_relation.to_internal_value(s)
-
-
 class MetatableSerializer(EnhancedModelSerializer):
     class Meta:
         model = Metatable
@@ -278,10 +295,39 @@ class SettingSerializer(EnhancedModelSerializer):
 
 
 class CustomUserSerializer(EnhancedModelSerializer):
+
     class Meta:
         model = CustomUser
         exclude = ('id', )
-        ignore = ('password',)
+
+    def validate_old_password(self, value):
+        value = value[0] if isinstance(value, list) else value
+        if self.instance and not self.instance.check_password(value):
+            raise DRFValidationError(
+                "Current password is incorrect" if value is not None
+                else "This field is required.")
+
+    def validate_password(self, value):
+        """
+            When updating password, old_password must be included to
+            be checked through format.
+        """
+        return make_password(value)
+
+    def to_internal_value(self, data):
+        errors = {}
+        try:
+            ret = super().to_internal_value(data)
+        except DRFValidationError as e:
+            errors = e
+        try:
+            self.validate_old_password(data.pop('old_password', None))
+        except DRFValidationError as e:
+            errors['old_password'] = e.detail
+
+        if bool(errors):
+            raise DRFValidationError(errors)
+        return ret
 
 
 class CourseSerializer(TaggitSerializer, EnhancedModelSerializer):
@@ -292,54 +338,14 @@ class CourseSerializer(TaggitSerializer, EnhancedModelSerializer):
         exclude = ('id', )
 
 
-class CustomUserRelatedField(UUIDRelatedField):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-    def to_representation(self, obj):
-        return {
-            'name': obj.first_name + ' ' + obj.last_name,
-            'mobile': obj.mobile,
-            'email': obj.email,
-            'uuid': obj.uuid,
-        }
-
-
-class CourseRelatedField(UUIDRelatedField):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-    def to_representation(self, obj):
-        return {
-            'name': obj.name,
-            'uuid': obj.uuid,
-        }
-
-
 class ClassMetadataSerializer(EnhancedModelSerializer):
-    course = CourseRelatedField()
-    students = CustomUserRelatedField(many=True)
-    teacher = CustomUserRelatedField()
 
     class Meta:
         model = ClassMetadata
         exclude = ('id', )
 
 
-class ClassMetadataRelatedField(UUIDRelatedField):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-    def to_representation(self, obj):
-        return {
-            'name': obj.name,
-            'course': obj.course.name,
-            'uuid': obj.uuid,
-        }
-
-
 class ScheduleSerializer(EnhancedModelSerializer):
-    classroom = ClassMetadataRelatedField()
 
     class Meta:
         model = Schedule
@@ -359,8 +365,6 @@ class ScheduleRelatedField(UUIDRelatedField):
 
 
 class SessionSerializer(EnhancedModelSerializer):
-    schedule = ScheduleRelatedField()
-    student = CustomUserRelatedField()
 
     class Meta:
         model = Session
