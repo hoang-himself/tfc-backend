@@ -81,6 +81,7 @@ class UUIDRelatedField(serializers.RelatedField):
 
     def to_representation(self, value):
         return {
+            'name': str(value),
             'uuid': value.uuid
         }
 
