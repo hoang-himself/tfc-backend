@@ -1,3 +1,4 @@
+from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import Group
 
 from rest_framework import serializers
@@ -281,7 +282,9 @@ class CustomUserSerializer(EnhancedModelSerializer):
     class Meta:
         model = CustomUser
         exclude = ('id', )
-        ignore = ('password',)
+
+    def validate_password(self, password):
+        return make_password(password)
 
 
 class CourseSerializer(TaggitSerializer, EnhancedModelSerializer):
