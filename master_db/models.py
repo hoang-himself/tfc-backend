@@ -13,7 +13,7 @@ import os
 
 
 PHONE_REGEX = r'^(0)(3[2-9]|5[689]|7[06-9]|8[0-689]|9[0-46-9])[0-9]{7}$'
-USER_IMAGE_PATH ='images/users/'
+USER_IMAGE_PATH = 'images/users/'
 
 
 class TemplateBase(models.base.ModelBase):
@@ -119,7 +119,7 @@ class CustomUser(AbstractUser, metaclass=TemplateBase):
         ]
 
     def __str__(self):
-        return self.email
+        return self.first_name + ' ' + self.last_name
 
 
 #
@@ -165,7 +165,7 @@ class ClassMetadata(TemplateModel):
         ]
 
     def __str__(self):
-        return f'{self.name} {self.course} {self.status}'
+        return f'{self.name}'
 
 
 # Schedule for students
@@ -220,7 +220,7 @@ class Session(TemplateModel):
         ]
 
     def __str__(self):
-        return f'{self.schedule} {self.status} {self.student}'
+        return f'{str(self.student)} in {str(self.schedule)}'
 
 
 # Calendar for staff only
@@ -239,9 +239,7 @@ class Calendar(TemplateModel):
         ]
 
     def __str__(self):
-        time_start = datetime.datetime.fromtimestamp(self.time_start)
-        time_end = datetime.datetime.fromtimestamp(self.time_end)
-        return f'{self.name}, {time_start.hour + time_start.minute / 60} ~ {time_end.hour + time_end.minute / 60}'
+        return f'{self.name}'
 
 
 #

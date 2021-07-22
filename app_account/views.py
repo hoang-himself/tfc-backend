@@ -37,8 +37,7 @@ def create_user(request):
 @permission_classes([AllowAny])
 @csrf_protect
 def edit_user(request):
-    # TODO
-    pass
+    return edit_object(CustomUser, data=request.data)
 
 
 @api_view(['DELETE'])

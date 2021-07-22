@@ -47,12 +47,30 @@ class TestUser(TestCase):
                          msg=prettyStr(response.data))
         self.assertEqual(response.data, CREATE_RESPONSE['data'])
 
-    def test_list(self):
+    def test_list(self, printOut=True):
         self.test_successful_create()
         client = APIClient()
         url = self.url + 'list'
 
         response = client.get(url)
+        if printOut:
+            prettyPrint(response.data)
+        return response
+
+    def test_edit(self):
+        client = APIClient()
+        url = self.url + 'edit'
+        edit_uuid = self.test_list(False).data[0]['uuid']
+
+        data = {
+            'uuid': edit_uuid,
+            'old_password': 'iamuser1',
+            'password': 'newpassword'
+        }
+
+        response = client.patch(url, data)
+        prettyPrint(response.data)
+        response = client.get(self.url + 'list')
         prettyPrint(response.data)
 
 
