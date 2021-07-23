@@ -320,7 +320,7 @@ class CustomUserSerializer(EnhancedModelSerializer):
         try:
             ret = super().to_internal_value(data)
         except DRFValidationError as e:
-            errors = e
+            errors = e.detail
         try:
             self.validate_old_password(data.pop('old_password', None))
         except DRFValidationError as e:
