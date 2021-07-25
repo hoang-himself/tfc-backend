@@ -185,9 +185,7 @@ class Schedule(TemplateModel):
         ]
 
     def __str__(self):
-        time_start = datetime.datetime.fromtimestamp(self.time_start)
-        time_end = datetime.datetime.fromtimestamp(self.time_end)
-        return f'{self.classroom}, {time_start.hour}:{time_start.minute:02d} ~ {time_end.hour}:{time_end.minute:02d}'
+        return f'{self.classroom}, {self.time_start.hour}:{self.time_start.minute:02d} ~ {self.time_end.hour}:{self.time_end.minute:02d}'
 
 
 #
