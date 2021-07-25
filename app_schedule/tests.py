@@ -10,7 +10,7 @@ from master_api.utils import (prettyPrint, compare_dict,
 from master_api.views import (CREATE_RESPONSE, EDIT_RESPONSE, GET_RESPONSE,
                               DELETE_RESPONSE, LIST_RESPONSE,)
 
-from app_class.tests import create_class, create_special_student
+from app_class.tests import (create_class, create_special_student)
 
 
 CustomUser = get_user_model()

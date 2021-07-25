@@ -1,5 +1,6 @@
 from django.http import response
 from django.contrib.auth import get_user_model
+from django.contrib.auth.hashers import make_password
 from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APIClient
@@ -20,6 +21,9 @@ import rstr
 CustomUser = get_user_model()
 NUM_STUDENT_EACH = 10
 NUM_CLASS = 10
+teacher_password = make_password('teacherpassword')
+student_password = make_password('studentpassword')
+special_password = make_password('specialpassword')
 
 
 def create_class(desc=0, course=None):
@@ -41,7 +45,7 @@ def create_class(desc=0, course=None):
 def create_teacher_students(desc=0, num_students=NUM_STUDENT_EACH):
     # Create teacher
     teacher = CustomUser(
-        email=f'teacher{desc}@tfc.com', password='teacherpassword',
+        email=f'teacher{desc}@tfc.com', password=teacher_password,
         first_name=f'Class-{desc}', last_name='Teacher',
         birth_date='1969-06-09', mobile=rstr.xeger(PHONE_REGEX),
         male=True, address='Meaningless'
@@ -52,7 +56,7 @@ def create_teacher_students(desc=0, num_students=NUM_STUDENT_EACH):
     students = []
     for x in range(num_students):
         std = CustomUser(
-            email=f'class{desc}_std_{x}@tfc.com', password='studentpassword',
+            email=f'class{desc}_std_{x}@tfc.com', password=student_password,
             first_name=f'Class-{desc}', last_name=f'Student-{x}',
             birth_date='2001-06-09', mobile=rstr.xeger(PHONE_REGEX),
             male=x % 2, address='Homeless'
@@ -65,7 +69,7 @@ def create_teacher_students(desc=0, num_students=NUM_STUDENT_EACH):
 
 def create_special_student():
     return CustomUser.objects.create(
-        email=f'{rstr.xeger(PHONE_REGEX)}@tfc.com', password='specialpassword',
+        email=f'{rstr.xeger(PHONE_REGEX)}@tfc.com', password=special_password,
         first_name=f'Special', last_name='Student',
         birth_date='1969-06-09', mobile=rstr.xeger(PHONE_REGEX),
         male=None, address='Definitely not gay'
