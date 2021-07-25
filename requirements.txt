@@ -69,6 +69,8 @@ python-dotenv==0.18.0
     # via tfc-backend (setup.py)
 pytz==2021.1
     # via django
+rstr==2.2.6
+    # via tfc-backend (setup.py)
 six==1.16.0
     # via
     #   django-annoying
