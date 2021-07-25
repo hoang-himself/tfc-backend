@@ -22,7 +22,7 @@ CustomUser = get_user_model()
 @api_view(['GET'])
 @permission_classes([AllowAny])
 @csrf_protect
-def get_user(request):
+def get_self(request):
     return get_object(CustomUser, data=request.GET)
 
 
@@ -58,17 +58,17 @@ def list_user(request):
     )
 
 
-@ api_view(['GET'])
-@ permission_classes([AllowAny])
-@ csrf_protect
+@api_view(['GET'])
+@permission_classes([AllowAny])
+@csrf_protect
 def list_staff(request):
     # TODO
     pass
 
 
-@ api_view(['POST'])
-@ permission_classes([AllowAny])
-@ csrf_protect
+@api_view(['POST'])
+@permission_classes([AllowAny])
+@csrf_protect
 def create_staff(request):
     """
         Return list of users with a specified view
