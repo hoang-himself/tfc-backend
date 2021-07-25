@@ -22,8 +22,8 @@ def create_sched(desc=0, classes=None):
     classes = classes if classes is not None else create_class(desc)
     return Schedule.objects.create(
         classroom=classes,
-        time_start=convert_time(f'20{desc:02d}-06-09 16:09'),
-        time_end=convert_time(f'30{desc:02d}-06-09 16:09'),
+        time_start=convert_time(f'20{desc:02d}-06-09 15:09'),
+        time_end=convert_time(f'20{desc:02d}-06-09 17:09'),
         desc=f'Description {desc}'
     )
 
