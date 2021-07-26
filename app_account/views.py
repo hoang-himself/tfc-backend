@@ -23,7 +23,8 @@ CustomUser = get_user_model()
 @permission_classes([AllowAny])
 @csrf_protect
 def get_self(request):
-    return get_object(CustomUser, data=request.GET)
+    user = request_to_userobj(request)
+    return Response(data=CustomUserSerializer(user).data)
 
 
 @api_view(['POST'])
