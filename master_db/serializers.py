@@ -7,7 +7,7 @@ from rest_framework import serializers
 
 from master_db.models import (
     Metatable, Branch, Calendar, CustomUser, Setting, Course,
-    ClassMetadata, Schedule, Session, Log, TemplateBase
+    ClassMetadata, Schedule, Session, Log
 )
 from master_db import models
 from master_api.utils import validate_uuid4, prettyPrint
@@ -123,17 +123,17 @@ class UUIDManyRelatedField(serializers.ManyRelatedField):
 """
     * Enhanced serializer: Include new and improve already existing 
     * features
-        + ignore in class Meta: ignore fields when calling .data
-        + ignore_field: dynamically add fields to ignore
-        + clear_ignore: reset ignore to its original state
+        + non_updatable in class Meta: fields declared in this will
+        not be updated, but can be created.
+        + ignore in class Meta: ignore fields when calling .data.
+        + ignore_field: dynamically add fields to ignore.
+        + clear_ignore: reset ignore to its original state.
         + list_serializer_class: Automatically set to
-        EnhancedListSerializer for further customization
+        EnhancedListSerializer for further customization.
         + Update ignore required fields: Updating models now does
         not need required fields, ie. name is required in Course
         but when update we don't specify name so an error will be
         raised, Enhanced serializer resolves this.
-        + editable=False in model will not be modified: resolve
-        https://github.com/encode/django-rest-framework/issues/1604
         + TemplateBase: to use this serializer the model's metaclass
         must be TemplateBase or its subclass.
 """
@@ -160,10 +160,6 @@ class EnhancedModelSerializer(serializers.ModelSerializer):
 
     def __new__(cls, *args, **kwargs):
         meta = getattr(cls, 'Meta', None)
-        if not issubclass(meta.model.__class__, TemplateBase):
-            raise TypeError(
-                f"In {cls.__name__}, metaclass {meta.model.__name__} must be"
-                " TemplateBase or its subclass")
         if not hasattr(meta, 'list_serializer_class'):
             setattr(meta, 'list_serializer_class', EnhancedListSerializer)
         elif not issubclass(meta.list_serializer_class, EnhancedListSerializer):
@@ -175,6 +171,8 @@ class EnhancedModelSerializer(serializers.ModelSerializer):
 
     def __init__(self, instance=None, data=empty, **kwargs):
         super().__init__(instance, data, **kwargs)
+        self.updatable = dict.fromkeys(self.Meta.non_updatable, False) if hasattr(
+            self.Meta, 'non_updatable') else {}
         self._ignore = self.Meta.ignore if hasattr(
             self.Meta, 'ignore') else tuple()
         self.ignore = {}
@@ -230,8 +228,7 @@ class EnhancedModelSerializer(serializers.ModelSerializer):
     def _writable_fields(self):
         for name, field in self.fields.items():
             if self.instance:
-                model_editable = self.Meta.model.editable_fields.get(
-                    name, True)
+                model_editable = self.updatable.get(name, True)
             else:
                 model_editable = True
             if not field.read_only and model_editable:
@@ -299,7 +296,8 @@ class CustomUserSerializer(EnhancedModelSerializer):
 
     class Meta:
         model = CustomUser
-        exclude = ('id', )
+        exclude = ('id', 'last_login', 'is_superuser')
+        ignore = ('password', )
 
     def validate_old_password(self, value):
         """
@@ -358,6 +356,7 @@ class SessionSerializer(EnhancedModelSerializer):
     class Meta:
         model = Session
         exclude = ('id', )
+        non_updatable = ('schedule', 'student')
 
 
 class LogSerializer(EnhancedModelSerializer):

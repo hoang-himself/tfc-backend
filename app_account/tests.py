@@ -1,5 +1,6 @@
 from django.http import response
 from django.contrib.auth import get_user_model
+from django.contrib.auth.hashers import make_password
 from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APIClient
@@ -19,59 +20,90 @@ import io
 from PIL import Image
 
 
+CustomUser = get_user_model()
+NUM_USER = 10
+
+
 class TestUser(TestCase):
     url = '/api/v1/account/'
 
-    def generate_photo_file(self):
+    def setUp(self):
+        self.users = CustomUser.objects.bulk_create(
+            [CustomUser(
+                email=f'user{i}@tfc.com', password=make_password('iamuser'),
+                first_name=f'Number{i}', last_name='User',
+                birth_date='2001-07-31', mobile=rstr.xeger(PHONE_REGEX),
+                male=i % 2, address='My lovely home',
+            ) for i in range(NUM_USER)]
+        )
+
+    def generate_photo_file(self, color=(0, 155, 0)):
         file = io.BytesIO()
-        image = Image.new('RGBA', size=(100, 100), color=(0, 155, 0))
+        image = Image.new('RGBA', size=(100, 100), color=color)
         image.save(file, 'png')
         file.name = 'test.png'
         file.seek(0)
         return file
 
-    def test_successful_create(self):
+    def test_successful_created(self):
         client = APIClient()
         url = self.url + 'create'
 
         data = {
-            'email': 'user1@tfc.com', 'password': 'iamuser1',
+            'email': 'someuser@tfc.com', 'password': 'somepassword',
             'first_name': 'First', 'last_name': 'Last',
-            'birth_date': '2001-07-31', 'mobile': '0923456789',
+            'birth_date': '2001-07-31', 'mobile': rstr.xeger(PHONE_REGEX),
             'male': True, 'address': 'My lovely home',
-            'avatar': self.generate_photo_file()
+            'is_active': False,
+            'avatar': self.generate_photo_file(),
+            'date_joined': '2010-12-12',
+            'last_login': '2010-12-12T13:27:57',
         }
 
         response = client.post(url, data)
         self.assertEqual(response.status_code, CREATE_RESPONSE['status'],
                          msg=prettyStr(response.data))
         self.assertEqual(response.data, CREATE_RESPONSE['data'])
+        self.test_list(False, NUM_USER + 1)
 
-    def test_list(self, printOut=True):
-        self.test_successful_create()
+    def test_list(self, printOut=True, length=None):
+        length = length if length is not None else NUM_USER
         client = APIClient()
         url = self.url + 'list'
 
         response = client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), length)
         if printOut:
             prettyPrint(response.data)
-        return response
+        else:
+            return response
 
-    def test_edit(self):
+    def test_editted(self):
         client = APIClient()
         url = self.url + 'edit'
-        edit_uuid = self.test_list(False).data[0]['uuid']
+        edit_uuid = self.users[0].uuid
 
         data = {
             'uuid': edit_uuid,
-            'old_password': 'iamuser1',
+            'old_password': 'iamuser',
             'password': 'newpassword'
         }
 
         response = client.patch(url, data)
-        prettyPrint(response.data)
-        response = client.get(self.url + 'list')
-        prettyPrint(response.data)
+        self.assertEqual(response.status_code, EDIT_RESPONSE['status'],
+                         msg=prettyStr(response.data))
+
+    def test_successful_deleted(self):
+        client = APIClient()
+        url = self.url + 'delete'
+        delete_uuid = self.users[0].uuid
+
+        response = client.delete(url, {'uuid': delete_uuid})
+        self.assertEqual(response.status_code, DELETE_RESPONSE['status'],
+                         msg=prettyStr(response.data))
+        self.assertEqual(response.data, DELETE_RESPONSE['data'])
+        response = self.test_list(False, NUM_USER - 1)
 
 
 # from django.contrib.auth import get_user_model

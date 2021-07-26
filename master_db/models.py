@@ -16,21 +16,7 @@ PHONE_REGEX = r'^(0)(3[2-9]|5[689]|7[06-9]|8[0-689]|9[0-46-9])[0-9]{7}$'
 USER_IMAGE_PATH = 'images/users/'
 
 
-class TemplateBase(models.base.ModelBase):
-    """
-        Metaclass for saving editable of every field
-    """
-    def __new__(cls, name, bases, attrs, **kwargs):
-        editableDict = {}
-        for field_name, field in attrs.items():
-            if isinstance(field, models.Field):
-                editableDict[field_name] = field.editable
-        ret = super().__new__(cls, name, bases, attrs, **kwargs)
-        ret.editable_fields = editableDict
-        return ret
-
-
-class TemplateModel(TimeStampedModel, metaclass=TemplateBase):
+class TemplateModel(TimeStampedModel):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, blank=True)
     desc = models.TextField(null=True, blank=True)
 
@@ -82,7 +68,7 @@ def upload_avatar(instance, filename):
     return '%s/%s/%s' % (USER_IMAGE_PATH, instance.uuid, 'profile' + file_ext)
 
 
-class CustomUser(AbstractUser, metaclass=TemplateBase):
+class CustomUser(AbstractUser):
     username = None
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, blank=True)
     email = models.EmailField(unique=True)
@@ -185,7 +171,9 @@ class Schedule(TemplateModel):
         ]
 
     def __str__(self):
-        return f'{self.classroom}, {self.time_start.hour}:{self.time_start.minute:02d} ~ {self.time_end.hour}:{self.time_end.minute:02d}'
+        return (f'{self.classroom}, '
+                f'{self.time_start.hour}:{self.time_start.minute:02d}'
+                f' ~ {self.time_end.hour}:{self.time_end.minute:02d}')
 
 
 #
@@ -193,12 +181,10 @@ class Session(TemplateModel):
     schedule = models.ForeignKey(
         Schedule,
         on_delete=models.CASCADE,
-        editable=False
     )
     student = models.ForeignKey(
         CustomUser,
         on_delete=models.CASCADE,
-        editable=False
     )
     homework = models.SmallIntegerField(null=True, blank=True)
     status = models.BooleanField(null=True, blank=True)

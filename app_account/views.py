@@ -24,7 +24,7 @@ CustomUser = get_user_model()
 @csrf_protect
 def get_self(request):
     user = request_to_userobj(request)
-    return Response(data=CustomUserSerializer(user).data)
+    return Response(CustomUserSerializer(user).data)
 
 
 @api_view(['POST'])
@@ -45,8 +45,7 @@ def edit_user(request):
 @permission_classes([AllowAny])
 @csrf_protect
 def delete_user(request):
-    # TODO
-    pass
+    return delete_object(CustomUser, data=request.data)
 
 
 @api_view(['GET'])
