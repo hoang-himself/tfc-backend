@@ -61,7 +61,7 @@ def request_to_userobj(request):
     except jwt.ExpiredSignatureError:
         raise SessionExpired()
 
-    if ((user := get_object_or_None(CustomUser, uuid=payload.get('user_id'))) is None):
+    if ((user := get_object_or_None(CustomUser, uuid=payload.get('uuid'))) is None):
         raise UserNotFound()
 
     if not user.is_active:
