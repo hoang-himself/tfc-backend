@@ -1,0 +1,18 @@
+{
+  "cSpell.words": [
+    "create",
+    "crsftoken",
+    "csrf",
+    "csrftoken",
+    "dotenv",
+    "framework",
+    "hasher",
+    "hashers",
+    "klass",
+    "load",
+    "psycopg",
+    "rest",
+    "sched",
+    "simplejwt"
+  ]
+}

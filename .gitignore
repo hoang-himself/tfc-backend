@@ -60,6 +60,8 @@ coverage.xml
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
+!__init__.py
+*/migrations/*
 
 # Flask stuff:
 instance/
@@ -127,9 +129,6 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-
-# vscode
-.vscode/
 
 # Python file/folder for testing python features
 debug.py

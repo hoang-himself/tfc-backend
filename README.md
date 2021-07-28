@@ -82,14 +82,35 @@ crontab -e
 ```
 
 Content needed for crontab -e
+
 ```sh
 SHELL=/bin/bash
 */3 * * * * . /<project-location>/venv/bin/activate && python /<project-location>/manage.py
 ```
 
-cron format helper: https://crontab.guru/
+cron format helper: [Link](https://crontab.guru/)
 
 ## FAQ
+
+### JWT token
+
+On login, a JWT token is generated and stored in your cookie.
+Take this token, put it in the header according to this format
+
+```text
+'Authorization': 'JWT <token>'
+```
+
+The space after `JWT` is important.
+
+### CSRF token
+
+On login, a CSRF token is generated and stored in your cookie.
+Take this token, put it in the header according to this format
+
+```text
+'X-CSRFTOKEN': '<token>'
+```
 
 ### Generating a password hash
 
@@ -106,7 +127,7 @@ from django.contrib.auth.hashers import make_password
 make_password('sample')
 ```
 
-### CSRF token
+### Logout
 
-On login, a CSRF token is generated and stored in your cookie.
-Take this token, put it in the header and name it `X-CRSFTOKEN`
+Currently not implemented.
+Clients are required to delete any JWT token saved.
