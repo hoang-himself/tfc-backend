@@ -1,12 +1,12 @@
 from django.urls import path
-from .views import (login, logout, refresh)
+from django.views.decorators.csrf import csrf_exempt
+
 from .views import (LoginView, LogoutView, RefreshView)
-from django.views.decorators.csrf import (csrf_protect, ensure_csrf_cookie)
 
 app_name = 'app_auth'
 
 urlpatterns = [
-    path('login', login, name='login'),
-    path('logout', logout, name='logout'),
-    path('refresh', refresh, name='refresh'),
+    path('login', csrf_exempt(LoginView.as_view()), name='login'),
+    path('logout', LogoutView.as_view(), name='logout'),
+    path('refresh', RefreshView.as_view(), name='refresh'),
 ]
