@@ -1,31 +1,34 @@
-from django.http import response
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password
-from django.test import TestCase
-from rest_framework import status
-from rest_framework.test import APIClient
+from django.urls import reverse
 
-from master_db.models import Course, ClassMetadata, PHONE_REGEX
-from master_api.utils import (prettyPrint, prettyStr,
-                              compare_dict)
-from master_api.views import (
-    CREATE_RESPONSE, EDIT_RESPONSE, DELETE_RESPONSE,
-    GET_RESPONSE, LIST_RESPONSE)
+from PIL import Image
+
+from rest_framework import status
+from rest_framework.test import (APIClient, APITestCase)
 
 from app_course.tests import create_course
+from master_db.models import Course, ClassMetadata, PHONE_REGEX
+from master_api.utils import (
+    prettyPrint, prettyStr, compare_dict
+)
+from master_api.views import (
+    CREATE_RESPONSE, EDIT_RESPONSE, DELETE_RESPONSE,
+    GET_RESPONSE, LIST_RESPONSE
+)
 
 import json
 import rstr
 import io
-from PIL import Image
 
 
 CustomUser = get_user_model()
 NUM_USER = 10
 
 
-class TestUser(TestCase):
+class TestUser(APITestCase):
     url = '/api/v1/account/'
+    client = APIClient()
 
     def setUp(self):
         self.users = CustomUser.objects.bulk_create(
@@ -37,6 +40,15 @@ class TestUser(TestCase):
             ) for i in range(NUM_USER)]
         )
 
+        url = reverse('app_auth:login')
+        data = {
+            'email': 'user0@tfc.com',
+            'password': 'iamuser'
+        }
+        response = self.client.post(url, data=data)
+        token = response.data.get('token', None).get('access', None)
+        self.client.credentials(HTTP_AUTHORIZATION=f'JWT {token}')
+
     def generate_photo_file(self, color=(0, 155, 0)):
         file = io.BytesIO()
         image = Image.new('RGBA', size=(100, 100), color=color)
@@ -46,7 +58,6 @@ class TestUser(TestCase):
         return file
 
     def test_successful_created(self):
-        client = APIClient()
         url = self.url + 'create'
 
         data = {
@@ -60,9 +71,11 @@ class TestUser(TestCase):
             'last_login': '2010-12-12T13:27:57',
         }
 
-        response = client.post(url, data)
-        self.assertEqual(response.status_code, CREATE_RESPONSE['status'],
-                         msg=prettyStr(response.data))
+        response = self.client.post(url, data)
+        self.assertEqual(
+            response.status_code, CREATE_RESPONSE['status'],
+            msg=prettyStr(response.data)
+        )
         self.assertEqual(response.data, CREATE_RESPONSE['data'])
         self.test_list(False, NUM_USER + 1)
 
@@ -80,7 +93,6 @@ class TestUser(TestCase):
             return response
 
     def test_editted(self):
-        client = APIClient()
         url = self.url + 'edit'
         edit_uuid = self.users[0].uuid
 
@@ -90,16 +102,17 @@ class TestUser(TestCase):
             'password': 'newpassword'
         }
 
-        response = client.patch(url, data)
-        self.assertEqual(response.status_code, EDIT_RESPONSE['status'],
-                         msg=prettyStr(response.data))
+        response = self.client.patch(url, data)
+        self.assertEqual(
+            response.status_code, EDIT_RESPONSE['status'],
+            msg=prettyStr(response.data)
+        )
 
     def test_successful_deleted(self):
-        client = APIClient()
         url = self.url + 'delete'
         delete_uuid = self.users[0].uuid
 
-        response = client.delete(url, {'uuid': delete_uuid})
+        response = self.client.delete(url, {'uuid': delete_uuid})
         self.assertEqual(response.status_code, DELETE_RESPONSE['status'],
                          msg=prettyStr(response.data))
         self.assertEqual(response.data, DELETE_RESPONSE['data'])

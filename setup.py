@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 # https://github.com/pypa/sampleproject/blob/main/setup.py
 setup(
     name='tfc-backend',
-    version='0.0.3',
+    version='0.0.5',
     license='Proprietary',
     setup_requires=['setuptools_scm'],
     use_scm_version=True,
@@ -17,7 +17,7 @@ setup(
         #   5 - Production/Stable
         #   6 - Mature
         #   7 - Inactive
-        'Development Status :: 1 - Planning',
+        'Development Status :: 2 - Pre-Alpha',
         'License :: Other/Proprietary License',
         'Programming Language :: Python :: 3 :: Only',
         'Programming Language :: Python :: 3',

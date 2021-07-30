@@ -1,18 +1,16 @@
 from django.contrib.auth import get_user_model
 
-from rest_framework import status
+from rest_framework import (exceptions, status)
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from rest_framework import exceptions
 
-from master_db import serializers
-from master_db import models
-from master_api.utils import get_by_uuid, convert_primitive
+from master_api.utils import (get_by_uuid, convert_primitive)
+from master_db import (models, serializers)
 
 
 CustomUser = get_user_model()
-# ? Should we use models.ModelName or 'ModelName'
+
 SERIALIZERS = {
     models.Course: serializers.CourseSerializer,
     models.ClassMetadata: serializers.ClassMetadataSerializer,
