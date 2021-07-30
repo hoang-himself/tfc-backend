@@ -17,7 +17,7 @@ def request_header_to_jwt(request):
     try:
         token = authorization_header.split(' ')[1]
     except IndexError:
-        raise exceptions.ValidationError('Token prefix missing')
+        raise exceptions.ParseError({'HTTP_AUTHORIZATION': 'Token prefix missing'})
 
     return token
 
@@ -29,6 +29,8 @@ def request_header_to_userobj(request):
     try:
         payload = jwt.decode(token, JWT_KEY, algorithms=['HS256'])
     except jwt.ExpiredSignatureError:
-        raise exceptions.AuthenticationFailed('Access token expired')
+        raise exceptions.AuthenticationFailed(
+            {'token': 'Access token expired'}
+        )
 
     return payload

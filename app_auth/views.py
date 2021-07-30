@@ -46,7 +46,7 @@ class LoginView(APIView):
             valid = False
 
         if (valid == False):
-            raise exceptions.ValidationError(errors)
+            raise exceptions.NotAuthenticated(errors)
 
         if ((user := get_object_or_None(CustomUser, email=email)) is None):
             raise exceptions.NotFound('User not found.')
@@ -56,7 +56,7 @@ class LoginView(APIView):
 
         ser_user = CustomUserSerializer(user).data
         if not check_password(password, ser_user.get('password', None)):
-            raise exceptions.NotFound('No matching credentials.')
+            raise exceptions.AuthenticationFailed('No matching credentials.')
 
         update_last_login(None, user)
 
@@ -113,17 +113,14 @@ class RefreshView(APIView):
         refresh_token = request.POST.get('refresh', None)
 
         if not (refresh_token):
-            raise exceptions.ValidationError(
-                {
-                    'refresh': 'This field is required.'
-                }
-            )
+            raise exceptions.ParseError({'refresh': 'This field is required.'})
 
         try:
             payload = jwt.decode(
-                refresh_token, settings.JWT_KEY, algorithms=['HS256'])
+                refresh_token, settings.JWT_KEY, algorithms=['HS256']
+            )
             if payload.get('typ', None) != 'refresh':
-                raise exceptions.ValidationError('Invalid refresh token.')
+                raise exceptions.ParseError('Invalid refresh token.')
         except jwt.ExpiredSignatureError:
             raise exceptions.AuthenticationFailed('Refresh token expired.')
 

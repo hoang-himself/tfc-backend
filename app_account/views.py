@@ -39,56 +39,8 @@ class UserView(APIView):
 
 class StaffView(APIView):
     def post(self, request):
-        """
-            Return list of users with a specified view
-        """
         # TODO
-        filter_query = request.GET.getlist('filter')
-
-        if not filter_query:
-            filter_query = [
-                'uuid',
-                'email',
-                'first_name',
-                'last_name',
-                'birth_date',
-                'mobile',
-                'male',
-                'address',
-                'is_active',
-                'last_login',
-                'date_joined',
-                'date_updated',
-            ]
-
-        filter_dict = {
-            'uuid': True,
-            'email': True,
-            'first_name': True,
-            'last_name': True,
-            'birth_date': True,
-            'mobile': True,
-            'male': True,
-            'address': True,
-            'avatar': False,
-            'date_joined': True,
-            # 'role__name': True,
-            'is_active': True,
-            'last_login': True,
-            'date_joined': True,
-            'date_updated': True,
-        }
-
-        # TODO
-        listZ = []
-        for key in filter_query:  # Query filter for choosing views
-            if filter_dict[key]:
-                listZ.append(key)
-
-        # Asterisk expands list into separated args
-        # https://docs.python.org/2/tutorial/controlflow.html#unpacking-argument-lists
-        data = CustomUser.objects.all().values(*listZ)
-        return Response(data)
+        return Response(status=status.HTTP_501_NOT_IMPLEMENTED)
 
     def get(self, request):
         # TODO
