@@ -23,13 +23,13 @@ def create_sched(request):
     return create_object(Schedule, data=request.data)
 
 
-@api_view(['POST'])
+@api_view(['PATCH'])
 @permission_classes([AllowAny])
 def edit_sched(request):
     return edit_object(Schedule, data=request.data)
 
 
-@api_view(['POST'])
+@api_view(['DELETE'])
 @permission_classes([AllowAny])
 def delete_sched(request):
     return delete_object(Schedule, data=request.data)
@@ -45,15 +45,15 @@ def get_sched(request):
 @permission_classes([AllowAny])
 def list_sched(request):
     """
-        Take in class_uuid (optional), student_uuid (optional).
+        Take in class_uuid (optional), student_uuid (optional), teacher_uuid (optional).
 
-        If class_name is provided, result will be all schedules for that class.
+        If class_uuid is provided, result will be all schedules for that class.
 
         If student_uuid is provided, result will be all schedules for all the classes that have that student
 
         If none, result will be all schedules in db.
 
-        Param class_name takes higher priority
+        Priority: class_uuid > student_uuid > teacher_uuid
     """
 
     # class_uuid is provided
@@ -70,6 +70,22 @@ def list_sched(request):
 
         # Get classes of student
         classes = student.student_classes.all()
+
+        # Iterate through each class and get its schedules
+        data = []
+        for c in classes:
+            data.extend(ScheduleSerializer(c.schedule_set, many=True).data)
+
+        return Response(data)
+
+    # teacher_uuid is provided
+    teacher = request.GET.get('teacher_uuid')
+    if not teacher is None:
+        # Get student
+        teacher = get_by_uuid(CustomUser, teacher)
+
+        # Get classes of teacher
+        classes = teacher.teacher_classes.all()
 
         # Iterate through each class and get its schedules
         data = []

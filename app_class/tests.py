@@ -116,7 +116,7 @@ class ClassTest(TestCase):
 
         # Check response
         delete_uuid = self.classes[0].uuid
-        response = client.post(url, data={'uuid': delete_uuid})
+        response = client.delete(url, data={'uuid': delete_uuid})
         self.assertEqual(response.status_code, DELETE_RESPONSE['status'],
                          msg=prettyStr(response.data))
         self.assertEqual(response.data, 'Deleted')
@@ -142,7 +142,7 @@ class ClassTest(TestCase):
             'students': std_uuids,
         }
 
-        response = client.post(self.url + 'edit', data=data)
+        response = client.patch(self.url + 'edit', data=data)
 
         self.assertEqual(response.status_code,
                          EDIT_RESPONSE['status'], msg=prettyStr(response.data))
@@ -179,7 +179,7 @@ class ClassTest(TestCase):
         std_uuid = str([str(create_special_student().uuid)
                         for _ in range(3)]).replace("'", '"')
 
-        response = client.post(
+        response = client.patch(
             url, data={'uuid': class_uuid, 'student_uuids': std_uuid})
 
         self.assertEqual(response.status_code, status.HTTP_200_OK,
@@ -196,7 +196,7 @@ class ClassTest(TestCase):
                                   for std in klass.students.all()]).replace("'", '"')
         }
 
-        response = client.post(
+        response = client.delete(
             url, data=data)
         self.assertEqual(response.status_code, status.HTTP_200_OK,
                          msg=prettyStr(response.data))

@@ -31,14 +31,14 @@ def create_course(request):
     return create_object(Course, data=request.data)
 
 
-@api_view(['POST'])
+@api_view(['PATCH'])
 @permission_classes([AllowAny])
 @csrf_protect
 def edit_course(request):
     return edit_object(Course, data=request.data)
 
 
-@api_view(['POST'])
+@api_view(['DELETE'])
 @permission_classes([AllowAny])
 @csrf_protect
 def delete_course(request):

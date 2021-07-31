@@ -61,7 +61,7 @@ class ScheduleTest(TestCase):
 
         # Check response
         delete_uuid = self.scheds[0].uuid
-        response = client.post(url, data={'uuid': delete_uuid})
+        response = client.delete(url, data={'uuid': delete_uuid})
         self.assertEqual(response.status_code,
                          DELETE_RESPONSE['status'], msg=prettyStr(response.data))
         self.assertEqual(response.data, 'Deleted')
@@ -86,7 +86,7 @@ class ScheduleTest(TestCase):
             'desc': 'Description modified'
         }
 
-        response = client.post(self.url + 'edit', data=data)
+        response = client.patch(self.url + 'edit', data=data)
 
         self.assertEqual(response.status_code,
                          EDIT_RESPONSE['status'], msg=prettyStr(response.data))
