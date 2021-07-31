@@ -22,13 +22,13 @@ def create_session(request):
     return create_object(Session, data=request.data)
 
 
-@api_view(['POST'])
+@api_view(['DELETE'])
 @permission_classes([AllowAny])
 def delete_session(request):
     return delete_object(Session, data=request.data)
 
 
-@api_view(['POST'])
+@api_view(['PATCH'])
 @permission_classes([AllowAny])
 def edit_session(request):
     return edit_object(Session, data=request.data)

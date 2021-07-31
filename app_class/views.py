@@ -25,14 +25,14 @@ def create_class(request):
     return create_object(ClassMetadata, data=request.data)
 
 
-@api_view(['POST'])
+@api_view(['PATCH'])
 @permission_classes([AllowAny])
 @csrf_protect
 def edit_class(request):
     return edit_object(ClassMetadata, data=request.data)
 
 
-@api_view(['POST'])
+@api_view(['DELETE'])
 @permission_classes([AllowAny])
 @csrf_protect
 def delete_class(request):
@@ -45,7 +45,7 @@ def get_class(request):
     return get_object(ClassMetadata, data=request.GET)
 
 
-@api_view(['POST'])
+@api_view(['PATCH'])
 @permission_classes([AllowAny])
 def add_student(request):
     """
@@ -86,7 +86,7 @@ def add_student(request):
     return Response({'students_added': uuids})
 
 
-@api_view(['POST'])
+@api_view(['DELETE'])
 @permission_classes([AllowAny])
 def delete_student(request):
     """
