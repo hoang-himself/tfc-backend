@@ -11,12 +11,8 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
 from pathlib import Path
-from dotenv import load_dotenv
 import os
-import dj_database_url
 from datetime import timedelta
-
-load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -27,6 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get('SECRET_KEY')
+JWT_KEY = os.environ.get('JWT_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -111,21 +108,16 @@ AUTH_USER_MODEL = 'master_db.CustomUser'
 
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
-if 'DATABASE_URL' in os.environ:
-    DATABASES = {
-        'default': dj_database_url.config(conn_max_age=600, ssl_require=True)
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'tfc',
+        'USER': 'tfc_admin',
+        'PASSWORD': 'i-am-admin',
+        'HOST': 'localhost',
+        'PORT': 5432,
     }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql_psycopg2',
-            'NAME': 'tfc',
-            'USER': 'tfc_admin',
-            'PASSWORD': 'i-am-admin',
-            'HOST': 'localhost',
-            'PORT': 5432,
-        }
-    }
+}
 
 
 # Password validation
@@ -195,8 +187,6 @@ REST_FRAMEWORK = {
 
 
 # SimpleJWT policies
-
-JWT_KEY = os.environ.get('JWT_KEY')
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),
