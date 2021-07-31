@@ -6,6 +6,7 @@ find . -path "*/migrations/*.py" -not -name "__init__.py" -not -path "*/db/*" -d
 
 python manage.py makemigrations
 python manage.py migrate
+python manage.py collectstatic --no-input
 
 python manage.py createsuperuser_with_password \
 --email 'owner@localhost.com' \
