@@ -196,7 +196,7 @@ class ClassTest(TestCase):
                                   for std in klass.students.all()]).replace("'", '"')
         }
 
-        response = client.delete(
+        response = client.patch(
             url, data=data)
         self.assertEqual(response.status_code, status.HTTP_200_OK,
                          msg=prettyStr(response.data))
