@@ -1,14 +1,14 @@
-from django.http import response
-from django.test import TestCase
 from rest_framework import status
-from rest_framework.test import APIClient
+from rest_framework.test import (APIClient, APITestCase)
 
-from master_db.models import Course
 from master_api.utils import (
-    prettyPrint, compare_dict)
+    prettyPrint, compare_dict
+)
 from master_api.views import (
     CREATE_RESPONSE, EDIT_RESPONSE, DELETE_RESPONSE,
-    GET_RESPONSE, LIST_RESPONSE)
+    GET_RESPONSE, LIST_RESPONSE
+)
+from master_db.models import Course
 
 import json
 
@@ -30,7 +30,7 @@ def create_course(desc=0, tags=None):
     return course
 
 
-class CourseTest(TestCase):
+class CourseTest(APITestCase):
     url = '/api/v1/course/'
 
     def setUp(self):

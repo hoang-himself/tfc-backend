@@ -1,14 +1,13 @@
 from django.contrib.auth import get_user_model
-from django.test import TestCase
 from django.urls import reverse
 
 from rest_framework import status
-from rest_framework.test import APIClient
+from rest_framework.test import (APIClient, APITestCase)
 
 CustomUser = get_user_model()
 
 
-class AuthTests(TestCase):
+class AuthTests(APITestCase):
     url = reverse('app_auth:login')
     client = APIClient()
 
@@ -27,7 +26,7 @@ class AuthTests(TestCase):
             'password': 'This field is required.'
         }
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         self.assertEqual(response.data, serializer)
 
     def test_no_password(self):
@@ -39,7 +38,7 @@ class AuthTests(TestCase):
             'password': 'This field is required.'
         }
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         self.assertEqual(response.data, serializer)
 
     def test_no_email(self):
@@ -51,7 +50,7 @@ class AuthTests(TestCase):
             'email': 'This field is required.'
         }
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         self.assertEqual(response.data, serializer)
 
     def test_success(self):
@@ -67,7 +66,7 @@ class AuthTests(TestCase):
         self.assertIsNotNone(response.data.get('token').get('refresh'))
 
 
-class RefreshTests(TestCase):
+class RefreshTests(APITestCase):
     url = reverse('app_auth:refresh')
     client = APIClient()
 
@@ -112,7 +111,7 @@ class RefreshTests(TestCase):
         self.assertIsNotNone(access_token)
 
 
-class LogoutTests(TestCase):
+class LogoutTests(APITestCase):
     url = reverse('app_auth:logout')
     client = APIClient()
 

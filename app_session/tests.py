@@ -1,14 +1,16 @@
-from django.http import response
 from django.contrib.auth import get_user_model
-from django.test import TestCase
 from rest_framework import status
-from rest_framework.test import APIClient
+from rest_framework.test import (APIClient, APITestCase)
 
-from master_db.models import Schedule, Session
-from master_api.utils import (prettyPrint, compare_dict,
-                              convert_time, prettyStr)
-from master_api.views import (CREATE_RESPONSE, EDIT_RESPONSE, GET_RESPONSE,
-                              DELETE_RESPONSE, LIST_RESPONSE,)
+from master_api.utils import (
+    prettyPrint, compare_dict,
+    convert_time, prettyStr
+)
+from master_api.views import (
+    CREATE_RESPONSE, EDIT_RESPONSE, GET_RESPONSE,
+    DELETE_RESPONSE, LIST_RESPONSE
+)
+from master_db.models import (Schedule, Session)
 
 from app_schedule.tests import create_sched
 from app_class.tests import create_special_student
@@ -34,7 +36,7 @@ def create_session(desc=0, sched=None):
     )
 
 
-class SessionTest(TestCase):
+class SessionTest(APITestCase):
     url = '/api/v1/session/'
 
     def setUp(self):

@@ -1,14 +1,16 @@
-from django.http import response
 from django.contrib.auth import get_user_model
-from django.test import TestCase
 from rest_framework import status
-from rest_framework.test import APIClient
+from rest_framework.test import (APIClient, APITestCase)
 
-from master_db.models import Course, ClassMetadata, Schedule
-from master_api.utils import (prettyPrint, compare_dict,
-                              convert_time, prettyStr)
-from master_api.views import (CREATE_RESPONSE, EDIT_RESPONSE, GET_RESPONSE,
-                              DELETE_RESPONSE, LIST_RESPONSE,)
+from master_api.utils import (
+    prettyPrint, compare_dict,
+    convert_time, prettyStr
+)
+from master_api.views import (
+    CREATE_RESPONSE, EDIT_RESPONSE, GET_RESPONSE,
+    DELETE_RESPONSE, LIST_RESPONSE
+)
+from master_db.models import (Course, ClassMetadata, Schedule)
 
 from app_class.tests import (create_class, create_special_student)
 
@@ -28,7 +30,7 @@ def create_sched(desc=0, classes=None):
     )
 
 
-class ScheduleTest(TestCase):
+class ScheduleTest(APITestCase):
     url = '/api/v1/schedule/'
 
     def setUp(self):
