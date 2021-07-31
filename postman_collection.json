@@ -1,0 +1,143 @@
+{
+  "info": {
+    "_postman_id": "8ca46c63-ae94-4d4c-a655-829f67d8e40c",
+    "name": "TFC",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Logout",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "refresh",
+              "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0eXAiOiJyZWZyZXNoIiwiZXhwIjoxNjI3ODEzMDE0LCJqdGkiOiJhYzBjZDc3YmY0MzE0NzJkODEzYTg2YzJiNmQyMWRlZCIsInV1aWQiOiJjZDVjNzJmYy04NTY5LTQ2ZDMtOTQ3Ny01YTg3OGY1MTU4OWYiLCJpc3MiOiJURkNfQVBJIn0.VJ8D5QLPmFfc02LSv2W57LF7xsnC2m-jgAT4zq8pkBU",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "http://13.76.158.140:8000/api/v1/auth/logout",
+          "protocol": "http",
+          "host": [
+            "13",
+            "76",
+            "158",
+            "140"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "v1",
+            "auth",
+            "logout"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Refresh",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "refresh",
+              "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0eXAiOiJyZWZyZXNoIiwiZXhwIjoxNjI3ODEzMDE0LCJqdGkiOiJhYzBjZDc3YmY0MzE0NzJkODEzYTg2YzJiNmQyMWRlZCIsInV1aWQiOiJjZDVjNzJmYy04NTY5LTQ2ZDMtOTQ3Ny01YTg3OGY1MTU4OWYiLCJpc3MiOiJURkNfQVBJIn0.VJ8D5QLPmFfc02LSv2W57LF7xsnC2m-jgAT4zq8pkBU",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "http://13.76.158.140:8000/api/v1/auth/refresh",
+          "protocol": "http",
+          "host": [
+            "13",
+            "76",
+            "158",
+            "140"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "v1",
+            "auth",
+            "refresh"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Login",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "email",
+              "value": "owner@localhost.com",
+              "type": "text"
+            },
+            {
+              "key": "password",
+              "value": "iamowner",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "http://13.76.158.140:8000/api/v1/auth/login",
+          "protocol": "http",
+          "host": [
+            "13",
+            "76",
+            "158",
+            "140"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "v1",
+            "auth",
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Ping",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://13.76.158.140:8000/api/v1/ping",
+          "protocol": "http",
+          "host": [
+            "13",
+            "76",
+            "158",
+            "140"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "v1",
+            "ping"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}
