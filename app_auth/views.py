@@ -52,7 +52,7 @@ class LoginView(APIView):
             raise exceptions.NotFound('User not found.')
 
         if not (user.is_active):
-            raise exceptions.NotFound('User is not active.')
+            raise exceptions.NotFound('User inactive.')
 
         ser_user = CustomUserSerializer(user).data
         if not check_password(password, ser_user.get('password', None)):
@@ -128,7 +128,7 @@ class RefreshView(APIView):
             raise exceptions.NotFound('User not found')
 
         if not (user.is_active):
-            raise exceptions.NotFound('User is not active.')
+            raise exceptions.NotFound('User inactive.')
 
         access_token = RefreshToken.for_user(user).access_token
         access_token = str(access_token)

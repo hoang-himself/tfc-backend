@@ -1,22 +1,44 @@
+from annoying.functions import get_object_or_None
+
+from django.conf import settings
 from django.contrib.auth import get_user_model
 
-from rest_framework import status
+from rest_framework import (exceptions, status)
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from app_auth.utils import request_header_to_userobj
 from master_api.views import (
     create_object, get_object,
     edit_object, delete_object
 )
 from master_db.serializers import CustomUserSerializer
 
+import jwt
+
 CustomUser = get_user_model()
 
 
 class SelfView(APIView):
     def get(self, request):
-        user = request_header_to_userobj(request)
+        access_token = request.COOKIES.get('accesstoken')
+
+        if not (access_token):
+            raise exceptions.PermissionDenied('Not logged in.')
+
+        try:
+            payload = jwt.decode(
+                access_token, settings.JWT_KEY, algorithms=['HS256'])
+            if payload.get('typ') != 'access':
+                raise exceptions.ParseError('Invalid access token')
+        except jwt.ExpiredSignatureError:
+            raise exceptions.AuthenticationFailed('Access token expired.')
+
+        if ((user := get_object_or_None(CustomUser, uuid=payload.get('uuid'))) is None):
+            raise exceptions.NotFound('User not found.')
+
+        if not user.is_active:
+            raise exceptions.NotFound('User inactive.')
+
         return Response(CustomUserSerializer(user).data)
 
 

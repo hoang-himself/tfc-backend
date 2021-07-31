@@ -47,7 +47,6 @@ setup(
         'Pillow',
         'psycopg2-binary',
         'PyJWT',
-        'python-dotenv',
         'rstr',
     ],
     #   extras_require={  # pip install sampleproject[dev]

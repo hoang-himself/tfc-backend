@@ -62,6 +62,7 @@ db.sqlite3
 db.sqlite3-journal
 !__init__.py
 */migrations/*
+static/
 
 # Flask stuff:
 instance/
@@ -105,7 +106,7 @@ celerybeat.pid
 
 # Environments
 # .envrc
-# .env
+.env
 .venv
 env/
 venv/
