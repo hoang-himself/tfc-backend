@@ -30,8 +30,6 @@ setup(
     python_requires='>=3.8, <4',
     include_package_data=True,
     install_requires=[
-        'cryptography',
-        'dj-database-url',
         'Django',
         'django-taggit',
         'django-taggit-serializer',
@@ -43,10 +41,8 @@ setup(
         'django-cron',
         'djangorestframework',
         'djangorestframework-simplejwt',
-        'freezegun',
         'Pillow',
         'psycopg2-binary',
-        'PyJWT',
         'rstr',
     ],
     #   extras_require={  # pip install sampleproject[dev]
