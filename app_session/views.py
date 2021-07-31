@@ -44,29 +44,36 @@ def get_session(request):
 @permission_classes([AllowAny])
 def list_session(request):
     """
-        Take in class_name (optional), sched_id (optional), student_uuid (optional).
+        Take in class_uuid (optional), schedule_uuid (optional), student_uuid (optional).
 
-        If class_name is provided return all sessions in the class.
+        If class_uuid is provided return all sessions in the class.
 
-        If sched_id is provided return all sessions in the schedule.
+        If schedule_uuid is provided return all sessions in the schedule.
 
         If student_uuid is provided return all sessions of the student.
 
         If none is provided return all sessions in the db.
 
-        Priority: class_name > sched_id > student_uuid
+        Priority: class_uuid > schedule_uuid > student_uuid
     """
     # class_name is provided
-    session = request.GET.get('class_name')
+    session = request.GET.get('class_uuid')
     if session is not None:
-        session = get_list_or_404(
-            Session, 'Class', session__classroom__name=session)
-        return Response(SessionSerializer(session, many=True).data)
+        try:
+            session = get_list_or_404(
+                Session, 'Class', schedule__classroom__uuid=session)
+            return Response(SessionSerializer(session, many=True).data)
+        except ValidationError as message:
+            raise ParseError({'detail': list(message)})
 
     # sched_id is provided, no need to show session field
-    session = request.GET.get('sched_id')
+    session = request.GET.get('schedule_uuid')
     if session is not None:
-        session = get_list_or_404(Session, 'Schedule', session__id=session)
+        try:
+            session = get_list_or_404(
+                Session, 'Schedule', schedule__uuid=session)
+        except ValidationError as message:
+            raise ParseError({'detail': list(message)})
         return Response(SessionSerializer(session, many=True).data)
 
     # student_uuid is provided, no need to show student field
