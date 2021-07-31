@@ -3,4 +3,4 @@ sudo -u postgres psql \
   -c "CREATE DATABASE tfc;" \
   -c "GRANT ALL PRIVILEGES ON DATABASE tfc TO tfc_admin;"
 
-. ./mig-reset.sh
+. ./reset-mig.sh
