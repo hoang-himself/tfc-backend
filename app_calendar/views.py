@@ -1,57 +1,62 @@
+from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 from django.views.decorators.csrf import csrf_protect
 
 from rest_framework import status
+from rest_framework.exceptions import NotFound, ParseError
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-# from app_auth.utils import has_perm
-from master_db.models import Calendar
+from master_api.utils import get_by_uuid, convert_time
+from master_api.views import create_object, edit_object, delete_object, get_object
+from master_db.models import ClassMetadata, Calendar
+from master_db.serializers import CalendarSerializer
 
-# Create your views here.
+
+CustomUser = get_user_model()
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def create_calendar(request):
+    return create_object(Calendar, data=request.data)
+
+
+@api_view(['PATCH'])
+@permission_classes([AllowAny])
+def edit_calendar(request):
+    return edit_object(Calendar, data=request.data)
+
+
+@api_view(['DELETE'])
+@permission_classes([AllowAny])
+def delete_calendar(request):
+    return delete_object(Calendar, data=request.data)
 
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
-@csrf_protect
+def get_calendar(request):
+    return get_object(Calendar, data=request.GET)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
 def list_calendar(request):
     """
-        Return list of users with a specified view
+        Take in user_uuid (optional).
+
+        If user_uuid is provided, result will be all calendars for that user.
+
+        If none, result will be all Calendars in db.
     """
-    # check = has_perm(request, ['account_cred'])
-    # if check.status_code >= 400:
-        # return check
 
-    filter_query = request.GET.getlist('filter')
+    # user_uuid is provided
+    user = request.GET.get('user_uuid')
+    if user is not None:
+        user = get_by_uuid(CustomUser, user)
+        return Response(CalendarSerializer(user.calendar_set, many=True).data)
 
-    print(filter_query)
-    if not filter_query:
-        filter_query = [
-            'user__uuid',
-            'name',
-            'desc',
-            'time_start',
-            'time_end',
-            'created_at',
-            'updated_at',
-        ]
-
-    filter_dict = {
-        'user__uuid': True,
-        'name': True,
-        'desc': True,
-        'time_start': True,
-        'time_end': True,
-        'created_at': True,
-        'updated_at': True,
-    }
-
-    listZ = []
-    for key in filter_query:  # Query filter for choosing views
-        if filter_dict[key]:
-            listZ.append(key)
-
-    # Asterisk expands list into separated args
-    # https://docs.python.org/2/tutorial/controlflow.html#unpacking-argument-lists
-    data = Calendar.objects.all().values(*listZ)
-    return Response(data)
+    # None are provided
+    return Response(CalendarSerializer(Calendar.objects.all(), many=True).data)

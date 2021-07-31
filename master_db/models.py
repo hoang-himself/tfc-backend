@@ -214,8 +214,8 @@ class Calendar(TemplateModel):
         on_delete=models.CASCADE
     )
     name = models.TextField()
-    time_start = models.FloatField()
-    time_end = models.FloatField()
+    time_start = models.DateTimeField()
+    time_end = models.DateTimeField()
 
     class Meta:
         indexes = [
