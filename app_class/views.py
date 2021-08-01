@@ -1,3 +1,4 @@
+from django.shortcuts import _get_queryset
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.views.decorators.csrf import csrf_protect
@@ -7,11 +8,12 @@ from rest_framework.exceptions import NotFound, ParseError
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
+from rest_framework.serializers import RelatedField
 
 from master_api.utils import get_by_uuid
 from master_api.views import get_object, create_object, delete_object, edit_object
 from master_db.models import CustomUser, ClassMetadata, Course
-from master_db.serializers import ClassMetadataSerializer
+from master_db.serializers import ClassMetadataSerializer, CourseSerializer
 
 import json
 
@@ -128,6 +130,15 @@ def delete_student(request):
     return Response({'details': 'Ok'})
 
 
+class CourseRelatedField(RelatedField):
+    def to_representation(self, obj):
+        return CourseSerializer(obj).ignore_fields('created', 'modified').data
+
+
+class SpecialClassSerializer(ClassMetadataSerializer):
+    course = CourseRelatedField(read_only=True)
+
+
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def list_class(request):
@@ -162,6 +173,7 @@ def list_class(request):
         # Get student by uuid
         student = get_by_uuid(CustomUser, student_uuid)
         classMeta = student.student_classes.all()
+        return Response(SpecialClassSerializer(classMeta, many=True).ignore_field('students').data)
 
     # teacher_uuid is provided
     teacher_uuid = request.GET.get('teacher_uuid')
