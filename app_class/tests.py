@@ -1,16 +1,17 @@
-from django.http import response
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password
-from django.test import TestCase
 from rest_framework import status
-from rest_framework.test import APIClient
+from rest_framework.test import (APIClient, APITestCase)
 
-from master_db.models import Course, ClassMetadata, PHONE_REGEX
-from master_api.utils import (prettyPrint, prettyStr,
-                              compare_dict)
+from master_api.utils import (
+    prettyPrint, prettyStr,
+    compare_dict
+)
 from master_api.views import (
     CREATE_RESPONSE, EDIT_RESPONSE, DELETE_RESPONSE,
-    GET_RESPONSE, LIST_RESPONSE)
+    GET_RESPONSE, LIST_RESPONSE
+)
+from master_db.models import (Course, ClassMetadata, PHONE_REGEX)
 
 from app_course.tests import create_course
 
@@ -76,7 +77,7 @@ def create_special_student():
     )
 
 
-class ClassTest(TestCase):
+class ClassTest(APITestCase):
     url = '/api/v1/class/'
 
     def setUp(self):
@@ -196,7 +197,7 @@ class ClassTest(TestCase):
                                   for std in klass.students.all()]).replace("'", '"')
         }
 
-        response = client.delete(
+        response = client.patch(
             url, data=data)
         self.assertEqual(response.status_code, status.HTTP_200_OK,
                          msg=prettyStr(response.data))

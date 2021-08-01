@@ -13,7 +13,7 @@ import os
 
 
 PHONE_REGEX = r'^(0)(3[2-9]|5[689]|7[06-9]|8[0-689]|9[0-46-9])[0-9]{7}$'
-USER_IMAGE_PATH = 'images/users/'
+USER_IMAGE_PATH = 'users/'
 
 
 class TemplateModel(TimeStampedModel):
@@ -214,8 +214,8 @@ class Calendar(TemplateModel):
         on_delete=models.CASCADE
     )
     name = models.TextField()
-    time_start = models.FloatField()
-    time_end = models.FloatField()
+    time_start = models.DateTimeField()
+    time_end = models.DateTimeField()
 
     class Meta:
         indexes = [

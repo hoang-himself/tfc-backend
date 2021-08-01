@@ -82,22 +82,15 @@ def get_by_uuid(klass, uuid):
         raise ParseError({'detail': list(message)})
 
 
-def model_full_clean(model):
+def get_list_by_uuid(klass, uuid):
+    """
+    Get list of objects by uuid using get_object_or_404 with
+    additional error handling (invalid uuid)
+    """
     try:
-        model.full_clean()
+        return get_list_or_404(klass, uuid=uuid)
     except ValidationError as message:
-        raise ParseError(dict(message))
-
-
-def edit_object(model, modifiedDict, avoid=None):
-    modifiedList = []
-    avoid = avoid if avoid is not None else []
-    for key, value in modifiedDict.items():
-        if hasattr(model, key) and value != getattr(model, key) and not key in avoid:
-            setattr(model, key, value)
-            modifiedList.append(key)
-
-    return modifiedList
+        raise ParseError({'detail': list(message)})
 
 
 def get_list_or_404(klass, name_print, *args, **kwargs):

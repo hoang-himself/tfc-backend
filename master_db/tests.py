@@ -1,10 +1,10 @@
-from django.test import TestCase
 from django.contrib.auth import get_user_model
+from rest_framework.test import APITestCase
 
 CustomUser = get_user_model()
 
 
-class UsersManagersTests(TestCase):
+class UsersManagersTests(APITestCase):
 
     def test_create_user(self):
         user = CustomUser.objects.create_user(

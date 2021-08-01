@@ -4,7 +4,7 @@ from setuptools import (setup, find_packages)
 # https://github.com/pypa/sampleproject/blob/main/setup.py
 setup(
     name='tfc-backend',
-    version='0.1.2',
+    version='0.1.3',
     license='Proprietary',
     setup_requires=['setuptools_scm'],
     use_scm_version=True,
@@ -30,8 +30,6 @@ setup(
     python_requires='>=3.8, <4',
     include_package_data=True,
     install_requires=[
-        'cryptography',
-        'dj-database-url',
         'Django',
         'django-taggit',
         'django-taggit-serializer',
@@ -43,10 +41,8 @@ setup(
         'django-cron',
         'djangorestframework',
         'djangorestframework-simplejwt',
-        'freezegun',
         'Pillow',
         'psycopg2-binary',
-        'PyJWT',
         'rstr',
         'whitenoise',
     ],

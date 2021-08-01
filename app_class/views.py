@@ -86,7 +86,7 @@ def add_student(request):
     return Response({'students_added': uuids})
 
 
-@api_view(['DELETE'])
+@api_view(['PATCH'])
 @permission_classes([AllowAny])
 def delete_student(request):
     """
@@ -132,24 +132,43 @@ def delete_student(request):
 @permission_classes([AllowAny])
 def list_class(request):
     """
-        Take in student_uuid (optional). Param student_uuid represents 
-        uuid of a student. 
+        Take in course_uuid (optional),student_uuid (optional), teacher_uuid (optional). 
+        Param student_uuid represents uuid of a student. 
+
+        If course_uuid is provided return all classes of the given 
+        course (No explicit info of students, just number of students).
 
         If student_uuid is provided return all classes of the given 
         student (No explicit info of students, just number of students).
+
+        If teacher_uuid is provided return all classes of the given 
+        teacher (No explicit info of students, just number of students).
 
         If none is provided return all classes in db with similar 
         format of student_uuid.
     """
     classMeta = ClassMetadata.objects.all()
 
+    # course_uuid is provided
+    course_uuid = request.GET.get('course_uuid')
+    if course_uuid is not None:
+        # Get course by uuid
+        course = get_by_uuid(Course, course_uuid)
+        classMeta = course.classmetadata_set.all()
+
     # student_uuid is provided
     student_uuid = request.GET.get('student_uuid')
     if student_uuid is not None:
         # Get student by uuid
         student = get_by_uuid(CustomUser, student_uuid)
-
         classMeta = student.student_classes.all()
+
+    # teacher_uuid is provided
+    teacher_uuid = request.GET.get('student_uuid')
+    if teacher_uuid is not None:
+        # Get teacher by uuid
+        teacher = get_by_uuid(CustomUser, teacher_uuid)
+        classMeta = teacher.teacher_classes.all()
 
     data = ClassMetadataSerializer(
         classMeta, many=True).ignore_field('students').data
