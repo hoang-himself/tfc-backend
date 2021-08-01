@@ -100,4 +100,9 @@ def list_course(request):
         course = Course.objects.filter(
             tags__name=tags.replace(' ', '').split(','))
 
+    # student_uuid is provided
+    student_uuid = request.GET.get('student_uuid')
+    if student_uuid is not None:
+        course = Course.objects.filter()
+
     return Response(CourseSerializer(course, many=True).data)
