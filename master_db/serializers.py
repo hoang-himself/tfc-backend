@@ -21,7 +21,6 @@ from taggit_serializer.serializers import (
 )
 from django.utils.translation import gettext_lazy as _
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
-from django.shortcuts import _get_queryset
 
 from rest_framework.fields import empty, get_error_detail, set_value
 from rest_framework.settings import api_settings
@@ -147,6 +146,10 @@ class EnhancedListSerializer(serializers.ListSerializer):
                 f"To use EnhancedListSerializer, {self.child.__class__.__name__}"
                 " must be EnhancedModelSerializer or its subclass")
 
+    def ignore_fields(self, *fields):
+        self.child.ignore_fields(fields)
+        return self
+
     def ignore_field(self, field):
         self.child.ignore_field(field)
         return self
@@ -240,6 +243,14 @@ class EnhancedModelSerializer(serializers.ModelSerializer):
             ignore = self.ignore.get(name, False)
             if not field.write_only and not ignore:
                 yield field
+
+    def ignore_fields(self, *fields):
+        """
+            Ignore multiple fields when calling .data
+        """
+        for field in fields:
+            self.ignore_field(field)
+        return self
 
     def ignore_field(self, field):
         """
