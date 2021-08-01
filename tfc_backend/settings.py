@@ -112,7 +112,7 @@ AUTH_USER_MODEL = 'master_db.CustomUser'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'tfc',
+        'NAME': 'tfc_production',
         'USER': 'tfc_admin',
         'PASSWORD': 'i-am-admin',
         'HOST': 'localhost',
