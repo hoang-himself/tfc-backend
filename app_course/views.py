@@ -9,7 +9,7 @@ from rest_framework.response import Response
 
 from master_db.models import Course
 from master_db.serializers import CourseSerializer
-from master_api.utils import get_by_uuid, model_full_clean, formdata_bool
+from master_api.utils import get_by_uuid, formdata_bool
 from master_api.views import create_object, edit_object, get_object, delete_object
 
 import datetime
@@ -88,7 +88,7 @@ def recommend_tags(request):
 @csrf_protect
 def list_course(request):
     """
-        Take in tags (optional). 
+        Take in tags (optional).
 
         If tags is provided, return all courses contain the tags, else return all
     """

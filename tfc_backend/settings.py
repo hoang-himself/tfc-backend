@@ -160,6 +160,8 @@ STATIC_URL = '/static/'
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
 
 # User-uploaded files
 # https://docs.djangoproject.com/en/3.2/ref/settings/#media-root
