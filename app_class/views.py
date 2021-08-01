@@ -164,7 +164,7 @@ def list_class(request):
         classMeta = student.student_classes.all()
 
     # teacher_uuid is provided
-    teacher_uuid = request.GET.get('student_uuid')
+    teacher_uuid = request.GET.get('teacher_uuid')
     if teacher_uuid is not None:
         # Get teacher by uuid
         teacher = get_by_uuid(CustomUser, teacher_uuid)
