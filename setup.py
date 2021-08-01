@@ -44,7 +44,6 @@ setup(
         'Pillow',
         'psycopg2-binary',
         'rstr',
-        'whitenoise',
     ],
     #   extras_require={  # pip install sampleproject[dev]
     #       'dev': ['check-manifest'],
