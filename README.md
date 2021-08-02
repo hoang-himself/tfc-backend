@@ -103,31 +103,49 @@ Take this token, put it in the header according to this format
 
 The space after `JWT` is important.
 
-### CSRF token
+### SECRET_KEY and JWT_KEY
 
-On login, a CSRF token is generated and stored in your cookie.
-Take this token, put it in the header according to this format
+By default, this program reads the keys from shell environment variables, i.e. `export SECRET_KEY=<key>`
 
-```text
-'X-CSRFTOKEN': '<token>'
-```
-
-### Generating a password hash
-
-Activate django shell
-
-```bash
-python manage.py shell
-```
-
-Call the hasher
+You can generate the keys using the Django shell at `python manage.py shell`
 
 ```python
-from django.contrib.auth.hashers import make_password
-make_password('sample')
+from django.core.management.utils import get_random_secret_key
+get_random_secret_key()
 ```
 
 ### Logout
 
 Currently not implemented.
 Clients are required to delete any JWT token saved.
+
+## Utility functions
+
+### Clear database
+
+```bash
+sudo -u postgres psql \
+  -c "DROP DATABASE tfc;" \
+  -c "CREATE DATABASE tfc;" \
+  -c "GRANT ALL PRIVILEGES ON DATABASE tfc TO tfc_admin;"
+```
+
+### Clean cache and migrations file, with creating default superuser
+
+```bash
+find . -type f -name "*.py[co]" -delete
+find . -type d -name "__pycache__" -delete
+find . -depth -type d -name ".mypy_cache" -exec rm -r {} +
+find . -depth -type d -name ".pytest_cache" -exec rm -r {} +
+find . -path "*/migrations/*.py" -not -name "__init__.py" -not -path "*/db/*" -delete
+
+python manage.py makemigrations
+python manage.py migrate
+python manage.py collectstatic --no-input
+
+python manage.py createsuperuser_with_password \
+--email 'owner@localhost.com' \
+--mobile '0999999999' \
+--password 'iamowner' \
+--preserve --no-input
+```
