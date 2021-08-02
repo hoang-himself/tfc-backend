@@ -45,7 +45,7 @@ MANY_RELATION_KWARGS = (
         + ModelRelatedField naming: When naming a custom related
         field, it is recommend to name the field with the name of
         the corresponding model in master_db.model, or else
-        queryset will not be set. 
+        queryset will not be set.
 """
 
 
@@ -120,7 +120,7 @@ class UUIDManyRelatedField(serializers.ManyRelatedField):
 
 
 """
-    * Enhanced serializer: Include new and improve already existing 
+    * Enhanced serializer: Include new and improve already existing
     * features
         + non_updatable in class Meta: fields declared in this will
         not be updated, but can be created.
@@ -302,8 +302,15 @@ class SettingSerializer(EnhancedModelSerializer):
         model = Setting
         exclude = ('id', )
 
+# TODO
+class GroupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Group
+        fields = ('name',)
+
 
 class CustomUserSerializer(EnhancedModelSerializer):
+    groups = GroupSerializer(many=True)
 
     class Meta:
         model = CustomUser
