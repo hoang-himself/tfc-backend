@@ -125,7 +125,6 @@ class Course(TemplateModel):
         return f'{self.name}'
 
 
-# TODO
 class ClassMetadata(TemplateModel):
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     name = models.TextField(unique=True)

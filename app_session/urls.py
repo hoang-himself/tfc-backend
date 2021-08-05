@@ -1,10 +1,14 @@
 from django.urls import path
-from . import views
+from .views import (SessionView, FindSessionView)
+
+app_name = 'app_session'
 
 urlpatterns = [
-    path('list', views.list_session, name='list'),
-    path('create', views.create_session, name='add'),
-    path('edit', views.edit_session, name='edit'),
-    path('delete', views.delete_session, name='delete'),
-    path('get', views.get_session, name='get'),
+    # TODO Merge
+    path('create', SessionView.as_view(), name='create'),
+    path('get', SessionView.as_view(), name='get'),
+    path('edit', SessionView.as_view(), name='edit'),
+    path('delete', SessionView.as_view(), name='delete'),
+
+    path('reverse', FindSessionView.as_view(), name='reverse'),
 ]

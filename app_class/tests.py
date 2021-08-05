@@ -204,7 +204,7 @@ class ClassTest(APITestCase):
 
     def test_list(self, printOut=True, length=None):
         client = APIClient()
-        url = self.url + 'list'
+        url = self.url + 'reverse'
         length = length if length is not None else NUM_CLASS
 
         response = client.get(url)

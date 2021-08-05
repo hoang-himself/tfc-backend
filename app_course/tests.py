@@ -137,7 +137,7 @@ class CourseTest(APITestCase):
         client = APIClient()
         length = length if length is not None else NUM_COURSE
 
-        response = client.get(self.url + 'list')
+        response = client.get(self.url + 'reverse')
         self.assertEqual(response.status_code,
                          LIST_RESPONSE['status'], msg=f"{response.data}")
         self.assertEqual(len(response.data), length)
@@ -151,7 +151,7 @@ class CourseTest(APITestCase):
 
     def test_get_tags(self):
         client = APIClient()
-        url = self.url + 'get-tags'
+        url = self.url + 'tag/get'
         limit = 5
 
         def check_tags(data):
@@ -160,7 +160,7 @@ class CourseTest(APITestCase):
                 index = int(res['name'][-1])
                 num = res['num_times']
                 self.assertTrue(index == i and num == 10 - i,
-                                msg=f"[get-tags] Iteration {i}: index: {index} and num: {num}")
+                                msg=f"[tag/get] Iteration {i}: index: {index} and num: {num}")
                 i += 1
 
         response = client.get(url)
@@ -173,7 +173,7 @@ class CourseTest(APITestCase):
 
     def test_recommend_tags(self):
         client = APIClient()
-        url = self.url + 'recommend-tags'
+        url = self.url + 'tag/find'
 
         def check_even_odd(data, even):
             prefix = 'even' if even else 'odd'

@@ -302,7 +302,6 @@ class SettingSerializer(EnhancedModelSerializer):
         model = Setting
         exclude = ('id', )
 
-# TODO
 class GroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = Group

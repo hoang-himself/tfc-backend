@@ -98,7 +98,7 @@ class LogoutView(APIView):
             )
 
         response = Response()
-        # RefreshToken(refresh_token).blacklist() # TODO
+        # RefreshToken(refresh_token).blacklist()
         response.status_code = status.HTTP_200_OK
         response.data = {
             'detail': 'Ok'

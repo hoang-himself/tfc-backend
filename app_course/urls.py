@@ -1,14 +1,17 @@
 from django.urls import path
-from . import views
+from .views import (CourseView, TagView, FindTagView, FindCourseView)
 
 app_name = 'app_course'
 
 urlpatterns = [
-    path('get', views.get_course, name='get'),
-    path('create', views.create_course, name='create'),
-    path('list', views.list_course, name='list'),
-    path('get-tags', views.get_tags, name='get-tags'),
-    path('recommend-tags', views.recommend_tags, name='recommend-tags'),
-    path('edit', views.edit_course, name='edit'),
-    path('delete', views.delete_course, name='delete'),
+    # TODO Merge
+    path('create', CourseView.as_view(), name='create'),
+    path('get', CourseView.as_view(), name='get'),
+    path('edit', CourseView.as_view(), name='edit'),
+    path('delete', CourseView.as_view(), name='delete'),
+
+    path('reverse', FindCourseView.as_view(), name='reverse'),
+
+    path('tag/get', TagView.as_view(), name='get_tag'),
+    path('tag/find', FindTagView.as_view(), name='find_tag'),
 ]

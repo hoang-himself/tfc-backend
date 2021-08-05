@@ -1,13 +1,18 @@
-from django.urls import include, path
-from . import views
+from django.urls import path
+from .views import (ClassView, ClassStudentView, FindClassView)
+
+app_name = 'app_class'
 
 urlpatterns = [
-    # TODO
-    path('get', views.get_class, name='get'),
-    path('list', views.list_class, name='list_classes'),
-    path('create', views.create_class, name='create'),
-    path('edit', views.edit_class, name='edit'),
-    path('delete', views.delete_class, name='delete'),
-    path('add-student', views.add_student, name='add-student'),
-    path('delete-student', views.delete_student, name='delete-student'),
+    # TODO Merge
+    path('create', ClassView.as_view(), name='create'),
+    path('get', ClassView.as_view(), name='get'),
+    path('edit', ClassView.as_view(), name='edit'),
+    path('delete', ClassView.as_view(), name='delete'),
+
+    path('reverse', FindClassView.as_view(), name='reverse'),
+
+    # TODO Merge
+    path('add-student', ClassStudentView.as_view(), name='add_student'),
+    path('delete-student', ClassStudentView.as_view(), name='delete_student'),
 ]

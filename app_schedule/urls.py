@@ -1,12 +1,14 @@
 from django.urls import path
-from . import views
+from .views import (ScheduleView, FindScheduleView)
 
+app_name = 'app_schedule'
 
 urlpatterns = [
-    #TODO
-    path('create', views.create_sched, name='create'),
-    path('edit', views.edit_sched, name='edit'),
-    path('delete', views.delete_sched, name='delete'),
-    path('list', views.list_sched, name='list'),
-    path('get', views.get_sched, name='get')
+    #TODO Merge
+    path('create', ScheduleView.as_view(), name='create'),
+    path('get', ScheduleView.as_view(), name='get'),
+    path('edit', ScheduleView.as_view(), name='edit'),
+    path('delete', ScheduleView.as_view(), name='delete'),
+
+    path('reverse', FindScheduleView.as_view(), name='reverse'),
 ]

@@ -82,7 +82,7 @@ class TestUser(APITestCase):
     def test_list(self, printOut=True, length=None):
         length = length if length is not None else NUM_USER
         client = APIClient()
-        url = self.url + 'list'
+        url = self.url + 'get'
 
         response = client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
