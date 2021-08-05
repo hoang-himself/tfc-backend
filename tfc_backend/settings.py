@@ -44,6 +44,7 @@ INSTALLED_APPS = [
 
     # 3rd party
     'corsheaders',
+    'dbbackup',
     'django_filters',
     'django_extensions',
     'django_cron',
@@ -118,6 +119,10 @@ DATABASES = {
         'PORT': 5432,
     }
 }
+
+DBBACKUP_STORAGE = 'django.core.files.storage.FileSystemStorage'
+
+DBBACKUP_STORAGE_OPTIONS = {'location': 'backup/'}
 
 
 # Password validation
