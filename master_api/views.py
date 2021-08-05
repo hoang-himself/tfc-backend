@@ -47,7 +47,7 @@ def create_object(model, **kwargs):
     try:
         data = kwargs.pop('data')
     except KeyError:
-        raise KeyError('Argument `data=` is expected when creating model')
+        raise KeyError('Payload cannot be empty')
     Serializer = SERIALIZERS[model]
     serializer = Serializer(data=data)
     if serializer.is_valid():
@@ -62,7 +62,7 @@ def edit_object(model, **kwargs):
     try:
         data = kwargs.pop('data').copy()
     except KeyError:
-        raise KeyError('Argument `data=` is expected when editting model')
+        raise KeyError('Payload cannot be empty')
     Serializer = SERIALIZERS[model]
     uuid = uuid[0] if isinstance(
         uuid := data.pop('uuid', None), list) else uuid
@@ -80,11 +80,11 @@ def get_object(model, **kwargs):
     try:
         data = kwargs.pop('data')
     except KeyError:
-        raise KeyError('Argument `data=` is expected when creating model')
+        raise KeyError('Payload cannot be empty')
     try:
         uuid = data['uuid']
     except KeyError:
-        raise exceptions.ParseError({'uuid': ['This field is required.']})
+        raise exceptions.ParseError({'uuid': 'This field is required.'})
     Serializer = SERIALIZERS[model]
     return Response(
         Serializer(get_by_uuid(
@@ -96,11 +96,11 @@ def delete_object(model, **kwargs):
     try:
         data = kwargs.pop('data')
     except KeyError:
-        raise KeyError('Argument `data=` is expected when creating model')
+        raise KeyError('Payload cannot be empty')
     try:
         uuid = data['uuid']
     except KeyError:
-        raise exceptions.ParseError({'uuid': ['This field is required.']})
+        raise exceptions.ParseError({'uuid': 'This field is required.'})
     get_by_uuid(model, uuid).delete()
     return Response(**DELETE_RESPONSE)
 
