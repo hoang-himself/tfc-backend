@@ -6,7 +6,7 @@
 #
 asgiref==3.4.1
     # via django
-django==3.2.5
+django==3.2.6
     # via
     #   django-annoying
     #   django-cors-headers
@@ -23,7 +23,7 @@ django-annoying==0.10.6
     # via tfc-backend (setup.py)
 django-common-helpers==0.9.2
     # via django-cron
-django-cors-headers==3.7.0
+django-cors-headers==3.8.0
     # via tfc-backend (setup.py)
 django-cron==0.5.1
     # via tfc-backend (setup.py)
@@ -45,7 +45,7 @@ djangorestframework==3.12.4
     # via
     #   djangorestframework-simplejwt
     #   tfc-backend (setup.py)
-djangorestframework-simplejwt==4.7.2
+djangorestframework-simplejwt==4.8.0
     # via tfc-backend (setup.py)
 pillow==8.3.1
     # via tfc-backend (setup.py)
@@ -57,7 +57,7 @@ pytz==2021.1
     # via
     #   django
     #   django-dbbackup
-rstr==2.2.6
+rstr==3.0.0
     # via tfc-backend (setup.py)
 six==1.16.0
     # via
