@@ -9,9 +9,7 @@ class HeartbeatTests(APITestCase):
     def test_main_ping(self):
         client = APIClient()
         response = client.get(self.url)
-        serializer = {
-            'detail': 'pong'
-        }
+        serializer = {'detail': 'pong'}
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, serializer)

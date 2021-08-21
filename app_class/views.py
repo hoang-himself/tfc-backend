@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 from django.views.decorators.csrf import csrf_protect
 
 from rest_framework import (exceptions, status)
-from rest_framework.permissions import AllowAny # TODO Remove
+from rest_framework.permissions import AllowAny  # TODO Remove
 from rest_framework.response import Response
 from rest_framework.serializers import RelatedField
 from rest_framework.views import APIView
@@ -16,12 +16,11 @@ from master_db.serializers import ClassMetadataSerializer, CourseSerializer
 
 import json
 
-
 CustomUser = get_user_model()
 
 
 class ClassView(APIView):
-    permission_classes = [AllowAny] # TODO Remove
+    permission_classes = [AllowAny]  # TODO Remove
 
     def post(self, request):
         return create_object(ClassMetadata, data=request.data)
@@ -37,7 +36,7 @@ class ClassView(APIView):
 
 
 class ClassStudentView(APIView):
-    permission_classes = [AllowAny] # TODO Remove
+    permission_classes = [AllowAny]  # TODO Remove
 
     # This is for adding student
     # TODO Switch to POST
@@ -53,12 +52,13 @@ class ClassStudentView(APIView):
         CustomUser = get_user_model()
 
         # Get class
-        classMeta = get_by_uuid(
-            ClassMetadata, request.POST.get('uuid'))
+        classMeta = get_by_uuid(ClassMetadata, request.POST.get('uuid'))
 
         # Get all students with uuids
         if (std_uuids := request.POST.get('student_uuids')) is None:
-            raise exceptions.ParseError({'student_uuids': 'This field is required.'})
+            raise exceptions.ParseError(
+                {'student_uuids': 'This field is required.'}
+            )
 
         std_uuids = json.loads(std_uuids)
         # Handling UUID validation
@@ -92,12 +92,13 @@ class ClassStudentView(APIView):
         """
 
         # Get class
-        classMeta = get_by_uuid(
-            ClassMetadata, request.POST.get('uuid'))
+        classMeta = get_by_uuid(ClassMetadata, request.POST.get('uuid'))
 
         # Get students uuids
         if (std_uuids := request.POST.get('student_uuids')) is None:
-            raise exceptions.ParseError({'student_uuids': 'This field is required.'})
+            raise exceptions.ParseError(
+                {'student_uuids': 'This field is required.'}
+            )
         std_uuids = json.loads(std_uuids)
         # Get students
         try:
@@ -107,10 +108,12 @@ class ClassStudentView(APIView):
 
         # Store uuids for visualizing added students, if one does not show up it is not found
         if len(students) != len(std_uuids):
-            uuids = (str(o)
-            for o in students.values_list('uuid', flat=True).filter())
+            uuids = (
+                str(o) for o in students.values_list('uuid', flat=True).filter()
+            )
             raise exceptions.ParseError(
-                {'not_found': list(set(std_uuids).difference(uuids))})
+                {'not_found': list(set(std_uuids).difference(uuids))}
+            )
 
         # Remove students from class if all uuids are present
         classMeta.students.remove(*students)
@@ -129,7 +132,7 @@ class SpecialClassSerializer(ClassMetadataSerializer):
 
 
 class FindClassView(APIView):
-    permission_classes = [AllowAny] # TODO Remove
+    permission_classes = [AllowAny]  # TODO Remove
 
     def get(self, request):
         """
@@ -163,7 +166,10 @@ class FindClassView(APIView):
             # Get student by uuid
             student = get_by_uuid(CustomUser, student_uuid)
             classMeta = student.student_classes.all()
-            return Response(SpecialClassSerializer(classMeta, many=True).ignore_field('students').data)
+            return Response(
+                SpecialClassSerializer(classMeta,
+                                       many=True).ignore_field('students').data
+            )
 
         # teacher_uuid is provided
         teacher_uuid = request.GET.get('teacher_uuid')
@@ -172,7 +178,7 @@ class FindClassView(APIView):
             teacher = get_by_uuid(CustomUser, teacher_uuid)
             classMeta = teacher.teacher_classes.all()
 
-        data = ClassMetadataSerializer(
-            classMeta, many=True).ignore_field('students').data
+        data = ClassMetadataSerializer(classMeta,
+                                       many=True).ignore_field('students').data
 
         return Response(data)

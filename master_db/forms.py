@@ -4,20 +4,23 @@ from .models import CustomUser
 
 
 class CustomUserCreationForm(UserCreationForm):
-
     class Meta:
         model = CustomUser
         fields = (
-            'email', 'first_name', 'last_name',
-            'birth_date', 'mobile', 'male', 'address',
+            'email',
+            'first_name',
+            'last_name',
+            'birth_date',
+            'mobile',
+            'male',
+            'address',
         )
 
 
 class CustomUserChangeForm(UserChangeForm):
-
     class Meta:
         model = CustomUser
         fields = (
-            'email', 'first_name', 'last_name',
-            'birth_date', 'mobile', 'male', 'address'
+            'email', 'first_name', 'last_name', 'birth_date', 'mobile', 'male',
+            'address'
         )

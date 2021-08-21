@@ -24,25 +24,131 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='CustomUser',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('password', models.CharField(max_length=128, verbose_name='password')),
-                ('last_login', models.DateTimeField(blank=True, null=True, verbose_name='last login')),
-                ('is_superuser', models.BooleanField(default=False, help_text='Designates that this user has all permissions without explicitly assigning them.', verbose_name='superuser status')),
-                ('first_name', models.CharField(blank=True, max_length=150, verbose_name='first name')),
-                ('last_name', models.CharField(blank=True, max_length=150, verbose_name='last name')),
-                ('is_staff', models.BooleanField(default=False, help_text='Designates whether the user can log into this admin site.', verbose_name='staff status')),
-                ('is_active', models.BooleanField(default=True, help_text='Designates whether this user should be treated as active. Unselect this instead of deleting accounts.', verbose_name='active')),
-                ('uuid', models.UUIDField(blank=True, default=uuid.uuid4, editable=False)),
+                (
+                    'id',
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name='ID'
+                    )
+                ),
+                (
+                    'password',
+                    models.CharField(max_length=128, verbose_name='password')
+                ),
+                (
+                    'last_login',
+                    models.DateTimeField(
+                        blank=True, null=True, verbose_name='last login'
+                    )
+                ),
+                (
+                    'is_superuser',
+                    models.BooleanField(
+                        default=False,
+                        help_text=
+                        'Designates that this user has all permissions without explicitly assigning them.',
+                        verbose_name='superuser status'
+                    )
+                ),
+                (
+                    'first_name',
+                    models.CharField(
+                        blank=True, max_length=150, verbose_name='first name'
+                    )
+                ),
+                (
+                    'last_name',
+                    models.CharField(
+                        blank=True, max_length=150, verbose_name='last name'
+                    )
+                ),
+                (
+                    'is_staff',
+                    models.BooleanField(
+                        default=False,
+                        help_text=
+                        'Designates whether the user can log into this admin site.',
+                        verbose_name='staff status'
+                    )
+                ),
+                (
+                    'is_active',
+                    models.BooleanField(
+                        default=True,
+                        help_text=
+                        'Designates whether this user should be treated as active. Unselect this instead of deleting accounts.',
+                        verbose_name='active'
+                    )
+                ),
+                (
+                    'uuid',
+                    models.UUIDField(
+                        blank=True, default=uuid.uuid4, editable=False
+                    )
+                ),
                 ('email', models.EmailField(max_length=254, unique=True)),
                 ('birth_date', models.DateField(blank=True, null=True)),
-                ('mobile', models.CharField(max_length=15, unique=True, validators=[django.core.validators.RegexValidator(message='Invalid phone number', regex='^(0)(3[2-9]|5[689]|7[06-9]|8[0-689]|9[0-46-9])[0-9]{7}$')])),
+                (
+                    'mobile',
+                    models.CharField(
+                        max_length=15,
+                        unique=True,
+                        validators=[
+                            django.core.validators.RegexValidator(
+                                message='Invalid phone number',
+                                regex=
+                                '^(0)(3[2-9]|5[689]|7[06-9]|8[0-689]|9[0-46-9])[0-9]{7}$'
+                            )
+                        ]
+                    )
+                ),
                 ('male', models.BooleanField(blank=True, null=True)),
                 ('address', models.TextField(blank=True, null=True)),
-                ('avatar', models.ImageField(blank=True, null=True, upload_to=master_db.models.upload_avatar)),
-                ('date_joined', models.DateTimeField(auto_now_add=True, verbose_name='date joined')),
-                ('date_updated', models.DateTimeField(auto_now=True, verbose_name='date updated')),
-                ('groups', models.ManyToManyField(blank=True, help_text='The groups this user belongs to. A user will get all permissions granted to each of their groups.', related_name='user_set', related_query_name='user', to='auth.Group', verbose_name='groups')),
-                ('user_permissions', models.ManyToManyField(blank=True, help_text='Specific permissions for this user.', related_name='user_set', related_query_name='user', to='auth.Permission', verbose_name='user permissions')),
+                (
+                    'avatar',
+                    models.ImageField(
+                        blank=True,
+                        null=True,
+                        upload_to=master_db.models.upload_avatar
+                    )
+                ),
+                (
+                    'date_joined',
+                    models.DateTimeField(
+                        auto_now_add=True, verbose_name='date joined'
+                    )
+                ),
+                (
+                    'date_updated',
+                    models.DateTimeField(
+                        auto_now=True, verbose_name='date updated'
+                    )
+                ),
+                (
+                    'groups',
+                    models.ManyToManyField(
+                        blank=True,
+                        help_text=
+                        'The groups this user belongs to. A user will get all permissions granted to each of their groups.',
+                        related_name='user_set',
+                        related_query_name='user',
+                        to='auth.Group',
+                        verbose_name='groups'
+                    )
+                ),
+                (
+                    'user_permissions',
+                    models.ManyToManyField(
+                        blank=True,
+                        help_text='Specific permissions for this user.',
+                        related_name='user_set',
+                        related_query_name='user',
+                        to='auth.Permission',
+                        verbose_name='user permissions'
+                    )
+                ),
             ],
             options={
                 'verbose_name': 'user',
@@ -52,10 +158,37 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Branch',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created', model_utils.fields.AutoCreatedField(default=django.utils.timezone.now, editable=False, verbose_name='created')),
-                ('modified', model_utils.fields.AutoLastModifiedField(default=django.utils.timezone.now, editable=False, verbose_name='modified')),
-                ('uuid', models.UUIDField(blank=True, default=uuid.uuid4, editable=False)),
+                (
+                    'id',
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name='ID'
+                    )
+                ),
+                (
+                    'created',
+                    model_utils.fields.AutoCreatedField(
+                        default=django.utils.timezone.now,
+                        editable=False,
+                        verbose_name='created'
+                    )
+                ),
+                (
+                    'modified',
+                    model_utils.fields.AutoLastModifiedField(
+                        default=django.utils.timezone.now,
+                        editable=False,
+                        verbose_name='modified'
+                    )
+                ),
+                (
+                    'uuid',
+                    models.UUIDField(
+                        blank=True, default=uuid.uuid4, editable=False
+                    )
+                ),
                 ('desc', models.TextField(blank=True, null=True)),
                 ('addr', models.TextField()),
                 ('short_adr', models.TextField()),
@@ -69,10 +202,37 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='ClassMetadata',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created', model_utils.fields.AutoCreatedField(default=django.utils.timezone.now, editable=False, verbose_name='created')),
-                ('modified', model_utils.fields.AutoLastModifiedField(default=django.utils.timezone.now, editable=False, verbose_name='modified')),
-                ('uuid', models.UUIDField(blank=True, default=uuid.uuid4, editable=False)),
+                (
+                    'id',
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name='ID'
+                    )
+                ),
+                (
+                    'created',
+                    model_utils.fields.AutoCreatedField(
+                        default=django.utils.timezone.now,
+                        editable=False,
+                        verbose_name='created'
+                    )
+                ),
+                (
+                    'modified',
+                    model_utils.fields.AutoLastModifiedField(
+                        default=django.utils.timezone.now,
+                        editable=False,
+                        verbose_name='modified'
+                    )
+                ),
+                (
+                    'uuid',
+                    models.UUIDField(
+                        blank=True, default=uuid.uuid4, editable=False
+                    )
+                ),
                 ('desc', models.TextField(blank=True, null=True)),
                 ('name', models.TextField(unique=True)),
                 ('status', models.TextField()),
@@ -85,10 +245,37 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Metatable',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created', model_utils.fields.AutoCreatedField(default=django.utils.timezone.now, editable=False, verbose_name='created')),
-                ('modified', model_utils.fields.AutoLastModifiedField(default=django.utils.timezone.now, editable=False, verbose_name='modified')),
-                ('uuid', models.UUIDField(blank=True, default=uuid.uuid4, editable=False)),
+                (
+                    'id',
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name='ID'
+                    )
+                ),
+                (
+                    'created',
+                    model_utils.fields.AutoCreatedField(
+                        default=django.utils.timezone.now,
+                        editable=False,
+                        verbose_name='created'
+                    )
+                ),
+                (
+                    'modified',
+                    model_utils.fields.AutoLastModifiedField(
+                        default=django.utils.timezone.now,
+                        editable=False,
+                        verbose_name='modified'
+                    )
+                ),
+                (
+                    'uuid',
+                    models.UUIDField(
+                        blank=True, default=uuid.uuid4, editable=False
+                    )
+                ),
                 ('desc', models.TextField(blank=True, null=True)),
                 ('name', models.TextField(unique=True)),
             ],
@@ -100,14 +287,47 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Schedule',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created', model_utils.fields.AutoCreatedField(default=django.utils.timezone.now, editable=False, verbose_name='created')),
-                ('modified', model_utils.fields.AutoLastModifiedField(default=django.utils.timezone.now, editable=False, verbose_name='modified')),
-                ('uuid', models.UUIDField(blank=True, default=uuid.uuid4, editable=False)),
+                (
+                    'id',
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name='ID'
+                    )
+                ),
+                (
+                    'created',
+                    model_utils.fields.AutoCreatedField(
+                        default=django.utils.timezone.now,
+                        editable=False,
+                        verbose_name='created'
+                    )
+                ),
+                (
+                    'modified',
+                    model_utils.fields.AutoLastModifiedField(
+                        default=django.utils.timezone.now,
+                        editable=False,
+                        verbose_name='modified'
+                    )
+                ),
+                (
+                    'uuid',
+                    models.UUIDField(
+                        blank=True, default=uuid.uuid4, editable=False
+                    )
+                ),
                 ('desc', models.TextField(blank=True, null=True)),
                 ('time_start', models.DateTimeField()),
                 ('time_end', models.DateTimeField()),
-                ('classroom', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='master_db.classmetadata')),
+                (
+                    'classroom',
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to='master_db.classmetadata'
+                    )
+                ),
             ],
             options={
                 'verbose_name': 'schedule',
@@ -117,10 +337,37 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Setting',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created', model_utils.fields.AutoCreatedField(default=django.utils.timezone.now, editable=False, verbose_name='created')),
-                ('modified', model_utils.fields.AutoLastModifiedField(default=django.utils.timezone.now, editable=False, verbose_name='modified')),
-                ('uuid', models.UUIDField(blank=True, default=uuid.uuid4, editable=False)),
+                (
+                    'id',
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name='ID'
+                    )
+                ),
+                (
+                    'created',
+                    model_utils.fields.AutoCreatedField(
+                        default=django.utils.timezone.now,
+                        editable=False,
+                        verbose_name='created'
+                    )
+                ),
+                (
+                    'modified',
+                    model_utils.fields.AutoLastModifiedField(
+                        default=django.utils.timezone.now,
+                        editable=False,
+                        verbose_name='modified'
+                    )
+                ),
+                (
+                    'uuid',
+                    models.UUIDField(
+                        blank=True, default=uuid.uuid4, editable=False
+                    )
+                ),
                 ('desc', models.TextField(blank=True, null=True)),
                 ('name', models.TextField()),
                 ('value', models.TextField()),
@@ -133,15 +380,54 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Session',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created', model_utils.fields.AutoCreatedField(default=django.utils.timezone.now, editable=False, verbose_name='created')),
-                ('modified', model_utils.fields.AutoLastModifiedField(default=django.utils.timezone.now, editable=False, verbose_name='modified')),
-                ('uuid', models.UUIDField(blank=True, default=uuid.uuid4, editable=False)),
+                (
+                    'id',
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name='ID'
+                    )
+                ),
+                (
+                    'created',
+                    model_utils.fields.AutoCreatedField(
+                        default=django.utils.timezone.now,
+                        editable=False,
+                        verbose_name='created'
+                    )
+                ),
+                (
+                    'modified',
+                    model_utils.fields.AutoLastModifiedField(
+                        default=django.utils.timezone.now,
+                        editable=False,
+                        verbose_name='modified'
+                    )
+                ),
+                (
+                    'uuid',
+                    models.UUIDField(
+                        blank=True, default=uuid.uuid4, editable=False
+                    )
+                ),
                 ('desc', models.TextField(blank=True, null=True)),
                 ('homework', models.SmallIntegerField(blank=True, null=True)),
                 ('status', models.BooleanField(blank=True, null=True)),
-                ('schedule', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='master_db.schedule')),
-                ('student', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                (
+                    'schedule',
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to='master_db.schedule'
+                    )
+                ),
+                (
+                    'student',
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL
+                    )
+                ),
             ],
             options={
                 'verbose_name': 'session',
@@ -151,13 +437,52 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Log',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created', model_utils.fields.AutoCreatedField(default=django.utils.timezone.now, editable=False, verbose_name='created')),
-                ('modified', model_utils.fields.AutoLastModifiedField(default=django.utils.timezone.now, editable=False, verbose_name='modified')),
-                ('uuid', models.UUIDField(blank=True, default=uuid.uuid4, editable=False)),
+                (
+                    'id',
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name='ID'
+                    )
+                ),
+                (
+                    'created',
+                    model_utils.fields.AutoCreatedField(
+                        default=django.utils.timezone.now,
+                        editable=False,
+                        verbose_name='created'
+                    )
+                ),
+                (
+                    'modified',
+                    model_utils.fields.AutoLastModifiedField(
+                        default=django.utils.timezone.now,
+                        editable=False,
+                        verbose_name='modified'
+                    )
+                ),
+                (
+                    'uuid',
+                    models.UUIDField(
+                        blank=True, default=uuid.uuid4, editable=False
+                    )
+                ),
                 ('desc', models.TextField(blank=True, null=True)),
-                ('table', models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, to='master_db.metatable')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, to=settings.AUTH_USER_MODEL)),
+                (
+                    'table',
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        to='master_db.metatable'
+                    )
+                ),
+                (
+                    'user',
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        to=settings.AUTH_USER_MODEL
+                    )
+                ),
             ],
             options={
                 'abstract': False,
@@ -166,14 +491,49 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Course',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created', model_utils.fields.AutoCreatedField(default=django.utils.timezone.now, editable=False, verbose_name='created')),
-                ('modified', model_utils.fields.AutoLastModifiedField(default=django.utils.timezone.now, editable=False, verbose_name='modified')),
-                ('uuid', models.UUIDField(blank=True, default=uuid.uuid4, editable=False)),
+                (
+                    'id',
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name='ID'
+                    )
+                ),
+                (
+                    'created',
+                    model_utils.fields.AutoCreatedField(
+                        default=django.utils.timezone.now,
+                        editable=False,
+                        verbose_name='created'
+                    )
+                ),
+                (
+                    'modified',
+                    model_utils.fields.AutoLastModifiedField(
+                        default=django.utils.timezone.now,
+                        editable=False,
+                        verbose_name='modified'
+                    )
+                ),
+                (
+                    'uuid',
+                    models.UUIDField(
+                        blank=True, default=uuid.uuid4, editable=False
+                    )
+                ),
                 ('desc', models.TextField(blank=True, null=True)),
                 ('name', models.TextField(unique=True)),
                 ('duration', models.SmallIntegerField()),
-                ('tags', taggit.managers.TaggableManager(help_text='A comma-separated list of tags.', through='taggit.TaggedItem', to='taggit.Tag', verbose_name='Tags')),
+                (
+                    'tags',
+                    taggit.managers.TaggableManager(
+                        help_text='A comma-separated list of tags.',
+                        through='taggit.TaggedItem',
+                        to='taggit.Tag',
+                        verbose_name='Tags'
+                    )
+                ),
             ],
             options={
                 'verbose_name': 'course',
@@ -183,70 +543,138 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='classmetadata',
             name='course',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='master_db.course'),
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                to='master_db.course'
+            ),
         ),
         migrations.AddField(
             model_name='classmetadata',
             name='students',
-            field=models.ManyToManyField(blank=True, related_name='student_classes', to=settings.AUTH_USER_MODEL),
+            field=models.ManyToManyField(
+                blank=True,
+                related_name='student_classes',
+                to=settings.AUTH_USER_MODEL
+            ),
         ),
         migrations.AddField(
             model_name='classmetadata',
             name='teacher',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.DO_NOTHING, related_name='teacher_classes', to=settings.AUTH_USER_MODEL),
+            field=models.ForeignKey(
+                null=True,
+                on_delete=django.db.models.deletion.DO_NOTHING,
+                related_name='teacher_classes',
+                to=settings.AUTH_USER_MODEL
+            ),
         ),
         migrations.CreateModel(
             name='Calendar',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created', model_utils.fields.AutoCreatedField(default=django.utils.timezone.now, editable=False, verbose_name='created')),
-                ('modified', model_utils.fields.AutoLastModifiedField(default=django.utils.timezone.now, editable=False, verbose_name='modified')),
-                ('uuid', models.UUIDField(blank=True, default=uuid.uuid4, editable=False)),
+                (
+                    'id',
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name='ID'
+                    )
+                ),
+                (
+                    'created',
+                    model_utils.fields.AutoCreatedField(
+                        default=django.utils.timezone.now,
+                        editable=False,
+                        verbose_name='created'
+                    )
+                ),
+                (
+                    'modified',
+                    model_utils.fields.AutoLastModifiedField(
+                        default=django.utils.timezone.now,
+                        editable=False,
+                        verbose_name='modified'
+                    )
+                ),
+                (
+                    'uuid',
+                    models.UUIDField(
+                        blank=True, default=uuid.uuid4, editable=False
+                    )
+                ),
                 ('desc', models.TextField(blank=True, null=True)),
                 ('name', models.TextField()),
                 ('time_start', models.DateTimeField()),
                 ('time_end', models.DateTimeField()),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                (
+                    'user',
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL
+                    )
+                ),
             ],
         ),
         migrations.AddIndex(
             model_name='session',
-            index=models.Index(fields=['student', 'status'], name='master_db_s_student_f72458_idx'),
+            index=models.Index(
+                fields=['student', 'status'],
+                name='master_db_s_student_f72458_idx'
+            ),
         ),
         migrations.AddIndex(
             model_name='session',
-            index=models.Index(fields=['schedule'], name='master_db_s_schedul_38b7a6_idx'),
+            index=models.Index(
+                fields=['schedule'], name='master_db_s_schedul_38b7a6_idx'
+            ),
         ),
         migrations.AddConstraint(
             model_name='session',
-            constraint=models.UniqueConstraint(fields=('student', 'schedule'), name='unique_session'),
+            constraint=models.UniqueConstraint(
+                fields=('student', 'schedule'), name='unique_session'
+            ),
         ),
         migrations.AddIndex(
             model_name='schedule',
-            index=models.Index(fields=['time_start', 'time_end'], name='master_db_s_time_st_3687ab_idx'),
+            index=models.Index(
+                fields=['time_start', 'time_end'],
+                name='master_db_s_time_st_3687ab_idx'
+            ),
         ),
         migrations.AddIndex(
             model_name='course',
-            index=models.Index(fields=['duration'], name='master_db_c_duratio_7c3de7_idx'),
+            index=models.Index(
+                fields=['duration'], name='master_db_c_duratio_7c3de7_idx'
+            ),
         ),
         migrations.AddIndex(
             model_name='classmetadata',
-            index=models.Index(fields=['course'], name='master_db_c_course__cd1b38_idx'),
+            index=models.Index(
+                fields=['course'], name='master_db_c_course__cd1b38_idx'
+            ),
         ),
         migrations.AddIndex(
             model_name='classmetadata',
-            index=models.Index(fields=['status'], name='master_db_c_status_0e5524_idx'),
+            index=models.Index(
+                fields=['status'], name='master_db_c_status_0e5524_idx'
+            ),
         ),
         migrations.AddIndex(
             model_name='calendar',
-            index=models.Index(fields=['time_start', 'time_end'], name='master_db_c_time_st_aa0106_idx'),
+            index=models.Index(
+                fields=['time_start', 'time_end'],
+                name='master_db_c_time_st_aa0106_idx'
+            ),
         ),
         migrations.AddIndex(
             model_name='customuser',
-            index=models.Index(fields=['first_name'], name='master_db_c_first_n_87b10f_idx'),
+            index=models.Index(
+                fields=['first_name'], name='master_db_c_first_n_87b10f_idx'
+            ),
         ),
         migrations.AddIndex(
             model_name='customuser',
-            index=models.Index(fields=['male'], name='master_db_c_male_e11d83_idx'),
+            index=models.Index(
+                fields=['male'], name='master_db_c_male_e11d83_idx'
+            ),
         ),
     ]

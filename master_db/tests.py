@@ -5,13 +5,16 @@ CustomUser = get_user_model()
 
 
 class UsersManagersTests(APITestCase):
-
     def test_create_user(self):
         user = CustomUser.objects.create_user(
-            email='user1@tfc.com', password='iamuser1',
-            first_name='First', last_name='Last',
-            birth_date='2001-07-31', mobile='0123456789',
-            male=True, address='My lovely home'
+            email='user1@tfc.com',
+            password='iamuser1',
+            first_name='First',
+            last_name='Last',
+            birth_date='2001-07-31',
+            mobile='0123456789',
+            male=True,
+            address='My lovely home'
         )
 
         self.assertEqual(user.email, 'user1@tfc.com')
@@ -35,10 +38,14 @@ class UsersManagersTests(APITestCase):
 
     def test_create_superuser(self):
         admin_user = CustomUser.objects.create_superuser(
-            email='superuser1@tfc.com', password='iamsuperuser1',
-            first_name='First', last_name='Last',
-            birth_date='2001-08-31', mobile='0123456789',
-            male=True, address='My lovely home'
+            email='superuser1@tfc.com',
+            password='iamsuperuser1',
+            first_name='First',
+            last_name='Last',
+            birth_date='2001-08-31',
+            mobile='0123456789',
+            male=True,
+            address='My lovely home'
         )
 
         self.assertEqual(admin_user.email, 'superuser1@tfc.com')

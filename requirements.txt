@@ -66,3 +66,5 @@ six==1.16.0
     #   django-taggit-serializer
 sqlparse==0.4.1
     # via django
+yapf==0.31.0
+    # via tfc-backend (setup.py)

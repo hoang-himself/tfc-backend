@@ -9,6 +9,5 @@ urlpatterns = [
     path('get', ScheduleView.as_view(), name='get'),
     path('edit', ScheduleView.as_view(), name='edit'),
     path('delete', ScheduleView.as_view(), name='delete'),
-
     path('reverse', FindScheduleView.as_view(), name='reverse'),
 ]

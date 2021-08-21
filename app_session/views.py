@@ -2,19 +2,21 @@ from django.core.exceptions import ValidationError
 
 from rest_framework import (exceptions, status)
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny # TODO Remove
+from rest_framework.permissions import AllowAny  # TODO Remove
 from rest_framework.views import APIView
 
 from master_db.models import Session
 from master_db.serializers import SessionSerializer
 from master_api.utils import get_list_or_404
-from master_api.views import (create_object, edit_object, delete_object, get_object)
+from master_api.views import (
+    create_object, edit_object, delete_object, get_object
+)
 
 # Create your views here.
 
 
 class SessionView(APIView):
-    permission_classes = [AllowAny] # TODO Remove
+    permission_classes = [AllowAny]  # TODO Remove
 
     def post(self, request):
         return create_object(Session, data=request.data)
@@ -28,8 +30,9 @@ class SessionView(APIView):
     def patch(self, request):
         return edit_object(Session, data=request.data)
 
+
 class FindSessionView(APIView):
-    permission_classes = [AllowAny] # TODO Remove
+    permission_classes = [AllowAny]  # TODO Remove
 
     def get(self, request):
         """
@@ -50,7 +53,8 @@ class FindSessionView(APIView):
         if session is not None:
             try:
                 session = get_list_or_404(
-                    Session, 'Class', schedule__classroom__uuid=session)
+                    Session, 'Class', schedule__classroom__uuid=session
+                )
                 return Response(SessionSerializer(session, many=True).data)
             except ValidationError as message:
                 raise exceptions.ParseError({'detail': list(message)})
@@ -60,7 +64,8 @@ class FindSessionView(APIView):
         if session is not None:
             try:
                 session = get_list_or_404(
-                    Session, 'Schedule', schedule__uuid=session)
+                    Session, 'Schedule', schedule__uuid=session
+                )
             except ValidationError as message:
                 raise exceptions.ParseError({'detail': list(message)})
             return Response(SessionSerializer(session, many=True).data)
@@ -70,9 +75,12 @@ class FindSessionView(APIView):
         if session is not None:
             try:
                 session = get_list_or_404(
-                    Session, 'Student', student__uuid=session)
+                    Session, 'Student', student__uuid=session
+                )
             except ValidationError as message:
                 raise exceptions.ParseError({'detail': list(message)})
             return Response(SessionSerializer(session, many=True).data)
 
-        return Response(SessionSerializer(Session.objects.all(), many=True).data)
+        return Response(
+            SessionSerializer(Session.objects.all(), many=True).data
+        )

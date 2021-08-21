@@ -1,21 +1,22 @@
 from django.contrib.auth import get_user_model
 
 from rest_framework import (exceptions, status)
-from rest_framework.permissions import AllowAny # TODO Remove
+from rest_framework.permissions import AllowAny  # TODO Remove
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from master_api.utils import (get_by_uuid, convert_time)
-from master_api.views import (create_object, edit_object, delete_object, get_object)
+from master_api.views import (
+    create_object, edit_object, delete_object, get_object
+)
 from master_db.models import (ClassMetadata, Calendar)
 from master_db.serializers import CalendarSerializer
-
 
 CustomUser = get_user_model()
 
 
 class CalendarView(APIView):
-    permission_classes = [AllowAny] # TODO Remove
+    permission_classes = [AllowAny]  # TODO Remove
 
     def post(self, request):
         return create_object(Calendar, data=request.data)
@@ -31,7 +32,7 @@ class CalendarView(APIView):
 
 
 class FindCalendarView(APIView):
-    permission_classes = [AllowAny] # TODO Remove
+    permission_classes = [AllowAny]  # TODO Remove
 
     def get(self, request):
         """
@@ -46,7 +47,11 @@ class FindCalendarView(APIView):
         user = request.GET.get('user_uuid')
         if user is not None:
             user = get_by_uuid(CustomUser, user)
-            return Response(CalendarSerializer(user.calendar_set, many=True).data)
+            return Response(
+                CalendarSerializer(user.calendar_set, many=True).data
+            )
 
         # None are provided
-        return Response(CalendarSerializer(Calendar.objects.all(), many=True).data)
+        return Response(
+            CalendarSerializer(Calendar.objects.all(), many=True).data
+        )

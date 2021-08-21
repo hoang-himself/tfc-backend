@@ -1,21 +1,22 @@
 from django.contrib.auth import get_user_model
 
 from rest_framework import (exceptions, status)
-from rest_framework.permissions import AllowAny # TODO Remove
+from rest_framework.permissions import AllowAny  # TODO Remove
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from master_api.utils import (get_by_uuid, convert_time)
-from master_api.views import (create_object, edit_object, delete_object, get_object)
+from master_api.views import (
+    create_object, edit_object, delete_object, get_object
+)
 from master_db.models import (ClassMetadata, Schedule)
 from master_db.serializers import ScheduleSerializer
-
 
 CustomUser = get_user_model()
 
 
 class ScheduleView(APIView):
-    permission_classes = [AllowAny] # TODO Remove
+    permission_classes = [AllowAny]  # TODO Remove
 
     def post(self, request):
         return create_object(Schedule, data=request.data)
@@ -29,8 +30,9 @@ class ScheduleView(APIView):
     def delete(self, request):
         return delete_object(Schedule, data=request.data)
 
+
 class FindScheduleView(APIView):
-    permission_classes = [AllowAny] # TODO Remove
+    permission_classes = [AllowAny]  # TODO Remove
 
     def get(self, request):
         """
@@ -49,7 +51,9 @@ class FindScheduleView(APIView):
         classMeta = request.GET.get('class_uuid')
         if classMeta is not None:
             classMeta = get_by_uuid(ClassMetadata, classMeta)
-            return Response(ScheduleSerializer(classMeta.schedule_set, many=True).data)
+            return Response(
+                ScheduleSerializer(classMeta.schedule_set, many=True).data
+            )
 
         # student_uuid is provided
         student = request.GET.get('student_uuid')
@@ -84,4 +88,6 @@ class FindScheduleView(APIView):
             return Response(data)
 
         # None are provided
-        return Response(ScheduleSerializer(Schedule.objects.all(), many=True).data)
+        return Response(
+            ScheduleSerializer(Schedule.objects.all(), many=True).data
+        )

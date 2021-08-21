@@ -45,6 +45,7 @@ setup(
         'Pillow',
         'psycopg2-binary',
         'rstr',
+        'yapf'
     ],
     #   extras_require={  # pip install sampleproject[dev]
     #       'dev': ['check-manifest'],

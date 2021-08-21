@@ -11,7 +11,6 @@ import uuid
 import datetime
 import os
 
-
 PHONE_REGEX = r'^(0)(3[2-9]|5[689]|7[06-9]|8[0-689]|9[0-46-9])[0-9]{7}$'
 USER_IMAGE_PATH = 'users/'
 
@@ -75,20 +74,22 @@ class CustomUser(AbstractUser):
 
     birth_date = models.DateField(null=True, blank=True)
     mobile = models.CharField(
-        validators=[RegexValidator(
-            regex=PHONE_REGEX, message="Invalid phone number")],
+        validators=[
+            RegexValidator(regex=PHONE_REGEX, message="Invalid phone number")
+        ],
         max_length=15,
         unique=True
     )
     male = models.BooleanField(null=True, blank=True)
     address = models.TextField(null=True, blank=True)
-    avatar = models.ImageField(
-        upload_to=upload_avatar, null=True, blank=True)
+    avatar = models.ImageField(upload_to=upload_avatar, null=True, blank=True)
 
     date_joined = models.DateTimeField(
-        'date joined', auto_now_add=True, editable=False)
+        'date joined', auto_now_add=True, editable=False
+    )
     date_updated = models.DateTimeField(
-        'date updated', auto_now=True)  # Auto update for every save()
+        'date updated', auto_now=True
+    )  # Auto update for every save()
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = [
@@ -100,8 +101,12 @@ class CustomUser(AbstractUser):
         verbose_name = 'user'
         verbose_name_plural = 'users'
         indexes = [
-            models.Index(fields=['first_name', ]),
-            models.Index(fields=['male', ]),
+            models.Index(fields=[
+                'first_name',
+            ]),
+            models.Index(fields=[
+                'male',
+            ]),
         ]
 
     def __str__(self):
@@ -117,9 +122,9 @@ class Course(TemplateModel):
     class Meta:
         verbose_name = 'course'
         verbose_name_plural = 'courses'
-        indexes = [
-            models.Index(fields=['duration', ])
-        ]
+        indexes = [models.Index(fields=[
+            'duration',
+        ])]
 
     def __str__(self):
         return f'{self.name}'
@@ -145,8 +150,12 @@ class ClassMetadata(TemplateModel):
         verbose_name = 'class'
         verbose_name_plural = 'classes'
         indexes = [
-            models.Index(fields=['course', ]),
-            models.Index(fields=['status', ]),
+            models.Index(fields=[
+                'course',
+            ]),
+            models.Index(fields=[
+                'status',
+            ]),
         ]
 
     def __str__(self):
@@ -165,14 +174,14 @@ class Schedule(TemplateModel):
     class Meta:
         verbose_name = 'schedule'
         verbose_name_plural = 'schedules'
-        indexes = [
-            models.Index(fields=['time_start', 'time_end'])
-        ]
+        indexes = [models.Index(fields=['time_start', 'time_end'])]
 
     def __str__(self):
-        return (f'{self.classroom}, '
-                f'{self.time_start.hour}:{self.time_start.minute:02d}'
-                f' ~ {self.time_end.hour}:{self.time_end.minute:02d}')
+        return (
+            f'{self.classroom}, '
+            f'{self.time_start.hour}:{self.time_start.minute:02d}'
+            f' ~ {self.time_end.hour}:{self.time_end.minute:02d}'
+        )
 
 
 #
@@ -193,12 +202,13 @@ class Session(TemplateModel):
         verbose_name_plural = 'sessions'
         indexes = [
             models.Index(fields=['student', 'status']),
-            models.Index(fields=['schedule', ])
+            models.Index(fields=[
+                'schedule',
+            ])
         ]
         constraints = [
             models.UniqueConstraint(
-                fields=['student', 'schedule'],
-                name='unique_session'
+                fields=['student', 'schedule'], name='unique_session'
             )
         ]
 
@@ -208,18 +218,13 @@ class Session(TemplateModel):
 
 # Calendar for staff only
 class Calendar(TemplateModel):
-    user = models.ForeignKey(
-        CustomUser,
-        on_delete=models.CASCADE
-    )
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     name = models.TextField()
     time_start = models.DateTimeField()
     time_end = models.DateTimeField()
 
     class Meta:
-        indexes = [
-            models.Index(fields=['time_start', 'time_end'])
-        ]
+        indexes = [models.Index(fields=['time_start', 'time_end'])]
 
     def __str__(self):
         return f'{self.name}'
@@ -227,14 +232,8 @@ class Calendar(TemplateModel):
 
 #
 class Log(TemplateModel):
-    user = models.ForeignKey(
-        CustomUser,
-        on_delete=models.DO_NOTHING
-    )
-    table = models.ForeignKey(
-        Metatable,
-        on_delete=models.DO_NOTHING
-    )
+    user = models.ForeignKey(CustomUser, on_delete=models.DO_NOTHING)
+    table = models.ForeignKey(Metatable, on_delete=models.DO_NOTHING)
 
     def __str__(self):
         return self.short_desc

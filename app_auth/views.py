@@ -20,7 +20,6 @@ CustomUser = get_user_model()
 
 
 class CustomUserSerializer(EnhancedModelSerializer):
-
     class Meta:
         model = CustomUser
         fields = ['password']
@@ -85,17 +84,13 @@ class LogoutView(APIView):
 
         if not (refresh_token):
             raise exceptions.ValidationError(
-                {
-                    'refresh': 'This field is required.'
-                }
+                {'refresh': 'This field is required.'}
             )
 
         response = Response()
         # RefreshToken(refresh_token).blacklist()
         response.status_code = status.HTTP_200_OK
-        response.data = {
-            'detail': 'Ok'
-        }
+        response.data = {'detail': 'Ok'}
         return response
 
 
@@ -117,7 +112,12 @@ class RefreshView(APIView):
         except jwt.ExpiredSignatureError:
             raise exceptions.AuthenticationFailed('Refresh token expired.')
 
-        if ((user := get_object_or_None(CustomUser, uuid=payload.get('uuid', None))) is None):
+        if (
+            (
+                user :=
+                get_object_or_None(CustomUser, uuid=payload.get('uuid', None))
+            ) is None
+        ):
             raise exceptions.NotFound('User not found')
 
         if not (user.is_active):
@@ -126,8 +126,9 @@ class RefreshView(APIView):
         return Response(
             status=status.HTTP_200_OK,
             data={
-                'token': {
-                    'access': str(RefreshToken.for_user(user).access_token)
-                }
+                'token':
+                    {
+                        'access': str(RefreshToken.for_user(user).access_token)
+                    }
             }
         )

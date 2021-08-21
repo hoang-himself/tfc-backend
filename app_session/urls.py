@@ -9,6 +9,5 @@ urlpatterns = [
     path('get', SessionView.as_view(), name='get'),
     path('edit', SessionView.as_view(), name='edit'),
     path('delete', SessionView.as_view(), name='delete'),
-
     path('reverse', FindSessionView.as_view(), name='reverse'),
 ]

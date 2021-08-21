@@ -12,5 +12,6 @@
       "simplejwt",
       "xeger",
       "yapf"
-    ]
+    ],
+    "python.formatting.provider": "yapf"
 }

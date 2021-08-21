@@ -13,10 +13,14 @@ class AuthTests(APITestCase):
 
     def setUp(self):
         CustomUser.objects.create_user(
-            email='user1@tfc.com', password='iamuser1',
-            first_name='First', last_name='Last',
-            birth_date='2001-07-31', mobile='0123456789',
-            male=True, address='My lovely home'
+            email='user1@tfc.com',
+            password='iamuser1',
+            first_name='First',
+            last_name='Last',
+            birth_date='2001-07-31',
+            mobile='0123456789',
+            male=True,
+            address='My lovely home'
         )
 
     def test_anon(self):
@@ -30,34 +34,23 @@ class AuthTests(APITestCase):
         self.assertEqual(response.data, serializer)
 
     def test_no_password(self):
-        data = {
-            'email': 'user1@tfc.com'
-        }
+        data = {'email': 'user1@tfc.com'}
         response = self.client.post(self.url, data=data)
-        serializer = {
-            'password': 'This field is required.'
-        }
+        serializer = {'password': 'This field is required.'}
 
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         self.assertEqual(response.data, serializer)
 
     def test_no_email(self):
-        data = {
-            'password': 'iamuser1'
-        }
+        data = {'password': 'iamuser1'}
         response = self.client.post(self.url, data=data)
-        serializer = {
-            'email': 'This field is required.'
-        }
+        serializer = {'email': 'This field is required.'}
 
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         self.assertEqual(response.data, serializer)
 
     def test_success(self):
-        data = {
-            'email': 'user1@tfc.com',
-            'password': 'iamuser1'
-        }
+        data = {'email': 'user1@tfc.com', 'password': 'iamuser1'}
         response = self.client.post(self.url, data=data)
         access_token = response.data.get('token').get('access')
 
@@ -72,10 +65,14 @@ class RefreshTests(APITestCase):
 
     def setUp(self):
         CustomUser.objects.create_user(
-            email='user1@tfc.com', password='iamuser1',
-            first_name='First', last_name='Last',
-            birth_date='2001-07-31', mobile='0123456789',
-            male=True, address='My lovely home'
+            email='user1@tfc.com',
+            password='iamuser1',
+            first_name='First',
+            last_name='Last',
+            birth_date='2001-07-31',
+            mobile='0123456789',
+            male=True,
+            address='My lovely home'
         )
 
     def test_no_csrf(self):
@@ -86,24 +83,17 @@ class RefreshTests(APITestCase):
 
     def test_no_access(self):
         response = self.client.post(self.url)
-        serializer = {
-            'refresh': 'This field is required.'
-        }
+        serializer = {'refresh': 'This field is required.'}
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.data, serializer)
 
     def test_success(self):
-        data = {
-            'email': 'user1@tfc.com',
-            'password': 'iamuser1'
-        }
+        data = {'email': 'user1@tfc.com', 'password': 'iamuser1'}
         response = self.client.post(reverse('app_auth:login'), data=data)
         refresh_token = response.data.get('token').get('refresh')
 
-        data = {
-            'refresh': refresh_token
-        }
+        data = {'refresh': refresh_token}
         response = self.client.post(self.url, data=data)
         access_token = response.data.get('token').get('access')
 
@@ -117,10 +107,14 @@ class LogoutTests(APITestCase):
 
     def setUp(self):
         CustomUser.objects.create_user(
-            email='user1@tfc.com', password='iamuser1',
-            first_name='First', last_name='Last',
-            birth_date='2001-07-31', mobile='0123456789',
-            male=True, address='My lovely home'
+            email='user1@tfc.com',
+            password='iamuser1',
+            first_name='First',
+            last_name='Last',
+            birth_date='2001-07-31',
+            mobile='0123456789',
+            male=True,
+            address='My lovely home'
         )
 
     def temp_test(self):

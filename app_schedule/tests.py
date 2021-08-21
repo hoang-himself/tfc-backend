@@ -3,17 +3,14 @@ from rest_framework import status
 from rest_framework.test import (APIClient, APITestCase)
 
 from master_api.utils import (
-    prettyPrint, compare_dict,
-    convert_time, prettyStr
+    prettyPrint, compare_dict, convert_time, prettyStr
 )
 from master_api.views import (
-    CREATE_RESPONSE, EDIT_RESPONSE, GET_RESPONSE,
-    DELETE_RESPONSE, LIST_RESPONSE
+    CREATE_RESPONSE, EDIT_RESPONSE, GET_RESPONSE, DELETE_RESPONSE, LIST_RESPONSE
 )
 from master_db.models import (Course, ClassMetadata, Schedule)
 
 from app_class.tests import (create_class, create_special_student)
-
 
 CustomUser = get_user_model()
 NUM_STUDENT_EACH = 10
@@ -64,8 +61,11 @@ class ScheduleTest(APITestCase):
         # Check response
         delete_uuid = self.scheds[0].uuid
         response = client.delete(url, data={'uuid': delete_uuid})
-        self.assertEqual(response.status_code,
-                         DELETE_RESPONSE['status'], msg=prettyStr(response.data))
+        self.assertEqual(
+            response.status_code,
+            DELETE_RESPONSE['status'],
+            msg=prettyStr(response.data)
+        )
         self.assertEqual(response.data, 'Deleted')
 
         # Check in db through list
@@ -73,7 +73,8 @@ class ScheduleTest(APITestCase):
 
         # Check if uuid still exists in db
         self.assertFalse(
-            any([res['uuid'] == delete_uuid for res in response.data]))
+            any([res['uuid'] == delete_uuid for res in response.data])
+        )
 
     def test_successful_editted(self):
         client = APIClient()
@@ -90,8 +91,11 @@ class ScheduleTest(APITestCase):
 
         response = client.patch(self.url + 'edit', data=data)
 
-        self.assertEqual(response.status_code,
-                         EDIT_RESPONSE['status'], msg=prettyStr(response.data))
+        self.assertEqual(
+            response.status_code,
+            EDIT_RESPONSE['status'],
+            msg=prettyStr(response.data)
+        )
 
         # Check in db through list
         response = self.test_list(False)
@@ -106,8 +110,11 @@ class ScheduleTest(APITestCase):
                 res['time_end'] = res['time_end'][:16].replace('T', ' ')
                 # Check every element
                 compare_dict(self, data, res)
-                self.assertTrue(res['created'] != res['modified'],
-                                msg=f"\n ----created must not equal modified----\n - created: {res['created']} \n - modified: {res['modified']}")
+                self.assertTrue(
+                    res['created'] != res['modified'],
+                    msg=
+                    f"\n ----created must not equal modified----\n - created: {res['created']} \n - modified: {res['modified']}"
+                )
                 break
         # Check if found the editted
         self.assertTrue(found, msg="Not found in db")
@@ -145,14 +152,16 @@ class ScheduleTest(APITestCase):
         # Check for student presence in every schedule
         for d in response.data:
             self.assertEqual(d['classroom']['uuid'], self.classes[1].uuid)
-            self.assertTrue(int(d['desc'][-1]) % 2 == 1,
-                            msg=f"Desc should be odd")
+            self.assertTrue(
+                int(d['desc'][-1]) % 2 == 1, msg=f"Desc should be odd"
+            )
 
         print("\n ============List Class's Visualizing============")
         prettyPrint(response.data)
         print("\n ============List Class's Visualizing============")
         print(
-            f"Note: All schedule's description NO. should be odd from 0 to {NUM_SCHED - 1}")
+            f"Note: All schedule's description NO. should be odd from 0 to {NUM_SCHED - 1}"
+        )
 
         # Special case for listing student participates in many schedules
         std = create_special_student()
@@ -168,16 +177,25 @@ class ScheduleTest(APITestCase):
         for d in response.data:
             for s in self.scheds:
                 if s.classroom.uuid == d['uuid']:
-                    self.assertTrue(int(d['desc'][-1]) % 3 == 0,
-                                    msg=f"Desc should be divisible by 3")
-                    self.assertTrue(any([student_uuid == std.uuid
-                                         for std in s.classroom.students.all()]),
-                                    msg=f"Student with uuid {student_uuid}"
-                                    f"does not exist in class with uuid {s.classroom.uuid}")
+                    self.assertTrue(
+                        int(d['desc'][-1]) % 3 == 0,
+                        msg=f"Desc should be divisible by 3"
+                    )
+                    self.assertTrue(
+                        any(
+                            [
+                                student_uuid == std.uuid
+                                for std in s.classroom.students.all()
+                            ]
+                        ),
+                        msg=f"Student with uuid {student_uuid}"
+                        f"does not exist in class with uuid {s.classroom.uuid}"
+                    )
                     break
 
         print("\n ============List Student's Visualizing============")
         prettyPrint(response.data)
         print("\n ============List Student's Visualizing============")
         print(
-            f"Note: All schedule's description NO. should be divisible by 3 in range from 0 to {NUM_SCHED - 1}")
+            f"Note: All schedule's description NO. should be divisible by 3 in range from 0 to {NUM_SCHED - 1}"
+        )

@@ -1,17 +1,17 @@
 from django.contrib.auth.hashers import (
-    check_password, make_password,
+    check_password,
+    make_password,
 )
 from django.contrib.auth.models import Group
 
 from rest_framework import serializers
 
 from master_db.models import (
-    Metatable, Branch, Calendar, CustomUser, Setting, Course,
-    ClassMetadata, Schedule, Session, Log
+    Metatable, Branch, Calendar, CustomUser, Setting, Course, ClassMetadata,
+    Schedule, Session, Log
 )
 from master_db import models
 from master_api.utils import validate_uuid4, prettyPrint
-
 
 # For custom classes
 from collections import OrderedDict
@@ -26,16 +26,13 @@ from rest_framework.fields import empty, get_error_detail, set_value
 from rest_framework.settings import api_settings
 from rest_framework.exceptions import ValidationError as DRFValidationError
 
-
 import json
-
 
 MANY_RELATION_KWARGS = (
     'read_only', 'write_only', 'required', 'default', 'initial', 'source',
     'label', 'help_text', 'style', 'error_messages', 'allow_empty',
     'html_cutoff', 'html_cutoff_text'
 )
-
 """
     * UUID Related Field: An alternative to PrimaryKeyRelatedField,
     * but instead of pk we use uuid with model's UUIDField
@@ -51,10 +48,14 @@ MANY_RELATION_KWARGS = (
 
 class UUIDRelatedField(serializers.RelatedField):
     default_error_messages = {
-        'required': _('This field is required.'),
-        'does_not_exist': _('Invalid uuid "{uuid_value}" - object does not exist.'),
-        'incorrect_type': _('Incorrect type. Expected uuid value, received {data_type}.'),
-        'invalid_uuid': _('“{value}” is not a valid UUID.'),
+        'required':
+            _('This field is required.'),
+        'does_not_exist':
+            _('Invalid uuid "{uuid_value}" - object does not exist.'),
+        'incorrect_type':
+            _('Incorrect type. Expected uuid value, received {data_type}.'),
+        'invalid_uuid':
+            _('“{value}” is not a valid UUID.'),
     }
 
     @classmethod
@@ -79,20 +80,22 @@ class UUIDRelatedField(serializers.RelatedField):
             self.fail('invalid_uuid', value=data)
 
     def to_representation(self, value):
-        return {
-            'name': str(value),
-            'uuid': value.uuid
-        }
+        return {'name': str(value), 'uuid': value.uuid}
 
 
 class UUIDManyRelatedField(serializers.ManyRelatedField):
     default_error_messages = {
-        'not_a_list': _(
-            'Expected a list of items but got type "{input_type}".'),
-        'invalid_json': _("Invalid json list. A {name} list submitted in string"
-                          " form must be valid json."),
-        'not_a_str': _('All list items must be of string type.'),
-        'invalid_uuid': _('“{value}” is not a valid UUID.'),
+        'not_a_list':
+            _('Expected a list of items but got type "{input_type}".'),
+        'invalid_json':
+            _(
+                "Invalid json list. A {name} list submitted in string"
+                " form must be valid json."
+            ),
+        'not_a_str':
+            _('All list items must be of string type.'),
+        'invalid_uuid':
+            _('“{value}” is not a valid UUID.'),
     }
 
     def to_internal_value(self, value):
@@ -107,8 +110,9 @@ class UUIDManyRelatedField(serializers.ManyRelatedField):
         try:
             value = json.loads(value)
         except ValueError:
-            self.fail('invalid_json',
-                      name=self.child_relation.__class__.__name__)
+            self.fail(
+                'invalid_json', name=self.child_relation.__class__.__name__
+            )
 
         if not isinstance(value, list):
             self.fail('not_a_list', input_type=type(value).__name__)
@@ -144,7 +148,8 @@ class EnhancedListSerializer(serializers.ListSerializer):
         if not isinstance(self.child, EnhancedModelSerializer):
             raise TypeError(
                 f"To use EnhancedListSerializer, {self.child.__class__.__name__}"
-                " must be EnhancedModelSerializer or its subclass")
+                " must be EnhancedModelSerializer or its subclass"
+            )
 
     def ignore_fields(self, *fields):
         self.child.ignore_fields(fields)
@@ -168,16 +173,18 @@ class EnhancedModelSerializer(serializers.ModelSerializer):
         elif not issubclass(meta.list_serializer_class, EnhancedListSerializer):
             raise TypeError(
                 f"In {cls.__name__}, list_serializer_class must be "
-                "EnhancedListSerializer or its subclass")
+                "EnhancedListSerializer or its subclass"
+            )
 
         return super().__new__(cls, *args, **kwargs)
 
     def __init__(self, instance=None, data=empty, **kwargs):
         super().__init__(instance, data, **kwargs)
-        self.updatable = dict.fromkeys(self.Meta.non_updatable, False) if hasattr(
-            self.Meta, 'non_updatable') else {}
-        self._ignore = self.Meta.ignore if hasattr(
-            self.Meta, 'ignore') else tuple()
+        self.updatable = dict.fromkeys(
+            self.Meta.non_updatable, False
+        ) if hasattr(self.Meta, 'non_updatable') else {}
+        self._ignore = self.Meta.ignore if hasattr(self.Meta,
+                                                   'ignore') else tuple()
         self.ignore = {}
         for field in self._ignore:
             self.ignore_field(field)
@@ -190,9 +197,9 @@ class EnhancedModelSerializer(serializers.ModelSerializer):
             message = self.error_messages['invalid'].format(
                 datatype=type(data).__name__
             )
-            raise ValidationError({
-                api_settings.NON_FIELD_ERRORS_KEY: [message]
-            }, code='invalid')
+            raise ValidationError(
+                {api_settings.NON_FIELD_ERRORS_KEY: [message]}, code='invalid'
+            )
 
         ret = OrderedDict()
         errors = OrderedDict()
@@ -200,7 +207,8 @@ class EnhancedModelSerializer(serializers.ModelSerializer):
 
         for field in fields:
             validate_method = getattr(
-                self, 'validate_' + field.field_name, None)
+                self, 'validate_' + field.field_name, None
+            )
             primitive_value = field.get_value(data)
             try:
                 validated_value = field.run_validation(primitive_value)
@@ -210,7 +218,9 @@ class EnhancedModelSerializer(serializers.ModelSerializer):
                 detail = exc.detail.copy()
                 for i in range(len(detail)):
                     if detail[i] == 'This field is required.':
-                        if getattr(self.instance, field.field_name, False) is not None:
+                        if getattr(
+                            self.instance, field.field_name, False
+                        ) is not None:
                             detail.pop(i)
                             break
                 if bool(detail):
@@ -259,7 +269,8 @@ class EnhancedModelSerializer(serializers.ModelSerializer):
         if not field in self.fields:
             raise KeyError(
                 f"There is no `{field}` field in {self.__class__.__name__} "
-                "to ignore")
+                "to ignore"
+            )
         if field in self.ignore.keys():
             return self
         else:
@@ -302,10 +313,11 @@ class SettingSerializer(EnhancedModelSerializer):
         model = Setting
         exclude = ('id', )
 
+
 class GroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = Group
-        fields = ('name',)
+        fields = ('name', )
 
 
 class CustomUserSerializer(EnhancedModelSerializer):
@@ -324,8 +336,9 @@ class CustomUserSerializer(EnhancedModelSerializer):
         value = value[0] if isinstance(value, list) else value
         if self.instance and not self.instance.check_password(value):
             raise DRFValidationError(
-                "Current password is incorrect" if value is not None
-                else "This field is required.")
+                "Current password is incorrect"
+                if value is not None else "This field is required."
+            )
 
     def validate_password(self, value):
         return make_password(value)
@@ -355,21 +368,18 @@ class CourseSerializer(TaggitSerializer, EnhancedModelSerializer):
 
 
 class ClassMetadataSerializer(EnhancedModelSerializer):
-
     class Meta:
         model = ClassMetadata
         exclude = ('id', )
 
 
 class ScheduleSerializer(EnhancedModelSerializer):
-
     class Meta:
         model = Schedule
         exclude = ('id', )
 
 
 class SessionSerializer(EnhancedModelSerializer):
-
     class Meta:
         model = Session
         exclude = ('id', )

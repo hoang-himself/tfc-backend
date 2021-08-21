@@ -8,8 +8,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from master_api.views import (
-    create_object, get_object,
-    edit_object, delete_object
+    create_object, get_object, edit_object, delete_object
 )
 from master_db.serializers import CustomUserSerializer
 
@@ -37,7 +36,10 @@ class SelfView(APIView):
         except jwt.ExpiredSignatureError:
             raise exceptions.AuthenticationFailed('Access token expired')
 
-        if ((user := get_object_or_None(CustomUser, uuid=payload.get('uuid'))) is None):
+        if (
+            (user := get_object_or_None(CustomUser, uuid=payload.get('uuid')))
+            is None
+        ):
             raise exceptions.NotFound('User not found.')
 
         if not user.is_active:
@@ -52,8 +54,7 @@ class UserView(APIView):
 
     def get(self, request):
         return Response(
-            CustomUserSerializer(
-                CustomUser.objects.all(), many=True).data
+            CustomUserSerializer(CustomUser.objects.all(), many=True).data
         )
 
     def patch(self, request):

@@ -3,13 +3,9 @@ from django.contrib.auth.hashers import make_password
 from rest_framework import status
 from rest_framework.test import (APIClient, APITestCase)
 
-from master_api.utils import (
-    prettyPrint, prettyStr,
-    compare_dict
-)
+from master_api.utils import (prettyPrint, prettyStr, compare_dict)
 from master_api.views import (
-    CREATE_RESPONSE, EDIT_RESPONSE, DELETE_RESPONSE,
-    GET_RESPONSE, LIST_RESPONSE
+    CREATE_RESPONSE, EDIT_RESPONSE, DELETE_RESPONSE, GET_RESPONSE, LIST_RESPONSE
 )
 from master_db.models import (Course, ClassMetadata, PHONE_REGEX)
 
@@ -17,7 +13,6 @@ from app_course.tests import create_course
 
 import json
 import rstr
-
 
 CustomUser = get_user_model()
 NUM_STUDENT_EACH = 10
@@ -46,10 +41,14 @@ def create_class(desc=0, course=None):
 def create_teacher_students(desc=0, num_students=NUM_STUDENT_EACH):
     # Create teacher
     teacher = CustomUser(
-        email=f'teacher{desc}@tfc.com', password=teacher_password,
-        first_name=f'Class-{desc}', last_name='Teacher',
-        birth_date='1969-06-09', mobile=rstr.xeger(PHONE_REGEX),
-        male=True, address='Meaningless'
+        email=f'teacher{desc}@tfc.com',
+        password=teacher_password,
+        first_name=f'Class-{desc}',
+        last_name='Teacher',
+        birth_date='1969-06-09',
+        mobile=rstr.xeger(PHONE_REGEX),
+        male=True,
+        address='Meaningless'
     )
     teacher.save()
 
@@ -57,10 +56,14 @@ def create_teacher_students(desc=0, num_students=NUM_STUDENT_EACH):
     students = []
     for x in range(num_students):
         std = CustomUser(
-            email=f'class{desc}_std_{x}@tfc.com', password=student_password,
-            first_name=f'Class-{desc}', last_name=f'Student-{x}',
-            birth_date='2001-06-09', mobile=rstr.xeger(PHONE_REGEX),
-            male=x % 2, address='Homeless'
+            email=f'class{desc}_std_{x}@tfc.com',
+            password=student_password,
+            first_name=f'Class-{desc}',
+            last_name=f'Student-{x}',
+            birth_date='2001-06-09',
+            mobile=rstr.xeger(PHONE_REGEX),
+            male=x % 2,
+            address='Homeless'
         )
         std.save()
         students.append(std)
@@ -70,10 +73,14 @@ def create_teacher_students(desc=0, num_students=NUM_STUDENT_EACH):
 
 def create_special_student():
     return CustomUser.objects.create(
-        email=f'{rstr.xeger(PHONE_REGEX)}@tfc.com', password=special_password,
-        first_name=f'Special', last_name='Student',
-        birth_date='1969-06-09', mobile=rstr.xeger(PHONE_REGEX),
-        male=None, address='Definitely not gay'
+        email=f'{rstr.xeger(PHONE_REGEX)}@tfc.com',
+        password=special_password,
+        first_name=f'Special',
+        last_name='Student',
+        birth_date='1969-06-09',
+        mobile=rstr.xeger(PHONE_REGEX),
+        male=None,
+        address='Definitely not gay'
     )
 
 
@@ -96,17 +103,26 @@ class ClassTest(APITestCase):
         teacher, students = create_teacher_students(69)
 
         data = {
-            'course': self.course.uuid,
-            'name': 'name',
-            'teacher': str(teacher.uuid),
-            'students': str([str(std.uuid) for std in students]).replace("'", '"'),
-            'status': 'published',
-            'desc': 'description',
+            'course':
+                self.course.uuid,
+            'name':
+                'name',
+            'teacher':
+                str(teacher.uuid),
+            'students':
+                str([str(std.uuid) for std in students]).replace("'", '"'),
+            'status':
+                'published',
+            'desc':
+                'description',
         }
 
         response = client.post(url, data)
-        self.assertEqual(response.status_code, CREATE_RESPONSE['status'],
-                         msg=prettyStr(response.data))
+        self.assertEqual(
+            response.status_code,
+            CREATE_RESPONSE['status'],
+            msg=prettyStr(response.data)
+        )
         self.assertEqual(response.data, CREATE_RESPONSE['data'])
 
         self.test_list(False, NUM_CLASS + 1)
@@ -118,8 +134,11 @@ class ClassTest(APITestCase):
         # Check response
         delete_uuid = self.classes[0].uuid
         response = client.delete(url, data={'uuid': delete_uuid})
-        self.assertEqual(response.status_code, DELETE_RESPONSE['status'],
-                         msg=prettyStr(response.data))
+        self.assertEqual(
+            response.status_code,
+            DELETE_RESPONSE['status'],
+            msg=prettyStr(response.data)
+        )
         self.assertEqual(response.data, 'Deleted')
 
         # Check in db through list
@@ -127,7 +146,8 @@ class ClassTest(APITestCase):
 
         # Check if uuid still exists in db
         self.assertFalse(
-            any([res['uuid'] == delete_uuid for res in response.data]))
+            any([res['uuid'] == delete_uuid for res in response.data])
+        )
 
     def test_successful_editted(self):
         client = APIClient()
@@ -145,8 +165,11 @@ class ClassTest(APITestCase):
 
         response = client.patch(self.url + 'edit', data=data)
 
-        self.assertEqual(response.status_code,
-                         EDIT_RESPONSE['status'], msg=prettyStr(response.data))
+        self.assertEqual(
+            response.status_code,
+            EDIT_RESPONSE['status'],
+            msg=prettyStr(response.data)
+        )
 
         # Check in db through list
         response = self.test_list(False)
@@ -155,12 +178,15 @@ class ClassTest(APITestCase):
         res = self.test_successful_get(edit_uuid).data
         data['students'] = json.loads(data['students'])
         res['students'] = json.loads(
-            str([str(r['uuid']) for r in res['students']]).replace("'", '"'))
+            str([str(r['uuid']) for r in res['students']]).replace("'", '"')
+        )
         # Check every element
         compare_dict(self, data, res)
-        self.assertTrue(res['created'] != res['modified'],
-                        msg=f"\n ----created must not equal modified----\n - "
-                        f"created: {res['created']} \n - modified: {res['modified']}")
+        self.assertTrue(
+            res['created'] != res['modified'],
+            msg=f"\n ----created must not equal modified----\n - "
+            f"created: {res['created']} \n - modified: {res['modified']}"
+        )
 
     def test_successful_get(self, get_uuid=None):
         client = APIClient()
@@ -181,10 +207,17 @@ class ClassTest(APITestCase):
                         for _ in range(3)]).replace("'", '"')
 
         response = client.patch(
-            url, data={'uuid': class_uuid, 'student_uuids': std_uuid})
+            url, data={
+                'uuid': class_uuid,
+                'student_uuids': std_uuid
+            }
+        )
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK,
-                         msg=prettyStr(response.data))
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+            msg=prettyStr(response.data)
+        )
 
     def test_successful_delStd(self):
         client = APIClient()
@@ -192,15 +225,19 @@ class ClassTest(APITestCase):
         klass = create_class(69)
 
         data = {
-            'uuid': str(klass.uuid),
-            'student_uuids': str([str(std.uuid)
-                                  for std in klass.students.all()]).replace("'", '"')
+            'uuid':
+                str(klass.uuid),
+            'student_uuids':
+                str([str(std.uuid)
+                     for std in klass.students.all()]).replace("'", '"')
         }
 
-        response = client.patch(
-            url, data=data)
-        self.assertEqual(response.status_code, status.HTTP_200_OK,
-                         msg=prettyStr(response.data))
+        response = client.patch(url, data=data)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+            msg=prettyStr(response.data)
+        )
 
     def test_list(self, printOut=True, length=None):
         client = APIClient()
@@ -238,4 +275,5 @@ class ClassTest(APITestCase):
             prettyPrint(response.data)
             print("\n ============List Student's Visualizing============")
             print(
-                f"Note: All class's name NO. should be divisible by 3 in range from 0 to {NUM_CLASS - 1}")
+                f"Note: All class's name NO. should be divisible by 3 in range from 0 to {NUM_CLASS - 1}"
+            )

@@ -3,18 +3,15 @@ from rest_framework import status
 from rest_framework.test import (APIClient, APITestCase)
 
 from master_api.utils import (
-    prettyPrint, compare_dict,
-    convert_time, prettyStr
+    prettyPrint, compare_dict, convert_time, prettyStr
 )
 from master_api.views import (
-    CREATE_RESPONSE, EDIT_RESPONSE, GET_RESPONSE,
-    DELETE_RESPONSE, LIST_RESPONSE
+    CREATE_RESPONSE, EDIT_RESPONSE, GET_RESPONSE, DELETE_RESPONSE, LIST_RESPONSE
 )
 from master_db.models import (Schedule, Session)
 
 from app_schedule.tests import create_sched
 from app_class.tests import create_special_student
-
 
 CustomUser = get_user_model()
 NUM_SESSION = 10
@@ -60,8 +57,11 @@ class SessionTest(APITestCase):
         }
 
         response = client.post(url, data)
-        self.assertEqual(response.status_code,
-                         status.HTTP_201_CREATED, msg=prettyStr(response.data))
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_201_CREATED,
+            msg=prettyStr(response.data)
+        )
 
         self.test_list(False, NUM_SESSION + 1)
 
@@ -72,8 +72,11 @@ class SessionTest(APITestCase):
         # Check response
         delete_uuid = self.sessions[0].uuid
         response = client.delete(url, data={'uuid': delete_uuid})
-        self.assertEqual(response.status_code,
-                         DELETE_RESPONSE['status'], msg=prettyStr(response.data))
+        self.assertEqual(
+            response.status_code,
+            DELETE_RESPONSE['status'],
+            msg=prettyStr(response.data)
+        )
         self.assertEqual(response.data, 'Deleted')
 
         # Check in db through list
@@ -81,7 +84,8 @@ class SessionTest(APITestCase):
 
         # Check if uuid still exists in db
         self.assertFalse(
-            any([res['uuid'] == delete_uuid for res in response.data]))
+            any([res['uuid'] == delete_uuid for res in response.data])
+        )
 
     def test_successful_editted(self):
         client = APIClient()
@@ -96,8 +100,11 @@ class SessionTest(APITestCase):
 
         response = client.patch(self.url + 'edit', data=data)
 
-        self.assertEqual(response.status_code,
-                         EDIT_RESPONSE['status'], msg=prettyStr(response.data))
+        self.assertEqual(
+            response.status_code,
+            EDIT_RESPONSE['status'],
+            msg=prettyStr(response.data)
+        )
 
         # Check in db through list
         response = self.test_list(False)
@@ -110,8 +117,11 @@ class SessionTest(APITestCase):
                 found = True
                 # Check every element
                 compare_dict(self, data, res)
-                self.assertTrue(res['created'] != res['modified'],
-                                msg=f"\n ----created must not equal modified----\n - created: {res['created']} \n - modified: {res['modified']}")
+                self.assertTrue(
+                    res['created'] != res['modified'],
+                    msg=
+                    f"\n ----created must not equal modified----\n - created: {res['created']} \n - modified: {res['modified']}"
+                )
                 break
         # Check if found the editted
         self.assertTrue(found, msg="Not found in db")

@@ -9,6 +9,5 @@ urlpatterns = [
     path('get', CalendarView.as_view(), name='get'),
     path('edit', CalendarView.as_view(), name='edit'),
     path('delete', CalendarView.as_view(), name='delete'),
-
     path('reverse', FindCalendarView.as_view(), name='reverse'),
 ]

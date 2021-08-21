@@ -16,8 +16,7 @@ def convert_json_list(target):
 
 
 def convert_time(s, format_time='%Y-%m-%d %H:%M'):
-    return datetime.datetime.strptime(
-        s, format_time).astimezone()
+    return datetime.datetime.strptime(s, format_time).astimezone()
 
 
 def validate_uuid4(value):
@@ -42,7 +41,8 @@ def formdata_bool(var: str):
         return False
 
     raise ParseError(
-        'Boolean value must be `true` or `false` after being lowered')
+        'Boolean value must be `true` or `false` after being lowered'
+    )
 
 
 def get_object_or_404(klass, name_print=None, *args, **kwargs):
@@ -60,7 +60,8 @@ def get_object_or_404(klass, name_print=None, *args, **kwargs):
     name_print = name_print if name_print is not None else klass.__name__
     if not hasattr(queryset, 'get'):
         klass__name = klass.__name__ if isinstance(
-            klass, type) else klass.__class__.__name__
+            klass, type
+        ) else klass.__class__.__name__
         raise ValueError(
             "First argument to get_object_or_404() must be a Model, Manager, "
             "or QuerySet, not '%s'." % klass__name
@@ -104,7 +105,8 @@ def get_list_or_404(klass, name_print, *args, **kwargs):
     queryset = _get_queryset(klass)
     if not hasattr(queryset, 'filter'):
         klass__name = klass.__name__ if isinstance(
-            klass, type) else klass.__class__.__name__
+            klass, type
+        ) else klass.__class__.__name__
         raise ValueError(
             "First argument to get_list_or_404() must be a Model, Manager, or "
             "QuerySet, not '%s'." % klass__name
@@ -129,7 +131,9 @@ def compare_dict(obj, dict1, dict2):
             dict2[key] = str(dict2[key]['uuid'])
 
         obj.assertTrue(
-            value == dict2[key], msg=f"{key}: {value} <-> {dict2[key]} => {value == dict2[key]}")
+            value == dict2[key],
+            msg=f"{key}: {value} <-> {dict2[key]} => {value == dict2[key]}"
+        )
 
 
 def convert_primitive(elem):
@@ -184,7 +188,7 @@ def prettyStr(text, indentOffset=2):
         if ignore:
             continue
         if text[i] == '{' or text[i] == '[':
-            if text[i+1] == reverse_bracket(text[i]):
+            if text[i + 1] == reverse_bracket(text[i]):
                 i = i + 2
                 continue
             bracket.append(text[i])
@@ -204,7 +208,7 @@ def prettyStr(text, indentOffset=2):
         elif text[i] == ',':
             offset = i + char
             if text[i + 1] == ' ':
-                subtext = subtext[:offset+1] + subtext[offset+2:]
+                subtext = subtext[:offset + 1] + subtext[offset + 2:]
                 char -= 1
             subtext = subtext[:offset+1] + \
                 f"\n{' '*indent}" + subtext[offset+1:]

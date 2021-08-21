@@ -9,7 +9,6 @@ urlpatterns = [
     path('get', ClassView.as_view(), name='get'),
     path('edit', ClassView.as_view(), name='edit'),
     path('delete', ClassView.as_view(), name='delete'),
-
     path('reverse', FindClassView.as_view(), name='reverse'),
 
     # TODO Merge
