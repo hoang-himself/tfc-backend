@@ -17,7 +17,6 @@ from master_db.serializers import EnhancedModelSerializer
 import jwt
 
 CustomUser = get_user_model()
-COOKIE_LIFETIME = 3600
 
 
 class CustomUserSerializer(EnhancedModelSerializer):
@@ -67,12 +66,6 @@ class LoginView(APIView):
         access_token = str(access_token)
 
         response = Response()
-        response.set_cookie(
-            key='accesstoken',
-            value=access_token,
-            max_age=COOKIE_LIFETIME,
-            httponly=True
-        )
         response.status_code = status.HTTP_200_OK
         response.data = {
             'token': {
@@ -130,20 +123,11 @@ class RefreshView(APIView):
         if not (user.is_active):
             raise exceptions.NotFound('User inactive.')
 
-        access_token = RefreshToken.for_user(user).access_token
-        access_token = str(access_token)
-
-        response = Response()
-        response.set_cookie(
-            key='accesstoken',
-            max_age=COOKIE_LIFETIME,
-            value=access_token,
-            httponly=True
-        )
-        response.status_code = status.HTTP_200_OK
-        response.data = {
-            'token': {
-                'access': access_token
+        return Response(
+            status=status.HTTP_200_OK,
+            data={
+                'token': {
+                    'access': str(RefreshToken.for_user(user).access_token)
+                }
             }
-        }
-        return response
+        )

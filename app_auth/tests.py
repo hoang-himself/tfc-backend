@@ -59,7 +59,7 @@ class AuthTests(APITestCase):
             'password': 'iamuser1'
         }
         response = self.client.post(self.url, data=data)
-        access_token = response.cookies.get('accesstoken')
+        access_token = response.data.get('token').get('access')
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIsNotNone(access_token)
@@ -105,7 +105,7 @@ class RefreshTests(APITestCase):
             'refresh': refresh_token
         }
         response = self.client.post(self.url, data=data)
-        access_token = response.cookies.get('accesstoken')
+        access_token = response.data.get('token').get('access')
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIsNotNone(access_token)
@@ -155,7 +155,7 @@ class LogoutTests(APITestCase):
         serializer = {
             'detail': 'Ok'
         }
-        access_token = response.cookies.get('accesstoken').value
+        access_token =response.data.get('token').get('access')
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(access_token, '')

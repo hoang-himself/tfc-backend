@@ -20,18 +20,22 @@ CustomUser = get_user_model()
 
 class SelfView(APIView):
     def get(self, request):
-        access_token = request.COOKIES.get('accesstoken')
-
-        if not (access_token):
-            raise exceptions.PermissionDenied('Not logged in.')
-
+        if not (authorization_header := request.headers.get('Authorization')):
+            return None
         try:
+            # header = 'Token xxxxxxxxxxxxxxxxxxxxxxxx'
+            if not (access_token := authorization_header.split(' ')[1]):
+                raise exceptions.PermissionDenied('Not logged in.')
+
             payload = jwt.decode(
-                access_token, settings.JWT_KEY, algorithms=['HS256'])
+                access_token, settings.JWT_KEY, algorithms=['HS256']
+            )
             if payload.get('typ') != 'access':
                 raise exceptions.ParseError('Invalid access token')
+        except IndexError:
+            raise exceptions.AuthenticationFailed('Token prefix missing')
         except jwt.ExpiredSignatureError:
-            raise exceptions.AuthenticationFailed('Access token expired.')
+            raise exceptions.AuthenticationFailed('Access token expired')
 
         if ((user := get_object_or_None(CustomUser, uuid=payload.get('uuid'))) is None):
             raise exceptions.NotFound('User not found.')

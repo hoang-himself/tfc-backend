@@ -10,6 +10,7 @@
       "rest",
       "rstr",
       "simplejwt",
-      "xeger"
+      "xeger",
+      "yapf"
     ]
 }
