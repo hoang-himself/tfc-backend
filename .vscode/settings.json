@@ -6,6 +6,7 @@
       "dbbackup",
       "framework",
       "klass",
+      "mgmt",
       "psycopg",
       "rest",
       "rstr",

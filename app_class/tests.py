@@ -1,15 +1,16 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password
+from django.urls import reverse
+
 from rest_framework import status
 from rest_framework.test import (APIClient, APITestCase)
 
+from app_course.tests import create_course
 from master_api.utils import (prettyPrint, prettyStr, compare_dict)
 from master_api.views import (
     CREATE_RESPONSE, EDIT_RESPONSE, DELETE_RESPONSE, GET_RESPONSE, LIST_RESPONSE
 )
-from master_db.models import (Course, ClassMetadata, PHONE_REGEX)
-
-from app_course.tests import create_course
+from master_db.models import (ClassMetadata, PHONE_REGEX)
 
 import json
 import rstr
@@ -85,7 +86,8 @@ def create_special_student():
 
 
 class ClassTest(APITestCase):
-    url = '/api/v1/class/'
+    url = reverse('app_class:class_mgmt')
+    client = APIClient()
 
     def setUp(self):
         # Create course
@@ -98,8 +100,6 @@ class ClassTest(APITestCase):
             self.classes.append(create_class(i, self.course))
 
     def test_successful_create(self):
-        client = APIClient()
-        url = self.url + 'create'
         teacher, students = create_teacher_students(69)
 
         data = {
@@ -117,7 +117,7 @@ class ClassTest(APITestCase):
                 'description',
         }
 
-        response = client.post(url, data)
+        response = self.client.post(self.url, data)
         self.assertEqual(
             response.status_code,
             CREATE_RESPONSE['status'],
@@ -128,12 +128,9 @@ class ClassTest(APITestCase):
         self.test_list(False, NUM_CLASS + 1)
 
     def test_successful_deleted(self):
-        client = APIClient()
-        url = self.url + 'delete'
-
         # Check response
         delete_uuid = self.classes[0].uuid
-        response = client.delete(url, data={'uuid': delete_uuid})
+        response = self.client.delete(self.url, data={'uuid': delete_uuid})
         self.assertEqual(
             response.status_code,
             DELETE_RESPONSE['status'],
@@ -150,7 +147,6 @@ class ClassTest(APITestCase):
         )
 
     def test_successful_editted(self):
-        client = APIClient()
         teacher, students = create_teacher_students(69)
 
         edit_uuid = str(self.classes[0].uuid)
@@ -163,7 +159,7 @@ class ClassTest(APITestCase):
             'students': std_uuids,
         }
 
-        response = client.patch(self.url + 'edit', data=data)
+        response = self.client.patch(self.url, data=data)
 
         self.assertEqual(
             response.status_code,
@@ -189,63 +185,28 @@ class ClassTest(APITestCase):
         )
 
     def test_successful_get(self, get_uuid=None):
-        client = APIClient()
-        url = self.url + 'get'
         get_uuid = str(self.classes[0].uuid) if get_uuid is None else get_uuid
 
-        response = client.get(url, data={'uuid': get_uuid})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response = self.client.get(self.url, data={'uuid': get_uuid})
+        self.assertEqual(
+            response.status_code,
+            GET_RESPONSE['status'],
+            msg=prettyStr(response.data)
+        )
         self.assertEqual(response.data['uuid'], get_uuid)
 
         return response
 
-    def test_successful_addStd(self):
-        client = APIClient()
-        url = self.url + 'add-student'
-        class_uuid = str(self.classes[0].uuid)
-        std_uuid = str([str(create_special_student().uuid)
-                        for _ in range(3)]).replace("'", '"')
-
-        response = client.patch(
-            url, data={
-                'uuid': class_uuid,
-                'student_uuids': std_uuid
-            }
-        )
-
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_200_OK,
-            msg=prettyStr(response.data)
-        )
-
-    def test_successful_delStd(self):
-        client = APIClient()
-        url = self.url + 'delete-student'
-        klass = create_class(69)
-
-        data = {
-            'uuid':
-                str(klass.uuid),
-            'student_uuids':
-                str([str(std.uuid)
-                     for std in klass.students.all()]).replace("'", '"')
-        }
-
-        response = client.patch(url, data=data)
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_200_OK,
-            msg=prettyStr(response.data)
-        )
-
     def test_list(self, printOut=True, length=None):
-        client = APIClient()
-        url = self.url + 'reverse'
+        url = reverse('app_class:reverse')
         length = length if length is not None else NUM_CLASS
 
-        response = client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response = self.client.get(url)
+        self.assertEqual(
+            response.status_code,
+            LIST_RESPONSE['status'],
+            msg=prettyStr(response.data)
+        )
         self.assertEqual(len(response.data), length)
 
         if printOut:
@@ -263,7 +224,7 @@ class ClassTest(APITestCase):
                 c.students.add(std)
 
         student_uuid = std.uuid
-        response = client.get(url, data={'student_uuid': student_uuid})
+        response = self.client.get(url, data={'student_uuid': student_uuid})
 
         # Check for student presence in every class
         std_classes = [str(c.uuid) for c in std.student_classes.all()]
@@ -277,3 +238,47 @@ class ClassTest(APITestCase):
             print(
                 f"Note: All class's name NO. should be divisible by 3 in range from 0 to {NUM_CLASS - 1}"
             )
+
+
+class ClassStudentTest(APITestCase):
+    url = reverse('app_class:student_mgmt')
+    client = APIClient()
+
+    def setUp(self):
+        # Create course
+        self.course = create_course()
+
+        # Create classes
+        self.classes = []
+        for i in range(NUM_CLASS):
+            # Create class
+            self.classes.append(create_class(i, self.course))
+
+    def test_successful_addStd(self):
+        class_uuid = str(self.classes[0].uuid)
+        std_uuid = str([str(create_special_student().uuid)
+                        for _ in range(3)]).replace("'", '"')
+
+        response = self.client.patch(
+            self.url, data={
+                'uuid': class_uuid,
+                'student_uuids': std_uuid
+            }
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+            msg=prettyStr(response.data)
+        )
+
+    def test_successful_delStd(self):
+        klass = create_class(69)
+
+        data = {
+            'uuid':
+                str(klass.uuid),
+            'student_uuids':
+                str([str(std.uuid)
+                     for std in klass.students.all()]).replace("'", '"')
+        }

@@ -25,7 +25,7 @@ class CustomUserSerializer(EnhancedModelSerializer):
         fields = ['password']
 
 
-class LoginView(APIView):
+class AuthView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -73,10 +73,6 @@ class LoginView(APIView):
             }
         }
         return response
-
-
-class LogoutView(APIView):
-    permission_classes = [AllowAny]
 
     def delete(self, request):
         return Response(status=status.HTTP_501_NOT_IMPLEMENTED)

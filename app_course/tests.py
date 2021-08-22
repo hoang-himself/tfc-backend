@@ -1,4 +1,5 @@
-from rest_framework import status
+from django.urls import reverse
+
 from rest_framework.test import (APIClient, APITestCase)
 
 from master_api.utils import (prettyPrint, compare_dict)
@@ -27,7 +28,8 @@ def create_course(desc=0, tags=None):
 
 
 class CourseTest(APITestCase):
-    url = '/api/v1/course/'
+    url = reverse('app_course:course_mgmt')
+    client = APIClient()
 
     def setUp(self):
         self.courses = []
@@ -42,15 +44,13 @@ class CourseTest(APITestCase):
             )
 
     def test_successful_created(self):
-        client = APIClient()
-
         data = {
             'name': 'some name',
             'tags': '["1", "2", "3", "4", "5", "6", "7"]',
             'duration': 69,
             'desc': 'some description',
         }
-        response = client.post(self.url + 'create', data=data)
+        response = self.client.post(self.url, data=data)
 
         self.assertEqual(response.data, 'Ok')
         self.assertEqual(
@@ -74,8 +74,6 @@ class CourseTest(APITestCase):
         self.assertTrue(found, msg="Not found in db")
 
     def test_successful_editted(self):
-        client = APIClient()
-
         edit_uuid = str(self.courses[0].uuid)
         data = {
             'uuid': edit_uuid,
@@ -84,7 +82,7 @@ class CourseTest(APITestCase):
             'duration': 69,
         }
 
-        response = client.patch(self.url + 'edit', data=data)
+        response = self.client.patch(self.url, data=data)
 
         self.assertEqual(
             response.status_code,
@@ -114,12 +112,9 @@ class CourseTest(APITestCase):
         self.assertTrue(found, msg="Not found in db")
 
     def test_successful_deleted(self):
-        client = APIClient()
-        url = self.url + 'delete'
-
         # Check response
         delete_uuid = self.courses[0].uuid
-        response = client.delete(url, data={'uuid': delete_uuid})
+        response = self.client.delete(self.url, data={'uuid': delete_uuid})
         self.assertEqual(
             response.status_code,
             DELETE_RESPONSE['status'],
@@ -136,11 +131,9 @@ class CourseTest(APITestCase):
         )
 
     def test_successful_get(self):
-        client = APIClient()
-        url = self.url + 'get'
         get_uuid = str(self.courses[0].uuid)
 
-        response = client.get(url, data={'uuid': get_uuid})
+        response = self.client.get(self.url, data={'uuid': get_uuid})
 
         self.assertEqual(
             response.status_code,
@@ -150,10 +143,10 @@ class CourseTest(APITestCase):
         self.assertEqual(response.data['uuid'], get_uuid)
 
     def test_list(self, printOut=True, length=None):
-        client = APIClient()
+        url = reverse('app_course:reverse')
         length = length if length is not None else NUM_COURSE
 
-        response = client.get(self.url + 'reverse')
+        response = self.client.get(url)
         self.assertEqual(
             response.status_code,
             LIST_RESPONSE['status'],
@@ -169,8 +162,7 @@ class CourseTest(APITestCase):
         return response
 
     def test_get_tags(self):
-        client = APIClient()
-        url = self.url + 'tag/get'
+        url = reverse('app_course:get_tag')
         limit = 5
 
         def check_tags(data):
@@ -184,17 +176,16 @@ class CourseTest(APITestCase):
                 )
                 i += 1
 
-        response = client.get(url)
+        response = self.client.get(url)
         self.assertEqual(len(response.data), NUM_COURSE)
         check_tags(response.data)
 
-        response = client.get(url, data={'limit': limit})
+        response = self.client.get(url, data={'limit': limit})
         self.assertEqual(len(response.data), limit)
         check_tags(response.data)
 
     def test_recommend_tags(self):
-        client = APIClient()
-        url = self.url + 'tag/find'
+        url = reverse('app_course:find_tag')
 
         def check_even_odd(data, even):
             prefix = 'even' if even else 'odd'
@@ -212,8 +203,8 @@ class CourseTest(APITestCase):
                 )
                 i += 2
 
-        response = client.get(url, data={'txt': 'ev'})
+        response = self.client.get(url, data={'txt': 'ev'})
         check_even_odd(response.data, True)
 
-        response = client.get(url, data={'txt': 'od'})
+        response = self.client.get(url, data={'txt': 'od'})
         check_even_odd(response.data, False)

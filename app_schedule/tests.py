@@ -1,16 +1,17 @@
 from django.contrib.auth import get_user_model
+from django.urls import reverse
+
 from rest_framework import status
 from rest_framework.test import (APIClient, APITestCase)
 
+from app_class.tests import (create_class, create_special_student)
 from master_api.utils import (
     prettyPrint, compare_dict, convert_time, prettyStr
 )
 from master_api.views import (
     CREATE_RESPONSE, EDIT_RESPONSE, GET_RESPONSE, DELETE_RESPONSE, LIST_RESPONSE
 )
-from master_db.models import (Course, ClassMetadata, Schedule)
-
-from app_class.tests import (create_class, create_special_student)
+from master_db.models import Schedule
 
 CustomUser = get_user_model()
 NUM_STUDENT_EACH = 10
@@ -28,7 +29,8 @@ def create_sched(desc=0, classes=None):
 
 
 class ScheduleTest(APITestCase):
-    url = '/api/v1/schedule/'
+    url = reverse('app_schedule:schedule_mgmt')
+    client = APIClient()
 
     def setUp(self):
         self.classes = [create_class(0), create_class(1)]
@@ -38,9 +40,6 @@ class ScheduleTest(APITestCase):
             self.scheds.append(create_sched(i, self.classes[i % 2]))
 
     def test_successful_created(self):
-        client = APIClient()
-        url = self.url + 'create'
-
         # Format: YYYY-MM-DD HH:MM[:ss[.uuuuuu]][TZ]
         data = {
             'classroom': self.classes[0].uuid,
@@ -49,18 +48,19 @@ class ScheduleTest(APITestCase):
             'desc': 'Newly created'
         }
 
-        response = client.post(url, data)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        response = self.client.post(self.url, data)
+        self.assertEqual(
+            response.status_code,
+            CREATE_RESPONSE['status'],
+            msg=prettyStr(response.data)
+        )
 
         self.test_list(False, NUM_SCHED + 1)
 
     def test_successful_deleted(self):
-        client = APIClient()
-        url = self.url + 'delete'
-
         # Check response
         delete_uuid = self.scheds[0].uuid
-        response = client.delete(url, data={'uuid': delete_uuid})
+        response = self.client.delete(self.url, data={'uuid': delete_uuid})
         self.assertEqual(
             response.status_code,
             DELETE_RESPONSE['status'],
@@ -77,7 +77,6 @@ class ScheduleTest(APITestCase):
         )
 
     def test_successful_editted(self):
-        client = APIClient()
         classes = create_class(69)
 
         edit_uuid = str(self.scheds[0].uuid)
@@ -89,7 +88,7 @@ class ScheduleTest(APITestCase):
             'desc': 'Description modified'
         }
 
-        response = client.patch(self.url + 'edit', data=data)
+        response = self.client.patch(self.url, data=data)
 
         self.assertEqual(
             response.status_code,
@@ -120,21 +119,26 @@ class ScheduleTest(APITestCase):
         self.assertTrue(found, msg="Not found in db")
 
     def test_successful_get(self):
-        client = APIClient()
-        url = self.url + 'get'
         get_uuid = str(self.scheds[0].uuid)
 
-        response = client.get(url, data={'uuid': get_uuid})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response = self.client.get(self.url, data={'uuid': get_uuid})
+        self.assertEqual(
+            response.status_code,
+            GET_RESPONSE['status'],
+            msg=prettyStr(response.data)
+        )
         self.assertEqual(response.data['uuid'], get_uuid)
 
     def test_list(self, printOut=True, length=None):
-        client = APIClient()
-        url = self.url + 'reverse'
+        url = reverse('app_schedule:reverse')
         length = length if length is not None else NUM_SCHED
 
-        response = client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response = self.client.get(url)
+        self.assertEqual(
+            response.status_code,
+            LIST_RESPONSE['status'],
+            msg=prettyStr(response.data)
+        )
         self.assertEqual(len(response.data), length)
 
         if printOut:
@@ -145,7 +149,9 @@ class ScheduleTest(APITestCase):
             return response
 
         # Special case for listing schedules in a given class
-        response = client.get(url, data={'class_uuid': self.classes[1].uuid})
+        response = self.client.get(
+            url, data={'class_uuid': self.classes[1].uuid}
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), int(NUM_SCHED / 2))
 
@@ -171,7 +177,7 @@ class ScheduleTest(APITestCase):
                 s.classroom.students.add(std)
 
         student_uuid = std.uuid
-        response = client.get(url, data={'student_uuid': student_uuid})
+        response = self.client.get(url, data={'student_uuid': student_uuid})
 
         # Check for student presence in every schedule
         for d in response.data:

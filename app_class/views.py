@@ -1,7 +1,5 @@
-from django.shortcuts import _get_queryset
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
-from django.views.decorators.csrf import csrf_protect
 
 from rest_framework import (exceptions, status)
 from rest_framework.permissions import AllowAny  # TODO Remove
@@ -39,7 +37,6 @@ class ClassStudentView(APIView):
     permission_classes = [AllowAny]  # TODO Remove
 
     # This is for adding student
-    # TODO Switch to POST
     def patch(self, request):
         """
             Take in uuid, student_uuids. Param uuid represents class

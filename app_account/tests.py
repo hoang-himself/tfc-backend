@@ -4,17 +4,14 @@ from django.urls import reverse
 
 from PIL import Image
 
-from rest_framework import status
 from rest_framework.test import (APIClient, APITestCase)
 
-from app_course.tests import create_course
-from master_db.models import Course, ClassMetadata, PHONE_REGEX
-from master_api.utils import (prettyPrint, prettyStr, compare_dict)
+from master_api.utils import (prettyPrint, prettyStr)
 from master_api.views import (
     CREATE_RESPONSE, EDIT_RESPONSE, DELETE_RESPONSE, GET_RESPONSE, LIST_RESPONSE
 )
+from master_db.models import PHONE_REGEX
 
-import json
 import rstr
 import io
 
@@ -23,7 +20,7 @@ NUM_USER = 10
 
 
 class TestUser(APITestCase):
-    url = '/api/v1/account/'
+    url = reverse('app_account:user_mgmt')
     client = APIClient()
 
     def setUp(self):
@@ -57,8 +54,6 @@ class TestUser(APITestCase):
         return file
 
     def test_successful_created(self):
-        url = self.url + 'create'
-
         data = {
             'email': 'someuser@tfc.com',
             'password': 'somepassword',
@@ -74,7 +69,7 @@ class TestUser(APITestCase):
             'last_login': '2010-12-12T13:27:57',
         }
 
-        response = self.client.post(url, data)
+        response = self.client.post(self.url, data)
         self.assertEqual(
             response.status_code,
             CREATE_RESPONSE['status'],
@@ -86,10 +81,13 @@ class TestUser(APITestCase):
     def test_list(self, printOut=True, length=None):
         length = length if length is not None else NUM_USER
         client = APIClient()
-        url = self.url + 'get'
 
-        response = client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response = client.get(self.url)
+        self.assertEqual(
+            response.status_code,
+            LIST_RESPONSE['status'],
+            msg=prettyStr(response.data)
+        )
         self.assertEqual(len(response.data), length)
         if printOut:
             prettyPrint(response.data)
@@ -97,7 +95,6 @@ class TestUser(APITestCase):
             return response
 
     def test_editted(self):
-        url = self.url + 'edit'
         edit_uuid = self.users[0].uuid
 
         data = {
@@ -106,7 +103,7 @@ class TestUser(APITestCase):
             'password': 'newpassword'
         }
 
-        response = self.client.patch(url, data)
+        response = self.client.patch(self.url, data)
         self.assertEqual(
             response.status_code,
             EDIT_RESPONSE['status'],
@@ -114,10 +111,9 @@ class TestUser(APITestCase):
         )
 
     def test_successful_deleted(self):
-        url = self.url + 'delete'
         delete_uuid = self.users[0].uuid
 
-        response = self.client.delete(url, {'uuid': delete_uuid})
+        response = self.client.delete(self.url, {'uuid': delete_uuid})
         self.assertEqual(
             response.status_code,
             DELETE_RESPONSE['status'],

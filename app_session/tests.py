@@ -1,17 +1,15 @@
 from django.contrib.auth import get_user_model
+from django.urls import reverse
+
 from rest_framework import status
 from rest_framework.test import (APIClient, APITestCase)
 
-from master_api.utils import (
-    prettyPrint, compare_dict, convert_time, prettyStr
-)
+from app_schedule.tests import create_sched
+from master_api.utils import (prettyPrint, compare_dict, prettyStr)
 from master_api.views import (
     CREATE_RESPONSE, EDIT_RESPONSE, GET_RESPONSE, DELETE_RESPONSE, LIST_RESPONSE
 )
-from master_db.models import (Schedule, Session)
-
-from app_schedule.tests import create_sched
-from app_class.tests import create_special_student
+from master_db.models import Session
 
 CustomUser = get_user_model()
 NUM_SESSION = 10
@@ -34,7 +32,8 @@ def create_session(desc=0, sched=None):
 
 
 class SessionTest(APITestCase):
-    url = '/api/v1/session/'
+    url = reverse('app_session:session_mgmt')
+    client = APIClient()
 
     def setUp(self):
         self.sched = create_sched()
@@ -44,8 +43,6 @@ class SessionTest(APITestCase):
             self.sessions.append(create_session(i, self.sched))
 
     def test_successful_created(self):
-        client = APIClient()
-        url = self.url + 'create'
         sched = create_sched(69)
 
         data = {
@@ -56,7 +53,7 @@ class SessionTest(APITestCase):
             'status': False
         }
 
-        response = client.post(url, data)
+        response = self.client.post(self.url, data)
         self.assertEqual(
             response.status_code,
             status.HTTP_201_CREATED,
@@ -66,12 +63,9 @@ class SessionTest(APITestCase):
         self.test_list(False, NUM_SESSION + 1)
 
     def test_successful_deleted(self):
-        client = APIClient()
-        url = self.url + 'delete'
-
         # Check response
         delete_uuid = self.sessions[0].uuid
-        response = client.delete(url, data={'uuid': delete_uuid})
+        response = self.client.delete(self.url, data={'uuid': delete_uuid})
         self.assertEqual(
             response.status_code,
             DELETE_RESPONSE['status'],
@@ -88,8 +82,6 @@ class SessionTest(APITestCase):
         )
 
     def test_successful_editted(self):
-        client = APIClient()
-
         edit_uuid = str(self.sessions[0].uuid)
         data = {
             'uuid': edit_uuid,
@@ -98,7 +90,7 @@ class SessionTest(APITestCase):
             'homework': 19
         }
 
-        response = client.patch(self.url + 'edit', data=data)
+        response = self.client.patch(self.url, data=data)
 
         self.assertEqual(
             response.status_code,
@@ -127,21 +119,26 @@ class SessionTest(APITestCase):
         self.assertTrue(found, msg="Not found in db")
 
     def test_successful_get(self):
-        client = APIClient()
-        url = self.url + 'get'
         get_uuid = str(self.sessions[0].uuid)
 
-        response = client.get(url, {'uuid': get_uuid})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response = self.client.get(self.url, {'uuid': get_uuid})
+        self.assertEqual(
+            response.status_code,
+            GET_RESPONSE['status'],
+            msg=prettyStr(response.data)
+        )
         self.assertEqual(response.data['uuid'], get_uuid)
 
     def test_list(self, printOut=True, length=None):
-        client = APIClient()
-        url = self.url + 'reverse'
+        url = reverse('app_session:reverse')
         length = length if length is not None else NUM_SESSION
 
-        response = client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response = self.client.get(url)
+        self.assertEqual(
+            response.status_code,
+            LIST_RESPONSE['status'],
+            msg=prettyStr(response.data)
+        )
         self.assertEqual(len(response.data), length)
 
         if printOut:
