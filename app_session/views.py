@@ -2,7 +2,6 @@ from django.core.exceptions import ValidationError
 
 from rest_framework import (exceptions, status)
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny  # TODO Remove
 from rest_framework.views import APIView
 
 from master_db.models import Session
@@ -12,12 +11,8 @@ from master_api.views import (
     create_object, edit_object, delete_object, get_object
 )
 
-# Create your views here.
-
 
 class SessionView(APIView):
-    permission_classes = [AllowAny]  # TODO Remove
-
     def post(self, request):
         return create_object(Session, data=request.data)
 
@@ -32,8 +27,6 @@ class SessionView(APIView):
 
 
 class FindSessionView(APIView):
-    permission_classes = [AllowAny]  # TODO Remove
-
     def get(self, request):
         """
             Take in class_uuid (optional), schedule_uuid (optional), student_uuid (optional).

@@ -42,6 +42,22 @@ class SessionTest(APITestCase):
         for i in range(NUM_SESSION):
             self.sessions.append(create_session(i, self.sched))
 
+        # Create user to generate header
+        CustomUser.objects.create_user(
+            email='user1@tfc.com',
+            password='iamuser1',
+            first_name='First',
+            last_name='Last',
+            birth_date='2001-07-31',
+            mobile='0123456789',
+            male=True,
+            address='My lovely home'
+        )
+        data = {'email': 'user1@tfc.com', 'password': 'iamuser1'}
+        response = self.client.post(reverse('app_auth:login'), data=data)
+        access_token = response.data.get('token').get('access')
+        self.client.credentials(HTTP_AUTHORIZATION=f'JWT {access_token}')
+
     def test_successful_created(self):
         sched = create_sched(69)
 
@@ -56,7 +72,7 @@ class SessionTest(APITestCase):
         response = self.client.post(self.url, data)
         self.assertEqual(
             response.status_code,
-            status.HTTP_201_CREATED,
+            CREATE_RESPONSE['status'],
             msg=prettyStr(response.data)
         )
 

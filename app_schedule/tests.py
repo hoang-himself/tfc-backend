@@ -39,6 +39,22 @@ class ScheduleTest(APITestCase):
         for i in range(NUM_SCHED):
             self.scheds.append(create_sched(i, self.classes[i % 2]))
 
+        # Create user to generate header
+        CustomUser.objects.create_user(
+            email='user1@tfc.com',
+            password='iamuser1',
+            first_name='First',
+            last_name='Last',
+            birth_date='2001-07-31',
+            mobile='0123456789',
+            male=True,
+            address='My lovely home'
+        )
+        data = {'email': 'user1@tfc.com', 'password': 'iamuser1'}
+        response = self.client.post(reverse('app_auth:login'), data=data)
+        access_token = response.data.get('token').get('access')
+        self.client.credentials(HTTP_AUTHORIZATION=f'JWT {access_token}')
+
     def test_successful_created(self):
         # Format: YYYY-MM-DD HH:MM[:ss[.uuuuuu]][TZ]
         data = {

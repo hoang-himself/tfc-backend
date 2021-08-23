@@ -99,6 +99,22 @@ class ClassTest(APITestCase):
             # Create class
             self.classes.append(create_class(i, self.course))
 
+        # Create user to generate header
+        CustomUser.objects.create_user(
+            email='user1@tfc.com',
+            password='iamuser1',
+            first_name='First',
+            last_name='Last',
+            birth_date='2001-07-31',
+            mobile='0123456789',
+            male=True,
+            address='My lovely home'
+        )
+        data = {'email': 'user1@tfc.com', 'password': 'iamuser1'}
+        response = self.client.post(reverse('app_auth:login'), data=data)
+        access_token = response.data.get('token').get('access')
+        self.client.credentials(HTTP_AUTHORIZATION=f'JWT {access_token}')
+
     def test_successful_create(self):
         teacher, students = create_teacher_students(69)
 
@@ -254,6 +270,22 @@ class ClassStudentTest(APITestCase):
             # Create class
             self.classes.append(create_class(i, self.course))
 
+        # Create user to generate header
+        CustomUser.objects.create_user(
+            email='user1@tfc.com',
+            password='iamuser1',
+            first_name='First',
+            last_name='Last',
+            birth_date='2001-07-31',
+            mobile='0123456789',
+            male=True,
+            address='My lovely home'
+        )
+        data = {'email': 'user1@tfc.com', 'password': 'iamuser1'}
+        response = self.client.post(reverse('app_auth:login'), data=data)
+        access_token = response.data.get('token').get('access')
+        self.client.credentials(HTTP_AUTHORIZATION=f'JWT {access_token}')
+
     def test_successful_addStd(self):
         class_uuid = str(self.classes[0].uuid)
         std_uuid = str([str(create_special_student().uuid)
@@ -282,3 +314,10 @@ class ClassStudentTest(APITestCase):
                 str([str(std.uuid)
                      for std in klass.students.all()]).replace("'", '"')
         }
+
+        response = self.client.delete(self.url, data=data)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+            msg=prettyStr(response.data)
+        )

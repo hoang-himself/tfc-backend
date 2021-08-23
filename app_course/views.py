@@ -1,13 +1,11 @@
 from django.contrib.auth import get_user_model
 
 from rest_framework import (exceptions, status)
-from rest_framework.permissions import AllowAny  # TODO Remove
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from master_db.models import Course
 from master_db.serializers import CourseSerializer
-from master_api.utils import (get_by_uuid, formdata_bool)
 from master_api.views import (
     create_object, edit_object, get_object, delete_object
 )
@@ -16,8 +14,6 @@ CustomUser = get_user_model()
 
 
 class CourseView(APIView):
-    permission_classes = [AllowAny]  # TODO Remove
-
     def post(self, request):
         return create_object(Course, data=request.data)
 
@@ -32,8 +28,6 @@ class CourseView(APIView):
 
 
 class TagView(APIView):
-    permission_classes = [AllowAny]  # TODO Remove
-
     def get(self, request):
         """
             Take in limit (optional)
@@ -52,8 +46,6 @@ class TagView(APIView):
 
 
 class FindTagView(APIView):
-    permission_classes = [AllowAny]  # TODO Remove
-
     def get(self, request):
         """
             Take in txt.
@@ -64,15 +56,12 @@ class FindTagView(APIView):
         if txt is None or txt == '':
             return Response()
 
-        tag_names = Course.tags.filter(name__contains=txt
-                                      ).values_list('name', flat=True)
+        tag_names = Course.tags.filter(name__contains=txt).values_list('name', flat=True)
 
         return Response(tag_names)
 
 
 class FindCourseView(APIView):
-    permission_classes = [AllowAny]  # TODO Remove
-
     def get(self, request):
         """
             Take in tags (optional).

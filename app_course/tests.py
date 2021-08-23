@@ -1,3 +1,4 @@
+from django.contrib.auth import get_user_model
 from django.urls import reverse
 
 from rest_framework.test import (APIClient, APITestCase)
@@ -10,7 +11,7 @@ from master_db.models import Course
 
 import json
 
-# Create your tests here.
+CustomUser = get_user_model()
 NUM_COURSE = 10
 
 
@@ -42,6 +43,22 @@ class CourseTest(APITestCase):
                     ]
                 )
             )
+
+        # Create user to generate header
+        CustomUser.objects.create_user(
+            email='user1@tfc.com',
+            password='iamuser1',
+            first_name='First',
+            last_name='Last',
+            birth_date='2001-07-31',
+            mobile='0123456789',
+            male=True,
+            address='My lovely home'
+        )
+        data = {'email': 'user1@tfc.com', 'password': 'iamuser1'}
+        response = self.client.post(reverse('app_auth:login'), data=data)
+        access_token = response.data.get('token').get('access')
+        self.client.credentials(HTTP_AUTHORIZATION=f'JWT {access_token}')
 
     def test_successful_created(self):
         data = {

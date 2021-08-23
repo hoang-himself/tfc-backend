@@ -2,7 +2,6 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 
 from rest_framework import (exceptions, status)
-from rest_framework.permissions import AllowAny  # TODO Remove
 from rest_framework.response import Response
 from rest_framework.serializers import RelatedField
 from rest_framework.views import APIView
@@ -18,8 +17,6 @@ CustomUser = get_user_model()
 
 
 class ClassView(APIView):
-    permission_classes = [AllowAny]  # TODO Remove
-
     def post(self, request):
         return create_object(ClassMetadata, data=request.data)
 
@@ -34,8 +31,6 @@ class ClassView(APIView):
 
 
 class ClassStudentView(APIView):
-    permission_classes = [AllowAny]  # TODO Remove
-
     # This is for adding student
     def patch(self, request):
         """
@@ -129,8 +124,6 @@ class SpecialClassSerializer(ClassMetadataSerializer):
 
 
 class FindClassView(APIView):
-    permission_classes = [AllowAny]  # TODO Remove
-
     def get(self, request):
         """
             Take in course_uuid (optional),student_uuid (optional), teacher_uuid (optional).

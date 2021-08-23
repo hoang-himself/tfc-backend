@@ -1,6 +1,5 @@
 from django.contrib.auth import get_user_model
 
-from rest_framework.permissions import AllowAny  # TODO Remove
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -15,8 +14,6 @@ CustomUser = get_user_model()
 
 
 class CalendarView(APIView):
-    permission_classes = [AllowAny]  # TODO Remove
-
     def post(self, request):
         return create_object(Calendar, data=request.data)
 
@@ -31,8 +28,6 @@ class CalendarView(APIView):
 
 
 class FindCalendarView(APIView):
-    permission_classes = [AllowAny]  # TODO Remove
-
     def get(self, request):
         """
             Take in user_uuid (optional).

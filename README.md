@@ -105,7 +105,7 @@ The space behind `JWT` is important.
 
 ### SECRET_KEY and JWT_KEY
 
-By default, this program reads the keys from shell environment variables, e.g. `export SECRET_KEY=<key>`
+By default, this program reads the keys from shell environment variables, i.e. `export SECRET_KEY=<key>`
 
 You can generate the keys using the Django shell at `python manage.py shell`
 
@@ -149,3 +149,7 @@ python manage.py createsuperuser_with_password \
 --password 'iamowner' \
 --preserve --no-input
 ```
+
+## TODO
+
+- Authorization

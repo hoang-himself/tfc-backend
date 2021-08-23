@@ -1,11 +1,9 @@
 from django.contrib.auth import get_user_model
 
-from rest_framework import (exceptions, status)
-from rest_framework.permissions import AllowAny  # TODO Remove
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from master_api.utils import (get_by_uuid, convert_time)
+from master_api.utils import get_by_uuid
 from master_api.views import (
     create_object, edit_object, delete_object, get_object
 )
@@ -16,8 +14,6 @@ CustomUser = get_user_model()
 
 
 class ScheduleView(APIView):
-    permission_classes = [AllowAny]  # TODO Remove
-
     def post(self, request):
         return create_object(Schedule, data=request.data)
 
@@ -32,8 +28,6 @@ class ScheduleView(APIView):
 
 
 class FindScheduleView(APIView):
-    permission_classes = [AllowAny]  # TODO Remove
-
     def get(self, request):
         """
             Take in class_uuid (optional), student_uuid (optional), teacher_uuid (optional).
