@@ -8,7 +8,6 @@ from taggit.managers import TaggableManager
 from .managers import CustomUserManager
 
 import uuid
-import datetime
 import os
 
 PHONE_REGEX = r'^(0)(3[2-9]|5[689]|7[06-9]|8[0-689]|9[0-46-9])[0-9]{7}$'
@@ -21,18 +20,6 @@ class TemplateModel(TimeStampedModel):
 
     class Meta:
         abstract = True
-
-
-#
-class Metatable(TemplateModel):
-    name = models.TextField(unique=True)
-
-    class Meta:
-        verbose_name = 'table'
-        verbose_name_plural = 'tables'
-
-    def __str__(self):
-        return self.name
 
 
 #
@@ -232,8 +219,18 @@ class Calendar(TemplateModel):
 
 #
 class Log(TemplateModel):
-    user = models.ForeignKey(CustomUser, on_delete=models.DO_NOTHING)
-    table = models.ForeignKey(Metatable, on_delete=models.DO_NOTHING)
+    """
+    #TODO
+    user = models.TextField()
+    action = models.TextField()
+    entity = models.TextField()
+    table = models.TextField()
+
+    # desc = f'User {self.user} {self.action} {self.entity} in table {self.table}
+    Eg: User ffffff-ffff-ffff-ffffff created aaaaaa-aaaa-aaaa-aaaaaa in table Class
+
+    Either use custom function or manager
+    """
 
     def __str__(self):
-        return self.short_desc
+        return self.desc
