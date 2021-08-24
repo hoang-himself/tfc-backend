@@ -7,8 +7,8 @@ from django.contrib.auth.models import Group
 from rest_framework import serializers
 
 from master_db.models import (
-    Metatable, Branch, Calendar, CustomUser, Setting, Course, ClassMetadata,
-    Schedule, Session, Log
+    Branch, Calendar, CustomUser, Setting, Course, ClassMetadata, Schedule,
+    Session, Log
 )
 from master_db import models
 from master_api.utils import validate_uuid4, prettyPrint
@@ -288,12 +288,6 @@ class EnhancedModelSerializer(serializers.ModelSerializer):
         if hasattr(self, '_data'):
             delattr(self, '_data')
         self.ignore = dict.fromkeys(self._ignore, True)
-
-
-class MetatableSerializer(EnhancedModelSerializer):
-    class Meta:
-        model = Metatable
-        exclude = ('id', )
 
 
 class BranchSerializer(EnhancedModelSerializer):

@@ -3,8 +3,8 @@ from django.contrib.auth.admin import UserAdmin
 
 from .forms import CustomUserCreationForm, CustomUserChangeForm
 from .models import (
-    Metatable, Branch, Calendar, Setting, CustomUser, Course, ClassMetadata,
-    Schedule, Session, Log
+    Branch, Calendar, Setting, CustomUser, Course, ClassMetadata, Schedule,
+    Session, Log
 )
 
 
@@ -88,7 +88,6 @@ class CustomUserAdmin(UserAdmin):
     )
 
 
-admin.site.register(Metatable)
 admin.site.register(Branch)
 admin.site.register(Calendar)
 admin.site.register(Setting)
