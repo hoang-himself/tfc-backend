@@ -94,7 +94,7 @@ cron format helper: [Link](https://crontab.guru/)
 
 ### JWT token
 
-On login, a JWT token is returned in the response body.
+On login, the access token is returned in the response body.
 Take this token, put it in the header according to this format
 
 ```text
