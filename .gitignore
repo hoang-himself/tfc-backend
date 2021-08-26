@@ -135,5 +135,6 @@ dmypy.json
 # Python file/folder for testing python features
 debug.py
 
-### Stop ignoring
+### Custom
+.vscode/
 !__init__.py
