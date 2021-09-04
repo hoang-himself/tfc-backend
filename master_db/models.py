@@ -55,6 +55,12 @@ def upload_avatar(instance, filename):
 
 
 class CustomUser(AbstractUser):
+    GENDER_CHOICES = (
+        ('M', 'Male'),
+        ('F', 'Female'),
+        ('O', 'Other'),
+    )
+
     username = None
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, blank=True)
     email = models.EmailField(unique=True)
@@ -67,7 +73,8 @@ class CustomUser(AbstractUser):
         max_length=15,
         unique=True
     )
-    male = models.BooleanField(null=True, blank=True)
+    male = models.BooleanField(null=True, blank=True)  # TODO Replace by gender
+    # gender = models.CharField(max_length=1, choices=GENDER_CHOICES, default='O')
     address = models.TextField(null=True, blank=True)
     avatar = models.ImageField(upload_to=upload_avatar, null=True, blank=True)
 

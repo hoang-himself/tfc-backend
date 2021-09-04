@@ -112,7 +112,7 @@ class ClassTest(APITestCase):
         )
         data = {'email': 'user1@tfc.com', 'password': 'iamuser1'}
         response = self.client.post(reverse('app_auth:login'), data=data)
-        access_token = response.data.get('token').get('access')
+        access_token = response.data.get('access')
         self.client.credentials(HTTP_AUTHORIZATION=f'JWT {access_token}')
 
     def test_successful_create(self):
@@ -283,7 +283,7 @@ class ClassStudentTest(APITestCase):
         )
         data = {'email': 'user1@tfc.com', 'password': 'iamuser1'}
         response = self.client.post(reverse('app_auth:login'), data=data)
-        access_token = response.data.get('token').get('access')
+        access_token = response.data.get('access')
         self.client.credentials(HTTP_AUTHORIZATION=f'JWT {access_token}')
 
     def test_successful_addStd(self):

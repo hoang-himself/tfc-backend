@@ -42,7 +42,7 @@ class TestUser(APITestCase):
         url = reverse('app_auth:login')
         data = {'email': 'user0@tfc.com', 'password': 'iamuser'}
         response = self.client.post(url, data=data)
-        token = response.data.get('token', None).get('access', None)
+        token = response.data.get('access', None)
         self.client.credentials(HTTP_AUTHORIZATION=f'JWT {token}')
 
     def generate_photo_file(self, color=(0, 155, 0)):

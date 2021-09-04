@@ -16,8 +16,8 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('taggit', '0001_initial'),
         ('auth', '0001_initial'),
+        ('taggit', '0001_initial'),
     ]
 
     operations = [
