@@ -13,6 +13,7 @@ class UsersManagersTests(APITestCase):
             last_name='Last',
             birth_date='2001-07-31',
             mobile='0123456789',
+            # TODO gender='M',
             male=True,
             address='My lovely home'
         )
@@ -22,6 +23,7 @@ class UsersManagersTests(APITestCase):
         self.assertEqual(user.last_name, 'Last')
         self.assertEqual(user.birth_date, '2001-07-31')
         self.assertEqual(user.mobile, '0123456789')
+        # TODO self.assertEqual(user.gender, 'M')
         self.assertTrue(user.male)
         self.assertEqual(user.address, 'My lovely home')
         self.assertTrue(user.is_active)
@@ -44,6 +46,7 @@ class UsersManagersTests(APITestCase):
             last_name='Last',
             birth_date='2001-08-31',
             mobile='0123456789',
+            # TODO gender='M',
             male=True,
             address='My lovely home'
         )
@@ -53,6 +56,7 @@ class UsersManagersTests(APITestCase):
         self.assertEqual(admin_user.last_name, 'Last')
         self.assertEqual(admin_user.birth_date, '2001-08-31')
         self.assertEqual(admin_user.mobile, '0123456789')
+        # self.assertEqual(admin_user.gender, 'M')
         self.assertTrue(admin_user.male)
         self.assertEqual(admin_user.address, 'My lovely home')
         self.assertTrue(admin_user.is_active)

@@ -17,6 +17,7 @@ import io
 
 CustomUser = get_user_model()
 NUM_USER = 10
+GENDERS = ['M','F','O']
 
 
 class TestUser(APITestCase):
