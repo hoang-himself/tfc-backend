@@ -1,17 +1,14 @@
-from django.contrib.auth.hashers import (
-    check_password,
-    make_password,
-)
-from django.contrib.auth.models import Group
-
 from rest_framework import serializers
+from django.contrib.auth.hashers import make_password
+from django.contrib.auth.models import Group
+from django.contrib.admin.models import (LogEntry, ADDITION, CHANGE)
+from django.contrib.contenttypes.models import ContentType
 
+from master_api.utils import validate_uuid4
 from master_db.models import (
     Branch, Calendar, CustomUser, Setting, Course, ClassMetadata, Schedule,
-    Session, Log
+    Session
 )
-from master_db import models
-from master_api.utils import validate_uuid4, prettyPrint
 
 # For custom classes
 from collections import OrderedDict
@@ -33,20 +30,20 @@ MANY_RELATION_KWARGS = (
     'label', 'help_text', 'style', 'error_messages', 'allow_empty',
     'html_cutoff', 'html_cutoff_text'
 )
-"""
-    * UUID Related Field: An alternative to PrimaryKeyRelatedField,
-    * but instead of pk we use uuid with model's UUIDField
-        + Writting relation fields now requires uuid instead of id
-        + Many-to-many now take in a list of uuids in form of json
-        format: list = '["elem1", "elem2", "elem3"]'
-        + ModelRelatedField naming: When naming a custom related
-        field, it is recommend to name the field with the name of
-        the corresponding model in master_db.model, or else
-        queryset will not be set.
-"""
 
 
 class UUIDRelatedField(serializers.RelatedField):
+    """
+        * UUID Related Field: An alternative to PrimaryKeyRelatedField,
+        * but instead of pk we use uuid with model's UUIDField
+            + Writting relation fields now requires uuid instead of id
+            + Many-to-many now take in a list of uuids in form of json
+            format: list = '["elem1", "elem2", "elem3"]'
+            + ModelRelatedField naming: When naming a custom related
+            field, it is recommend to name the field with the name of
+            the corresponding model in master_db.model, or else
+            queryset will not be set.
+    """
     default_error_messages = {
         'required':
             _('This field is required.'),
@@ -123,26 +120,24 @@ class UUIDManyRelatedField(serializers.ManyRelatedField):
             yield self.child_relation.to_internal_value(s)
 
 
-"""
-    * Enhanced serializer: Include new and improve already existing
-    * features
-        + non_updatable in class Meta: fields declared in this will
-        not be updated, but can be created.
-        + ignore in class Meta: ignore fields when calling .data.
-        + ignore_field: dynamically add fields to ignore.
-        + clear_ignore: reset ignore to its original state.
-        + list_serializer_class: Automatically set to
-        EnhancedListSerializer for further customization.
-        + Update ignore required fields: Updating models now does
-        not need required fields, ie. name is required in Course
-        but when update we don't specify name so an error will be
-        raised, Enhanced serializer resolves this.
-        + TemplateBase: to use this serializer the model's metaclass
-        must be TemplateBase or its subclass.
-"""
-
-
 class EnhancedListSerializer(serializers.ListSerializer):
+    """
+        * Enhanced serializer: Include new and improve already existing
+        * features
+            + non_updatable in class Meta: fields declared in this will
+            not be updated, but can be created.
+            + ignore in class Meta: ignore fields when calling .data.
+            + ignore_field: dynamically add fields to ignore.
+            + clear_ignore: reset ignore to its original state.
+            + list_serializer_class: Automatically set to
+            EnhancedListSerializer for further customization.
+            + Update ignore required fields: Updating models now does
+            not need required fields, ie. name is required in Course
+            but when update we don't specify name so an error will be
+            raised, Enhanced serializer resolves this.
+            + TemplateBase: to use this serializer the model's metaclass
+            must be TemplateBase or its subclass.
+    """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if not isinstance(self.child, EnhancedModelSerializer):
@@ -163,6 +158,37 @@ class EnhancedListSerializer(serializers.ListSerializer):
         self.child.clear_ignore()
 
 
+def _log_create(instance, user):
+    if instance.pk:
+        LogEntry.objects.log_action(
+            user_id=user.pk,
+            content_type_id=ContentType.objects.get_for_model(instance).pk,
+            object_id=instance.pk,
+            object_repr=str(instance),
+            action_flag=ADDITION,
+            change_message=[{
+                'added': {}
+            }],
+        )
+    return instance
+
+
+def _log_edit(instance, user):
+    if instance.pk:
+        LogEntry.objects.log_action(
+            user_id=user.pk,
+            content_type_id=ContentType.objects.get_for_model(instance).pk,
+            object_id=instance.pk,
+            object_repr=str(instance),
+            action_flag=CHANGE,
+            change_message=[{
+                'changed': {}
+            }],
+        )
+    return instance
+
+
+# TODO def create, def update
 class EnhancedModelSerializer(serializers.ModelSerializer):
     serializer_related_field = UUIDRelatedField
 
@@ -380,7 +406,7 @@ class SessionSerializer(EnhancedModelSerializer):
         non_updatable = ('schedule', 'student')
 
 
-class LogSerializer(EnhancedModelSerializer):
+class LogEntrySerializer(serializers.ModelSerializer):
     class Meta:
-        model = Log
-        exclude = ('id', )
+        model = LogEntry
+        fields = '__all__'

@@ -1,7 +1,9 @@
 from django.contrib.auth import get_user_model
+from django.contrib.admin.models import (LogEntry, DELETION)
+from django.contrib.contenttypes.models import ContentType
 
 from rest_framework import (exceptions, status)
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import (api_view, permission_classes)
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
@@ -18,10 +20,7 @@ SERIALIZERS = {
     CustomUser: serializers.CustomUserSerializer,
 }
 
-CREATE_RESPONSE = {
-    'data': 'Ok',
-    'status': status.HTTP_201_CREATED,
-}
+CREATE_RESPONSE = {'data': 'Ok', 'status': status.HTTP_201_CREATED}
 
 EDIT_RESPONSE = {'data': 'Ok', 'status': status.HTTP_200_OK}
 
@@ -30,6 +29,21 @@ DELETE_RESPONSE = {'data': 'Deleted', 'status': status.HTTP_200_OK}
 GET_RESPONSE = {'status': status.HTTP_200_OK}
 
 LIST_RESPONSE = {'status': status.HTTP_200_OK}
+
+
+def _log_delete(instance, user):
+    if instance.pk:
+        LogEntry.objects.log_action(
+            user_id=user.pk,
+            content_type_id=ContentType.objects.get_for_model(instance).pk,
+            object_id=instance.pk,
+            object_repr=str(instance),
+            action_flag=DELETION,
+            change_message=[{
+                'deleted': {}
+            }],
+        )
+    return instance
 
 
 def create_object(model, **kwargs):
@@ -84,6 +98,7 @@ def delete_object(model, **kwargs):
         uuid = data['uuid']
     except KeyError:
         raise exceptions.ParseError({'uuid': 'This field is required.'})
+    # TODO Log then delete
     get_by_uuid(model, uuid).delete()
     return Response(**DELETE_RESPONSE)
 
