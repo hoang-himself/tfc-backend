@@ -13,10 +13,10 @@ import os
 PHONE_REGEX = r'^(0)(3[2-9]|5[689]|7[06-9]|8[0-689]|9[0-46-9])[0-9]{7}$'
 USER_IMAGE_PATH = 'users/'
 GENDER_CHOICES = (
-        ('M', 'Male'),
-        ('F', 'Female'),
-        ('O', 'Other'),
-    )
+    ('M', 'Male'),
+    ('F', 'Female'),
+    ('O', 'Other'),
+)
 
 
 class TemplateModel(TimeStampedModel):
@@ -225,21 +225,3 @@ class Calendar(TemplateModel):
 
     def __str__(self):
         return f'{self.name}'
-
-
-# TODO
-class Log(TemplateModel):
-    """
-    user = models.TextField()
-    action = models.TextField()
-    entity = models.TextField()
-    table = models.TextField()
-
-    # desc = f'User {self.user} {self.action} {self.entity} in table {self.table}
-    Eg: User ffffff-ffff-ffff-ffffff created aaaaaa-aaaa-aaaa-aaaaaa in table Class
-
-    Either use custom function or manager
-    """
-
-    def __str__(self):
-        return self.desc
