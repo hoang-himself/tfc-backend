@@ -1,6 +1,5 @@
 from django.core.exceptions import ValidationError
 from django.shortcuts import _get_queryset
-
 from rest_framework.exceptions import NotFound, ParseError
 
 import uuid
@@ -74,7 +73,7 @@ def get_object_or_404(klass, name_print=None, *args, **kwargs):
 
 def get_by_uuid(klass, uuid):
     """
-    Get object by uuid using get_object_or_404 with additional 
+    Get object by uuid using get_object_or_404 with additional
     error handling (invalid uuid)
     """
     try:
@@ -120,7 +119,7 @@ def get_list_or_404(klass, name_print, *args, **kwargs):
 # For django test
 def compare_dict(obj, dict1, dict2):
     """
-        Compare every key in dict1 to that of dict2. This means if 
+        Compare every key in dict1 to that of dict2. This means if
         dict2 has keys that are not in dict1, it will not be checked.
     """
     for key, value in dict1.items():
@@ -141,10 +140,10 @@ def convert_primitive(elem):
         Django response often be OrderedDict or QuerySet so we
         should convert every element to python dict and list.
 
-        If an element is neither a dict nor list it will be 
+        If an element is neither a dict nor list it will be
         converted to string.
 
-        Single quote (') in a string will be converted to back 
+        Single quote (') in a string will be converted to back
         quote (`) for better visualization
     """
     klass = elem.__class__
