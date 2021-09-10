@@ -64,7 +64,7 @@ six==1.16.0
     #   django-annoying
     #   django-dbbackup
     #   django-taggit-serializer
-sqlparse==0.4.1
+sqlparse==0.4.2
     # via django
 yapf==0.31.0
     # via tfc-backend (setup.py)
