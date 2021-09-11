@@ -39,6 +39,7 @@ setup(
         'django-extensions',
         'django-filter',
         'django-model-utils',
+        'django-simple-history',
         'django-cron',
         'djangorestframework',
         'djangorestframework-simplejwt',

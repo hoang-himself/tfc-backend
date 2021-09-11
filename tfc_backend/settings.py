@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'django_cron',
     'rest_framework',
     'rest_framework_simplejwt',
+    'simple_history',
     'taggit',
 
     # Custom

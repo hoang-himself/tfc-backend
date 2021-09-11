@@ -35,6 +35,8 @@ django-filter==2.4.0
     # via tfc-backend (setup.py)
 django-model-utils==4.1.1
     # via tfc-backend (setup.py)
+django-simple-history==3.0.0
+    # via tfc-backend (setup.py)
 django-taggit==1.5.1
     # via
     #   django-taggit-serializer

@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 
 from rest_framework import (exceptions, status)
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import (api_view, permission_classes)
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
@@ -18,10 +18,7 @@ SERIALIZERS = {
     CustomUser: serializers.CustomUserSerializer,
 }
 
-CREATE_RESPONSE = {
-    'data': 'Ok',
-    'status': status.HTTP_201_CREATED,
-}
+CREATE_RESPONSE = {'data': 'Ok', 'status': status.HTTP_201_CREATED}
 
 EDIT_RESPONSE = {'data': 'Ok', 'status': status.HTTP_200_OK}
 
