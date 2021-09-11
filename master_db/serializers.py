@@ -188,7 +188,6 @@ def _log_edit(instance, user):
     return instance
 
 
-# TODO def create, def update
 class EnhancedModelSerializer(serializers.ModelSerializer):
     serializer_related_field = UUIDRelatedField
 
@@ -263,6 +262,18 @@ class EnhancedModelSerializer(serializers.ModelSerializer):
 
         return ret
 
+    # def create(self, validated_data):
+    #     user = self.context['request'].user
+    #     instance = self.Meta.model.objects.create(**validated_data)
+    #     _log_create(instance, user)
+    #     return instance
+
+    # def update(self, validated_data):
+    #     user = self.context['request'].user
+    #     instance = self.Meta.model.objects.create(**validated_data)
+    #     _log_edit(instance, user)
+    #     return instance
+
     @property
     def _writable_fields(self):
         for name, field in self.fields.items():
@@ -335,6 +346,18 @@ class SettingSerializer(EnhancedModelSerializer):
 
 
 class GroupSerializer(serializers.ModelSerializer):
+    # def create(self, validated_data):
+    #     user = self.context['request'].user
+    #     instance = self.Meta.model.objects.create(**validated_data)
+    #     _log_create(instance, user)
+    #     return instance
+
+    # def update(self, validated_data):
+    #     user = self.context['request'].user
+    #     instance = self.Meta.model.objects.create(**validated_data)
+    #     _log_edit(instance, user)
+    #     return instance
+
     class Meta:
         model = Group
         fields = ('name', )
