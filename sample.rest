@@ -1,0 +1,6 @@
+@hostname=http://localhost:8000
+@branch={{hostname}}/api/v1
+@contentType=application/json
+
+###
+GET {{branch}}/ping
